@@ -1,4 +1,5 @@
-# LIFEBOAT
+![RESCUE LIFEBOAT](Rescue_Lifeboat.png)
+
 ### NFT Rescue Tool for Compromised EVM Wallets
 
 **Free. Open source. No percentage. No catch.**
@@ -138,7 +139,7 @@ into the Terminal window. This pastes the folder path. Press Enter. Now you're
 in that folder and can run commands like `./start.sh` or `npm install`.
 
 ---
-
+Rescue_Lifeboat_logo.png
 ## How to Use It
 
 ### Tab 1: RESCUE (Scan)
@@ -199,7 +200,7 @@ this tab helps you transfer ownership to your clean wallet. This is a
 separate operation from rescuing NFTs.
 
 ---
-
+Rescue_Lifeboat_alt_background.png
 ## Troubleshooting
 
 ### "Module not found" or "Cannot find package"
@@ -268,7 +269,7 @@ LIFEBOAT/
 ```
 
 ---
-
+radar.jpg
 ## Who Made This
 
 **Kane Mayfield** — artist, builder, the guy who got hacked. I'm your neighbor.
