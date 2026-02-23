@@ -20,7 +20,7 @@ const PORT = 3000;
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 
 // ── CORS for local development ──
 app.use((req, res, next) => {
@@ -365,12 +365,12 @@ app.post('/api/validate', (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Catch-all for SPA
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
