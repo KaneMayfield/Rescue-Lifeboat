@@ -139,7 +139,7 @@ into the Terminal window. This pastes the folder path. Press Enter. Now you're
 in that folder and can run commands like `./start.sh` or `npm install`.
 
 ---
-![LIFEBOAT Logo](Rescue_Lifeboat_logo.png)
+![LIFEBOAT Logo](logo.png)
 ## How to Use It
 
 ### Tab 1: RESCUE (Scan)
