@@ -200,7 +200,7 @@ this tab helps you transfer ownership to your clean wallet. This is a
 separate operation from rescuing NFTs.
 ![video](background.png)
 ---
-![Background](Rescue Lifeboat video.mp4)
+![Background](demo.mp4)
 ## Troubleshooting
 
 ### "Module not found" or "Cannot find package"
