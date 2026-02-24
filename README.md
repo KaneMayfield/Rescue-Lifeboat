@@ -198,9 +198,9 @@ If there's anything left after the rescue, sweep it here.
 If you have a Manifold creator contract connected to your compromised wallet,
 this tab helps you transfer ownership to your clean wallet. This is a
 separate operation from rescuing NFTs.
-![video](background.png)
+![background](background.png)
 ---
-![Background](demo.mp4)
+![demo](demo.mp4)
 ## Troubleshooting
 
 ### "Module not found" or "Cannot find package"
