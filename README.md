@@ -200,7 +200,15 @@ this tab helps you transfer ownership to your clean wallet. This is a
 separate operation from rescuing NFTs.
 ![background](background.png)
 ---
-![demo](demo.mp4)
+
+
+
+
+https://github.com/user-attachments/assets/aa12d7f5-e2cd-4769-8a71-a478da1b3b35
+
+
+
+
 ## Troubleshooting
 
 ### "Module not found" or "Cannot find package"
