@@ -373,11 +373,15 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+export { app };
+
 // ══════════════════════════════════════════════════════════════════════════════
-// START SERVER
+// START SERVER (only when run directly, not when imported by tests)
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.listen(PORT, () => {
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+
+if (isMain) app.listen(PORT, () => {
   console.log('');
   console.log('╔══════════════════════════════════════════════════════════════╗');
   console.log('║                     LIFEBOAT V10                              ║');

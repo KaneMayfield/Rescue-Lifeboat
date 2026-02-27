@@ -113,7 +113,7 @@ function getProvider(chainKey, alchemyKey) {
   return new ethers.JsonRpcProvider(rpc);
 }
 
-function validateAddress(addr) {
+export function validateAddress(addr) {
   try {
     return ethers.getAddress(addr);
   } catch {
@@ -121,7 +121,7 @@ function validateAddress(addr) {
   }
 }
 
-function validatePrivateKey(key) {
+export function validatePrivateKey(key) {
   try {
     new ethers.Wallet(key);
     return true;

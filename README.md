@@ -286,7 +286,61 @@ LIFEBOAT/
 - Twitter: @kanemayfield
 - If this saved your stuff and you feel like it: there is a whole "buy me a coffee" thing in there. But no pressure.
 
+## Running Tests
+The test suite uses **Mocha** and **Chai** and lives in the `tests/` subdirectory.
+There are two test modules:
+
+- `tests/engine.test.js` — unit tests for `engine.js`
+- `tests/server.test.js` — unit tests for the Express API routes in `server.js`
+
+Before running tests for the first time, install all dependencies (including
+dev dependencies):
+
+```
+npm install
+```
+
 ---
+
+### Running Tests on PowerShell (Windows)
+
+A ready-made PowerShell script is included. Open **PowerShell** in the
+LIFEBOAT folder and run:
+
+```powershell
+.\run-tests.ps1
+```
+
+The script installs dependencies automatically if they are not already present,
+then executes the full test suite. A green `All tests passed.` message confirms
+success. A red `Tests FAILED` message with a non-zero exit code indicates a
+failure.
+
+If PowerShell blocks the script due to execution policy, run this once first:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
+
+---
+
+### Running Tests via the Makefile (Mac / Linux / WSL)
+
+A `Makefile` is included at the project root. Open a terminal in the LIFEBOAT
+folder and run:
+
+```sh
+make test
+```
+
+This calls `npm test`, which invokes Mocha against all files matching
+`tests/**/*.test.js` with a 10-second timeout per test.
+
+You can also run the tests directly without Make:
+
+```sh
+npm test
+```
 
 ## License
 
@@ -296,6 +350,7 @@ Do whatever you want with it. Fork it, improve it, translate it,
 build on it. If you improve it, please give it back.
 
 See LICENSE file for full legal text.
+
 
 ---
 
