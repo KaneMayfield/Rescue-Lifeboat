@@ -15,7 +15,7 @@
 > — Kane Mayfield, February 16, 2026
 
 ---
-![lighthouse](lighthouse.png)
+![lighthouse](lighthouse)
 ## What This Is
 
 LIFEBOAT is a free, downloadable tool that rescues NFTs from compromised EVM
