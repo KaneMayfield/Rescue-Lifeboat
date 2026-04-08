@@ -62,6 +62,8 @@ Compromised wallet drained to zero. Bot has nothing left to watch.
 - **Executes transfers** one chain at a time, with real-time confirmations
   and clickable explorer links
 - **Sweeps ERC-20 tokens** (USDC, WETH, airdrops) as a separate operation
+- **Rescues Emblem Vaults** (V2 + Legacy) with vault contents inspection
+  and gas-free ownership proof signing for profile migration
 - **Cleans up** with a burn button that wipes your keys from memory the
   moment you're done
 
@@ -198,6 +200,26 @@ If there's anything left after the rescue, sweep it here.
 If you have a Manifold creator contract connected to your compromised wallet,
 this tab helps you transfer ownership to your clean wallet. This is a
 separate operation from rescuing NFTs.
+
+### Tab 6: Emblem Vault
+
+Rescues Emblem Vault NFTs (both V2 and Legacy contracts) from your
+compromised wallet via MEV Blocker. Three sub-sections:
+
+**Scan & Rescue** — Scans your compromised wallet for Emblem Vault tokens
+on both the V2 contract (`0x82C7a8f7...`) and Legacy contract (`0x6Fc355D4...`).
+Shows vault name, image, and contained assets (BTC, DOGE, rare pepes, etc.)
+for each vault found. Select which vaults to rescue, enter your keys, and
+execute the transfer through MEV Blocker — same proven pattern as the NFT
+rescue tab.
+
+**Vault Inspector** — Look up any Emblem Vault by token ID to see its name,
+image, contained assets, and full metadata. Read-only — no keys needed.
+
+**Ownership Proof** — Generates a cryptographic signature proving you own a
+vault. This costs zero gas and is completely invisible to the sweeper bot.
+Use it to prove wallet ownership to Emblem support for profile migration
+without revealing your private key.
 ![background](background.png)
 ---
 
@@ -267,8 +289,11 @@ LIFEBOAT/
 ├── start.sh          # Mac/Linux launcher
 ├── server.js         # Local Express server
 ├── engine.js         # Blockchain operations (the real engine)
+├── emblem-engine.js  # Emblem Vault rescue engine
+├── emblem-server.js  # Emblem Vault API routes
 ├── index.html        # The interface
 ├── package.json      # Dependencies
+├── test-emblem.js    # Automated test suite
 ├── README.md         # You're reading it
 ├── LICENSE           # MIT License
 ├── DISCLAIMER.md     # Legal stuff, human-readable
@@ -278,6 +303,22 @@ LIFEBOAT/
 
 ---
 ![LIFEBOAT in action](radar.jpg)
+
+## Testing
+
+Run the automated test suite from the LIFEBOAT folder:
+
+```
+node test-emblem.js
+```
+
+Tests run against the live Alchemy API and verify scanning, ownership proof
+signing, error handling, and return shapes. No private keys needed.
+
+Tests also run automatically on every push via GitHub Actions.
+
+---
+
 ## Who Made This
 
 **Kane Mayfield** — artist, builder, the guy who got hacked. I'm your neighbor.
