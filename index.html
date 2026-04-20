@@ -1322,6 +1322,8 @@ body.tab-rescue .bg-scene-lifeboat { opacity: 0; }
       <button class="lb-tab active" onclick="showLbTab('nft',this)">NFT Rescue</button>
       <button class="lb-tab" onclick="showLbTab('eth',this)">Native Sweep</button>
       <button class="lb-tab" onclick="showLbTab('tokens',this)">Coin Sweep</button>
+      <button class="lb-tab" onclick="showLbTab('quietfund',this)">Quiet Fund</button>
+      <button class="lb-tab" onclick="showLbTab('other',this)">Other Assets</button>
       <button class="lb-tab" onclick="showLbTab('manifold',this)">Manifold</button>
       <button class="lb-tab" onclick="showLbTab('emblem',this)">Emblem Vault</button>
     </div>
@@ -1427,6 +1429,170 @@ body.tab-rescue .bg-scene-lifeboat { opacity: 0; }
               <div id="balanceRows"></div>
             </div>
           </div>
+        </div>
+      </div>
+      <!-- QUIET FUND TAB -->
+      <div class="lb-tab-content" id="tab-quietfund">
+        <div class="info-box warn"><span>◈</span><span>Send a specific amount of gas privately to the compromised wallet so it can sign a transaction on a third-party site (ENS transfer, DeFi unstake, etc). Ethereum mainnet is routed through MEV Blocker. Other chains have no stealth mode — the bot can see the funds arrive.</span></div>
+
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">⚓</span><span class="tool-card-title">Quiet Fund a Compromised Wallet</span></div>
+          <div class="tool-card-body">
+
+            <div style="background:rgba(255,149,0,0.08);border:1px solid rgba(255,149,0,0.3);border-radius:6px;padding:14px 18px;margin-bottom:16px;font-size:0.68rem;color:var(--text2);line-height:1.8;">
+              <strong style="color:var(--warn);">⚠ READ THIS FIRST — this is a daytime burglary.</strong><br><br>
+              This is <strong style="color:var(--text);">not</strong> "send funds, have a Dannon yogurt, watch Netflix, finish later." The moment the funds confirm, the sweeper bot may detect them and drain. You have a narrow window — often just seconds on Ethereum, less on other chains.<br><br>
+              <strong style="color:var(--text);">Before you click Send, have the third-party site ready to sign.</strong> Go to the place (ENS app, unstake page, whatever). Fill in all the fields. Click the transaction button. Let it fail with "insufficient funds." <em>Now</em> you know the exact gas amount. Note it. Add 15–20% padding. Come back here, send that amount, switch tabs, and sign within ~10 seconds.<br><br>
+              If you're not ready to act immediately, you might as well throw this ETH into the fountain at the mall.
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">Chain</div>
+              <select class="field-input" id="qfChain" onchange="checkQuietFundReady()" style="cursor:pointer;">
+                <option value="eth">Ethereum (MEV Protected ✓)</option>
+                <option value="polygon">Polygon (no stealth mode)</option>
+                <option value="base">Base (no stealth mode)</option>
+                <option value="optimism">Optimism (no stealth mode)</option>
+                <option value="avalanche">Avalanche (no stealth mode)</option>
+              </select>
+              <div id="qfChainWarn" style="font-size:0.6rem;color:var(--text3);margin-top:6px;"></div>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">Funding Wallet <span style="color:var(--danger);">KEY</span> <span class="badge-sm badge-from">FROM</span></div>
+              <input type="password" class="field-input" id="qfFundingKey" placeholder="0x... clean wallet with gas" oninput="checkQuietFundReady()" />
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">Compromised Wallet <span style="color:var(--safe);">Address</span> <span class="badge-sm badge-to">TO</span></div>
+              <input type="text" class="field-input" id="qfToAddress" placeholder="0x... the hacked wallet" oninput="checkQuietFundReady()" />
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">Amount to Send <span style="color:var(--text3);">(native token of selected chain)</span></div>
+              <input type="text" class="field-input" id="qfAmount" placeholder="0.005" oninput="checkQuietFundReady()" />
+              <div style="font-size:0.6rem;color:var(--text3);margin-top:6px;">Enter the gas amount the third-party site quoted, plus 15–20% padding.</div>
+            </div>
+
+            <button class="btn btn-primary" id="qfBtn" onclick="confirmQuietFund()" disabled style="width:100%;">⚓ Send Quiet Fund</button>
+            <div id="qfStatus" style="font-size:0.65rem;color:var(--text3);margin-top:12px;line-height:1.7;"></div>
+
+            <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:0.65rem;color:var(--text3);line-height:1.8;">
+              <strong style="color:var(--text2);">After the third-party transaction confirms:</strong> come back here or to the Native Sweep tab and sweep any leftover gas back to your clean wallet. Don't leave change in the compromised wallet — it's the bot's bait.
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <!-- OTHER ASSETS TAB -->
+      <div class="lb-tab-content" id="tab-other">
+        <div class="info-box warn"><span>◈</span><span>NFTs and tokens aren't the only things sitting on a compromised wallet. ENS names, exchange-locked tokens, and staked positions need their own rescue plays. Check this list before you close out.</span></div>
+
+        <div style="max-width:720px;margin:0 auto;padding:24px 8px;">
+
+          <div style="text-align:center;margin-bottom:32px;">
+            <div style="font-family:var(--display);font-size:1.8rem;letter-spacing:0.1em;color:var(--text);">Did You <span style="color:var(--warn);">Forget Something?</span></div>
+            <div style="font-size:0.72rem;color:var(--text2);line-height:1.8;max-width:540px;margin:14px auto 0;">The other tabs handled the obvious stuff. This is for the things that need their own playbook.</div>
+          </div>
+
+          <!-- THE WARNING -->
+          <div style="background:rgba(255,149,0,0.08);border:1px solid rgba(255,149,0,0.3);border-radius:6px;padding:18px 22px;margin-bottom:36px;">
+            <div style="font-size:0.72rem;color:var(--text);line-height:1.9;">
+              <strong style="color:var(--warn);">⚠ Slow down for a second.</strong><br><br>
+              The best time to make a mistake is when you're quickly trying to recover from another one. You're tired. You're stressed. You want to be done with this. <strong style="color:var(--text);">That's exactly when the second mistake happens.</strong><br><br>
+              Each section below is a separate rescue. Read it before you click anything. None of these will time out on you — the bot is patient, and so can you be for the next ten minutes.
+            </div>
+          </div>
+
+          <!-- ENS -->
+          <div style="margin-bottom:40px;">
+            <div style="font-family:var(--display);font-size:1.3rem;color:var(--accent2);margin-bottom:8px;">ENS Names <span style="font-size:0.65rem;color:var(--text3);letter-spacing:0.15em;">(.eth)</span></div>
+            <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);">An ENS name in your wallet looks like an NFT, but the NFT itself is basically a receipt. The "working version" of the name lives on the ENS contracts — and the records that say "send funds to this address" are stored separately.</div>
+
+            <div style="margin-bottom:18px;">
+              <div style="font-size:0.78rem;font-weight:600;color:var(--accent);margin-bottom:10px;">Why you can't just use LIFEBOAT to move it</div>
+              <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;padding-left:16px;border-left:2px solid var(--border2);">
+                There are three things attached to your name that all need to move:<br><br>
+                <strong style="color:var(--text);">1. Owner</strong> — the wallet holding the NFT (controls who can transfer)<br>
+                <strong style="color:var(--text);">2. Manager</strong> — the wallet that can change the records<br>
+                <strong style="color:var(--text);">3. ETH Address</strong> — where funds sent to <em>yourname.eth</em> actually arrive<br><br>
+                If you transfer just the NFT (the way LIFEBOAT moves a normal NFT), only the <strong style="color:var(--text);">Owner</strong> moves. The Manager and ETH Address stay pointed at the compromised wallet. Anyone sending crypto to your name keeps sending it into the dead wallet. <strong style="color:var(--warn);">Do the ENS Send flow instead.</strong> It handles all three in the right order, in one signing session.
+              </div>
+            </div>
+
+            <div style="margin-bottom:18px;">
+              <div style="font-size:0.78rem;font-weight:600;color:var(--accent);margin-bottom:10px;">The fund-and-fire method (step by step)</div>
+              <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;padding-left:16px;border-left:2px solid var(--border2);">
+                This is the exact method used to rescue Kane's own ENS name. It works. The compromised wallet has no ETH for gas — that's the whole problem. So the play is: get the ENS app loaded and ready, figure out exact gas, send gas privately through the Quiet Fund tab, then immediately sign before the bot reacts.<br><br>
+
+                <strong style="color:var(--text);">1.</strong> Open <a href="https://app.ens.domains" target="_blank" style="color:var(--accent2);">app.ens.domains</a> in a new tab. Connect MetaMask using the <strong style="color:var(--text);">compromised wallet</strong>. Find your name. Click the <strong style="color:var(--text);">Ownership</strong> tab, then <strong style="color:var(--text);">Send</strong>. Type your clean wallet address.<br><br>
+
+                <strong style="color:var(--text);">2.</strong> Let the transaction try to fire. The wallet has no ETH, so it'll fail or show "insufficient funds." That's what you want. Note the gas amount MetaMask shows. The Send flow may have multiple transactions back-to-back (ETH record, Manager, Owner) — pad generously.<br><br>
+
+                <strong style="color:var(--text);">3.</strong> <button onclick="document.querySelector('.lb-tab[onclick*=quietfund]').click();" style="display:inline-block;background:var(--warn);color:var(--s1);border:none;padding:4px 10px;border-radius:3px;font-family:var(--mono);font-size:0.65rem;font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:0.08em;">▶ Go to Quiet Fund tab</button> — select Ethereum, paste your funding wallet key, paste the compromised wallet address, enter 15–20% more than the gas estimate, and click Send Quiet Fund.<br><br>
+
+                <strong style="color:var(--text);">4.</strong> Wait about 10 seconds (count "10 Mississippi"). The funding transaction lands privately via MEV Blocker — the bot doesn't see it until it's confirmed.<br><br>
+
+                <strong style="color:var(--text);">5.</strong> Switch back to your ENS tab immediately and try the Send again. MetaMask will let you sign now. Sign the first transaction. Then the second. Then the third. <strong style="color:var(--warn);">Don't pause between them.</strong> The bot will eventually figure out there's gas in the wallet and try to drain — your transactions need to land first.<br><br>
+
+                ENS sequences these in the correct order automatically: ETH record first (so funds stop flowing to the dead wallet immediately), Manager second, Owner last.<br><br>
+
+                <strong style="color:var(--text);">6.</strong> After all three confirm, switch to the <strong style="color:var(--text2);">Native Sweep</strong> tab and sweep any leftover ETH back to your clean wallet.<br><br>
+
+                <span style="color:var(--warn);">⚠ ENS names ONLY exist on Ethereum mainnet. Not Polygon, not Base, not any L2.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- EXCHANGES & STAKING -->
+          <div style="margin-bottom:40px;">
+            <div style="font-family:var(--display);font-size:1.3rem;color:var(--accent2);margin-bottom:8px;">Exchange-Locked & Staked Tokens</div>
+            <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);">Same playbook as ENS with one critical difference: you have to unlock the asset before the bot can be beaten.</div>
+
+            <div style="margin-bottom:18px;">
+              <div style="font-size:0.78rem;font-weight:600;color:var(--accent);margin-bottom:10px;">DeFi stakes (Lido, Aave, Compound, NFT staking)</div>
+              <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;padding-left:16px;border-left:2px solid var(--border2);">
+                The unstake transaction has to happen FROM the compromised wallet, which means that wallet needs gas. Same choreography: open the unstake page, get it ready to sign, use Quiet Fund to send gas privately, then immediately sign the unstake. Once the assets are back in the wallet, rescue them with LIFEBOAT's normal flow.<br><br>
+
+                <strong style="color:var(--warn);">Watch for cooldown periods.</strong> Lido is roughly 1–5 days, some others longer. If yours has a cooldown, you'll need to fund the wallet twice — once to initiate the unstake, then again days later to claim and transfer. The bot is patient. Plan accordingly.
+              </div>
+            </div>
+
+            <div style="margin-bottom:18px;">
+              <div style="font-size:0.78rem;font-weight:600;color:var(--accent);margin-bottom:10px;">Centralized exchanges (Coinbase, Binance, Kraken, etc.)</div>
+              <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;padding-left:16px;border-left:2px solid var(--border2);">
+                This is actually different and often easier — the assets aren't on your compromised wallet at all. They're in your exchange account, controlled by your <strong style="color:var(--text);">exchange login</strong> (email + password + 2FA), not your seed phrase.<br><br>
+
+                If your exchange account is still secure (only your wallet was compromised, not your email/2FA), log into the exchange and withdraw directly to your clean wallet address. No LIFEBOAT needed. Done.<br><br>
+
+                <span style="color:var(--warn);">⚠ If your email or 2FA was also compromised:</span> contact the exchange's support immediately — most have account recovery and freeze procedures. Do NOT send anything to the compromised wallet. The exchange flow is your safest path.
+              </div>
+            </div>
+
+            <div style="margin-bottom:18px;">
+              <div style="font-size:0.78rem;font-weight:600;color:var(--accent);margin-bottom:10px;">Vested / locked tokens</div>
+              <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;padding-left:16px;border-left:2px solid var(--border2);">
+                You can't move what isn't unlocked yet. When the next vest unlocks, be ready with the same fund-and-fire choreography — the moment unlocked tokens hit the wallet, sweep them with LIFEBOAT before the bot can react.
+              </div>
+            </div>
+          </div>
+
+          <!-- OTHER DOMAINS -->
+          <div style="margin-bottom:40px;">
+            <div style="font-family:var(--display);font-size:1.3rem;color:var(--accent2);margin-bottom:8px;">Other Domain Names</div>
+            <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);">Mostly the same shape as ENS, different mechanics for each.</div>
+
+            <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;padding-left:16px;border-left:2px solid var(--border2);">
+              <strong style="color:var(--text);">Unstoppable Domains (.crypto, .nft, .x):</strong> NFTs on Polygon. LIFEBOAT scans Polygon, so they should appear in your normal scan. Rescue with the regular flow.<br><br>
+
+              <strong style="color:var(--text);">.base names:</strong> NFTs on Base. LIFEBOAT scans Base. Same as above.<br><br>
+
+              <strong style="color:var(--text);">.sol names (Solana / Bonfida):</strong> Solana is a different blockchain entirely. LIFEBOAT does not support Solana. You'd need a separate Solana rescue tool. The same "fund the wallet fast before the bot reacts" pattern may apply, but the tooling is different.<br><br>
+
+              <strong style="color:var(--text);">Any other name service:</strong> figure out (a) what chain it lives on and whether LIFEBOAT supports it, (b) whether it's just an NFT or has separate records that need resetting, and (c) what the manual transfer flow looks like if the NFT scan misses it.
+            </div>
+          </div>
+
         </div>
       </div>
       <!-- MANIFOLD TAB -->
@@ -2612,6 +2778,86 @@ async function sweepToken(chainKey, contract, symbol, btn) {
     statusEl.style.color = 'var(--danger)';
     statusEl.textContent = e.message.slice(0, 40);
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// QUIET FUND
+// ═══════════════════════════════════════════════════════════════════════════════
+function checkQuietFundReady() {
+  const chain = document.getElementById('qfChain').value;
+  const key = document.getElementById('qfFundingKey').value.trim();
+  const to = document.getElementById('qfToAddress').value.trim();
+  const amt = document.getElementById('qfAmount').value.trim();
+
+  // Update chain warning
+  const warn = document.getElementById('qfChainWarn');
+  if (chain === 'eth') {
+    warn.style.color = 'var(--safe)';
+    warn.textContent = '✓ MEV Blocker active — the bot cannot see this funding land.';
+  } else {
+    warn.style.color = 'var(--warn)';
+    warn.textContent = '⚠ No MEV protection on this chain. The bot may see the funds arrive. Move fast.';
+  }
+
+  // Validate amount is a positive number
+  const amtValid = amt && !isNaN(parseFloat(amt)) && parseFloat(amt) > 0;
+  document.getElementById('qfBtn').disabled = !(chain && key && to && amtValid);
+}
+
+function confirmQuietFund() {
+  const chain = document.getElementById('qfChain').value;
+  const to = document.getElementById('qfToAddress').value.trim();
+  const amt = document.getElementById('qfAmount').value.trim();
+  const chainLabel = chain.toUpperCase();
+  const mevNote = chain === 'eth'
+    ? '\n\nRouting through MEV Blocker — invisible to the bot until confirmed.'
+    : '\n\n⚠ NO MEV PROTECTION on this chain. The bot may see the funds arrive.';
+
+  showModal('⚓', 'Send Quiet Fund',
+    `Send ${amt} ${chainLabel} to ${shortAddr(to)}?${mevNote}\n\nMake sure the third-party site is loaded and ready to sign BEFORE you click Send.`,
+    [
+      {label:'Cancel',cls:'btn-ghost',fn:closeModal},
+      {label:'▶ Send Now',cls:'btn-primary',fn:()=>{closeModal();executeQuietFund();}}
+    ]
+  );
+}
+
+async function executeQuietFund() {
+  const status = document.getElementById('qfStatus');
+  const chain = document.getElementById('qfChain').value;
+  const key = document.getElementById('qfFundingKey').value.trim();
+  const to = document.getElementById('qfToAddress').value.trim();
+  const amt = document.getElementById('qfAmount').value.trim();
+
+  status.style.color = 'var(--accent3)';
+  status.textContent = 'Sending quiet fund... do not close this tab.';
+  document.getElementById('qfBtn').disabled = true;
+
+  try {
+    const res = await fetch(API + '/api/quiet-fund', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        fundingKey: key,
+        toAddress: to,
+        amountEth: amt,
+        chain: chain,
+        alchemyKey: STATE.alchemyKey
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      const d = result.data;
+      status.style.color = 'var(--safe)';
+      status.innerHTML = `✓ Sent ${d.amount} ${d.nativeSymbol} to ${shortAddr(d.to)}. ` +
+        `<a href="${d.explorer}" target="_blank" style="color:var(--accent2);">View on explorer ↗</a><br>` +
+        `<span style="color:var(--warn);">NOW go sign your transaction on the third-party site. The clock is ticking.</span>`;
+    } else throw new Error(result.error);
+  } catch(e) {
+    status.style.color = 'var(--danger)';
+    status.textContent = '✗ ' + e.message;
+  }
+  document.getElementById('qfBtn').disabled = false;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

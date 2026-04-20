@@ -678,6 +678,86 @@ export async function sweepETH(fromKey, toAddress, chainKey, alchemyKey) {
   };
 }
 
+// ── QUIET FUND ─────────────────────────────────────────────────────────────────
+// Sends a specific amount from funding wallet to a destination wallet.
+// On Ethereum mainnet, uses MEV Blocker (private mempool) automatically via
+// the chain's RPC config. On other chains, uses standard RPC — no stealth mode.
+// Used for: funding gas to a compromised wallet so the user can manually sign
+// transactions on third-party sites (ENS, unstake contracts, etc.) without
+// the bundled NFT-rescue flow.
+export async function quietFund(fromKey, toAddress, amountEth, chainKey, alchemyKey) {
+  const chain = CHAINS[chainKey];
+  if (!chain) throw new Error(`Unknown chain: ${chainKey}`);
+
+  if (!validatePrivateKey(fromKey)) {
+    throw new Error('Invalid funding wallet private key');
+  }
+
+  const validTo = validateAddress(toAddress);
+  if (!validTo) {
+    throw new Error('Invalid destination address');
+  }
+
+  // Parse the requested amount. ethers.parseEther throws on invalid input
+  // (e.g. negative numbers, non-numeric strings, too many decimal places).
+  let value;
+  try {
+    value = ethers.parseEther(String(amountEth));
+  } catch (err) {
+    throw new Error(`Invalid amount: ${amountEth}. Must be a positive number like 0.005`);
+  }
+  if (value <= 0n) {
+    throw new Error('Amount must be greater than zero');
+  }
+
+  const provider = getProvider(chainKey, alchemyKey);
+  const wallet = new ethers.Wallet(fromKey, provider);
+
+  // Verify funding wallet has enough to send + cover its own gas
+  const balance = await provider.getBalance(wallet.address);
+  const feeData = await provider.getFeeData();
+  const maxFee = feeData.maxFeePerGas || ethers.parseUnits('20', 'gwei');
+  const priorityFeeRaw = ethers.parseUnits(String(chain.priorityFeeGwei), 'gwei');
+  const priorityFee = priorityFeeRaw < maxFee ? priorityFeeRaw : maxFee;
+  const gasLimit = 21000n;
+  const gasCost = maxFee * gasLimit;
+  const totalRequired = value + gasCost;
+
+  if (balance < totalRequired) {
+    throw new Error(
+      `Funding wallet has ${ethers.formatEther(balance)} ${chain.nativeSymbol}, ` +
+      `needs ${ethers.formatEther(totalRequired)} ${chain.nativeSymbol} ` +
+      `(${ethers.formatEther(value)} to send + ${ethers.formatEther(gasCost)} for gas).`
+    );
+  }
+
+  const tx = await wallet.sendTransaction({
+    chainId: chain.chainId,
+    type: 2,
+    to: validTo,
+    value,
+    gasLimit,
+    maxFeePerGas: maxFee,
+    maxPriorityFeePerGas: priorityFee,
+  });
+
+  await tx.wait(1);
+
+  return {
+    success: true,
+    data: {
+      txHash: tx.hash,
+      amount: ethers.formatEther(value),
+      nativeSymbol: chain.nativeSymbol,
+      from: wallet.address,
+      to: validTo,
+      chain: chainKey,
+      mevProtected: chain.mevProtected,
+      explorer: `${chain.explorer}/tx/${tx.hash}`,
+    }
+  };
+}
+
 // ── MANIFOLD OWNERSHIP TRANSFER ────────────────────────────────────────────────
 export async function transferManifoldOwnership(contractAddress, newOwner, privateKey, alchemyKey) {
   const validContract = validateAddress(contractAddress);
@@ -945,6 +1025,7 @@ export default {
   sweepToken,
   executeChainRescue,
   sweepETH,
+  quietFund,
   transferManifoldOwnership,
   validateAddress,
   validatePrivateKey,

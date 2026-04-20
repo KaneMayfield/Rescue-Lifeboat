@@ -233,6 +233,87 @@ https://github.com/user-attachments/assets/aa12d7f5-e2cd-4769-8a71-a478da1b3b35
 
 ## Troubleshooting
 
+## Can't Launch the Tool? (Install Errors)
+
+These errors stop you before the tool even opens. Find your error message below.
+
+### MAC: "Abort trap: 6" or "dyld: Symbol not found" or "built for Mac OS X 13.5"
+
+The Node.js you installed is too new for your version of macOS. The current Node LTS requires macOS Ventura 13.5 or newer. Older Macs need an older version of Node.
+
+**Fix:**
+
+1. Find out your macOS version: Apple logo → "About This Mac" → look at the version (Big Sur, Monterey, Ventura, etc.)
+
+2. Uninstall the broken Node. In Terminal:
+   ```
+   sudo rm /usr/local/bin/node /usr/local/bin/npm
+   ```
+   Enter your Mac password. You won't see anything happen — that's normal.
+
+3. Download the right Node version:
+
+   | Your macOS | Use this Node version | Direct download |
+   |------------|----------------------|-----------------|
+   | Sonoma 14 / Sequoia 15 / Ventura 13.5+ | Latest LTS | [nodejs.org](https://nodejs.org) |
+   | Ventura 13.0–13.4 / Monterey 12 | Node 20 LTS | [nodejs.org/en/blog/release/v20.18.1](https://nodejs.org/en/blog/release/v20.18.1) |
+   | Big Sur 11 / Catalina 10.15 | Node 18 (EOL but works) | [v18.20.8.pkg](https://nodejs.org/dist/v18.20.8/node-v18.20.8.pkg) |
+   | Mojave 10.14 or older | Node 16 or older | [Previous Releases](https://nodejs.org/en/download/releases) |
+
+4. Run LIFEBOAT again with `./start.sh`.
+
+> Note: Node 18 is "end-of-life" (no more security patches) but works fine for LIFEBOAT because the tool runs locally for a brief rescue session — it's not a production server.
+
+### MAC: "permission denied" when running ./start.sh
+
+The launcher isn't marked executable yet (common quirk of Mac-unzipped files). Fix:
+```
+chmod +x start.sh
+```
+Then run `./start.sh` again.
+
+### MAC: "no such file or directory" when running ./start.sh
+
+You're not in the LIFEBOAT folder. Type `cd ` in Terminal (the letters c-d followed by a SPACE — the space matters), then drag the LIFEBOAT folder from Finder into the Terminal window. Press Enter. Try `./start.sh` again.
+
+### WINDOWS: "Windows protected your PC" / SmartScreen blocks start.bat
+
+Windows blocks unsigned scripts from the internet by default. LIFEBOAT isn't malicious — it just doesn't have a paid code-signing certificate.
+
+**Quick fix:** Click **More info** on the SmartScreen warning, then **Run anyway**.
+
+**Permanent fix** (if it keeps blocking):
+1. Right-click `start.bat` → Properties
+2. Check the **Unblock** box at the bottom of the General tab
+3. Click Apply, OK
+4. Double-click `start.bat` again
+
+### WINDOWS: "'npm' is not recognized as an internal or external command"
+
+Node installed but didn't get added to your PATH.
+
+**Fix:**
+1. Close all Command Prompt / PowerShell windows
+2. Reinstall Node.js from [nodejs.org](https://nodejs.org) — leave the "Add to PATH" option checked
+3. **Restart your computer** (this step is often skipped — PATH changes only take effect for new sessions)
+4. Try `start.bat` again
+
+### WINDOWS: start.bat opens and immediately closes
+
+Something errored, but the window closed before you could read it.
+
+**Fix:** Open Command Prompt manually (search "cmd" in Start), navigate to the LIFEBOAT folder, and run `start.bat` from there. Errors will stay visible.
+
+To navigate: type `cd ` (with a space), drag the LIFEBOAT folder into the Command Prompt window, press Enter.
+
+### BOTH: "node: command not found" / Node doesn't seem installed
+
+In Terminal/Command Prompt, type `node --version`. If you see a version number, Node IS installed and your problem is elsewhere. If you see "command not found," install from [nodejs.org](https://nodejs.org), then **close and reopen** your terminal before trying again.
+
+---
+
+## Tool-Running Errors
+
 ### "Module not found" or "Cannot find package"
 Run `npm install` in the LIFEBOAT folder. This downloads the required packages.
 
@@ -259,8 +340,7 @@ Add funds to the funding wallet and try again.
 
 ### ENS name didn't transfer
 ENS names require a manual transfer via app.ens.domains. Use LIFEBOAT's
-MEV-protected funding to get gas into your compromised wallet, then
-complete the transfer manually before the bot can react.
+**Quiet Fund** tab (in Lifeboat) to get gas into your compromised wallet privately, then complete the transfer manually before the bot can react. See the **Other Assets** tab in the tool for a full step-by-step.
 
 ---
 
@@ -349,5 +429,3 @@ If you're a developer who wants to understand the architecture before
 diving in, read the constitution.
 
 If you used this to recover your NFTs, drop a note. It helps.
-
-https://kanemayfield.com/llms.txt

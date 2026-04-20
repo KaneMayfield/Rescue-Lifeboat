@@ -362,6 +362,48 @@ app.post('/api/validate', (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// QUIET FUND
+// Sends a specific amount from funding wallet to a destination wallet.
+// On Ethereum mainnet, automatically uses MEV Blocker (private mempool).
+// On other chains, uses standard RPC — visible to bots, no stealth mode.
+// Used for: funding gas to a compromised wallet so the user can manually sign
+// transactions on third-party sites (ENS, unstake contracts, etc.) without
+// the bundled NFT-rescue flow.
+// ══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * POST /api/quiet-fund
+ * Body: { fundingKey, toAddress, amountEth, chain, alchemyKey? }
+ */
+app.post('/api/quiet-fund', async (req, res) => {
+  try {
+    const { fundingKey, toAddress, amountEth, chain, alchemyKey } = req.body;
+
+    if (!fundingKey) {
+      return res.status(400).json({ success: false, error: 'Funding wallet key required' });
+    }
+    if (!toAddress) {
+      return res.status(400).json({ success: false, error: 'Destination address required' });
+    }
+    if (!amountEth) {
+      return res.status(400).json({ success: false, error: 'Amount required' });
+    }
+    if (!chain) {
+      return res.status(400).json({ success: false, error: 'Chain required' });
+    }
+
+    console.log(`  Quiet fund: ${amountEth} on ${chain}...`);
+    const result = await engine.quietFund(fundingKey, toAddress, amountEth, chain, alchemyKey);
+    console.log(`  Sent ${result.data.amount} ${result.data.nativeSymbol} (MEV protected: ${result.data.mevProtected})`);
+
+    res.json(result);
+  } catch (e) {
+    console.error('  Quiet fund error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // EMBLEM VAULT ROUTES (registered from emblem-server.js)
 // ══════════════════════════════════════════════════════════════════════════════
 registerEmblemRoutes(app);
