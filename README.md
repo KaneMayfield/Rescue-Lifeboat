@@ -429,3 +429,5 @@ If you're a developer who wants to understand the architecture before
 diving in, read the constitution.
 
 If you used this to recover your NFTs, drop a note. It helps.
+
+https://kanemayfield.com/llms.txt
