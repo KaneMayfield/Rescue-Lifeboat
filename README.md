@@ -15,19 +15,21 @@
 > — Kane Mayfield, February 16, 2026
 
 ---
+
 ![lighthouse](lighthouse.png)
+
 ## What This Is
 
-LIFEBOAT is a free, downloadable tool that rescues NFTs from compromised EVM
+Rescue Lifeboat is a free, downloadable tool that rescues NFTs from compromised EVM
 wallets before sweeper bots can block you forever.
 
 When a wallet is compromised, attackers typically deploy a "sweeper bot," an
 automated script that monitors your wallet around the clock and instantly drains
 any ETH the moment it arrives. The bot usually ignores NFTs because they require
-gas to move, and the bot controls the gas. That's the window LIFEBOAT is
+gas to move, and the bot controls the gas. That's the window Rescue Lifeboat is
 designed for.
 
-LIFEBOAT uses MEV Blocker, a private transaction relay, to fund your
+Rescue Lifeboat uses MEV Blocker, a private transaction relay, to fund your
 compromised wallet and fire all NFT transfers in a hidden pipeline that sweeper
 bots cannot see or front-run. Transactions arrive confirmed on-chain before
 the bot ever knows they happened.
@@ -51,7 +53,7 @@ Compromised wallet drained to zero. Bot has nothing left to watch.
 
 ---
 
-## What LIFEBOAT Does
+## What Rescue Lifeboat Does
 
 - **Scans** your compromised wallet for NFTs across ETH, Polygon, Base,
   Optimism, and Avalanche simultaneously
@@ -62,6 +64,12 @@ Compromised wallet drained to zero. Bot has nothing left to watch.
 - **Executes transfers** one chain at a time, with real-time confirmations
   and clickable explorer links
 - **Sweeps ERC-20 tokens** (USDC, WETH, airdrops) as a separate operation
+- **Sweeps native balances** (ETH, POL, AVAX, etc.) across all chains at once
+- **Sends quiet gas funding** via MEV Blocker so you can pay for manual
+  operations without the bot seeing the deposit
+- **Guides you through other assets** — ENS names, staked positions,
+  exchange-locked tokens, and domain names with step-by-step instructions
+- **Transfers Manifold creator contract ownership** to your clean wallet
 - **Rescues Emblem Vaults** (V2 + Legacy) with vault contents inspection
   and gas-free ownership proof signing for profile migration
 - **Cleans up** with a burn button that wipes your keys from memory the
@@ -69,11 +77,11 @@ Compromised wallet drained to zero. Bot has nothing left to watch.
 
 ---
 
-## What LIFEBOAT Does NOT Do
+## What Rescue Lifeboat Does NOT Do
 
 - It does not take a percentage of your assets
 - It does not custody your funds at any point
-- It does not send your private key anywhere. Keys are processed locally
+- It does not send your private key anywhere — keys are processed locally
   and never leave your machine
 - It does not require trusting a website, a smart contract, or a stranger
 - It does not work on Solana (EVM chains only: ETH, Polygon, Base, etc.)
@@ -114,9 +122,9 @@ Base, Optimism, or Avalanche, you need to turn those on:
 3. Toggle on: Polygon, Base, Optimism, Avalanche
 4. Save. Your same API key now covers all chains
 
-If you skip this step, LIFEBOAT will only find your Ethereum NFTs.
+If you skip this step, Rescue Lifeboat will only find your Ethereum NFTs.
 
-### Step 3: Download LIFEBOAT
+### Step 3: Download Rescue Lifeboat
 
 Click the green **Code** button above → **Download ZIP**
 
@@ -125,55 +133,67 @@ Unzip the folder somewhere easy to find. Desktop is fine.
 ### Step 4: Run It
 
 - **Windows:** Double-click `start.bat`
-- **Mac/Linux:** Open Terminal, navigate to the LIFEBOAT folder, run `./start.sh`
+- **Mac/Linux:** Open Terminal, navigate to the Rescue Lifeboat folder, run `./start.sh`
 
 Your browser will open automatically to `localhost:3000`.
 
 If the browser doesn't open, go there manually: **http://localhost:3000**
 
-If you see an error about missing packages, open Terminal in the LIFEBOAT
+If you see an error about missing packages, open Terminal in the Rescue Lifeboat
 folder and run: `npm install` then try again.
 
 **If you've never used Terminal before (Mac):**
 Terminal is a text-based way to tell your computer where to go. Open Terminal,
-type `cd ` (with a space after it), then drag the LIFEBOAT folder from Finder
+type `cd ` (with a space after it), then drag the Rescue Lifeboat folder from Finder
 into the Terminal window. This pastes the folder path. Press Enter. Now you're
 in that folder and can run commands like `./start.sh` or `npm install`.
 
 ---
+
 ![LIFEBOAT Logo](logo.png)
+
 ## How to Use It
 
-### Tab 1: RESCUE (Scan)
+The tool has two main sections: **RESCUE** (the scanner) and **LIFEBOAT** (the executor).
+Start in RESCUE. Move to LIFEBOAT when you're ready to act.
 
-This tab finds your NFTs. You don't need your private key for this step.
+---
 
-1. Enter your **compromised wallet address**, the hacked one (public address,
-   not private key)
-2. Enter your **clean destination wallet address**, where NFTs should go
+### RESCUE Tab — Find Your NFTs
+
+This tab finds everything in your compromised wallet. **You don't need your private key for this step.**
+
+1. Enter your **compromised wallet address** — the hacked one (public address, not private key)
+2. Enter your **clean destination wallet address** — where NFTs should go
 3. Paste your **Alchemy API key**
 4. Click **Scan All Chains**
-5. Wait for results. Large wallets (200+ NFTs) can take a minute
-6. Review the results. NFTs are grouped by collection. Uncheck anything you
-   don't want to move.
+5. Wait for results. Large wallets (200+ NFTs) can take a minute.
+6. Review the results. NFTs are grouped by collection. Uncheck anything you don't want to move.
 7. When ready, click **Launch Lifeboat**
 
-### Tab 2: LIFEBOAT (Execute)
+---
 
-This is where the rescue happens. You will need private keys here.
+### LIFEBOAT Section — Execute the Rescue
+
+Once you've scanned and selected your NFTs, the LIFEBOAT section is where the rescue actually happens. It has seven tabs:
+
+---
+
+#### Tab 1: NFT RESCUE
+
+This is the main event. You will need private keys here.
 
 **What you need:**
 - The **private key of your compromised wallet** (the hacked one)
-- The **private key of a funding wallet**, a separate wallet with enough
-  ETH/POL/AVAX to pay for gas
+- The **private key of a funding wallet** — a separate wallet with enough ETH/POL/AVAX to pay for gas
 
 The compromised wallet cannot pay its own gas. That's the whole problem.
-The funding wallet sends gas privately, then the transfers fire immediately.
+The funding wallet sends gas privately via MEV Blocker, then the transfers fire immediately.
 
 **Steps:**
 1. Enter both private keys in the fields provided
 2. Click **Check Balances** to see what you're working with
-3. Review the gas estimate. This is what the funding wallet needs to send
+3. Review the gas estimate — this is what the funding wallet needs to send
 4. Select the chain you want to rescue first (start with Ethereum if in doubt)
 5. Click **Execute Rescue**
 6. Watch the log. Each transfer shows its transaction hash with an explorer link.
@@ -185,59 +205,112 @@ The funding wallet sends gas privately, then the transfers fire immediately.
 - Close the browser tab
 - Shut down the local server
 
-### Tab 3: Token Sweep
-
-Scans all chains for ERC-20 tokens (USDC, WETH, DAI, random airdrops) and
-lets you sweep them one by one to your clean wallet.
-
-### Tab 4: Native Balances
-
-Shows native token balances (ETH, POL, AVAX, etc.) across all chains at once.
-If there's anything left after the rescue, sweep it here.
-
-### Tab 5: Manifold
-
-If you have a Manifold creator contract connected to your compromised wallet,
-this tab helps you transfer ownership to your clean wallet. This is a
-separate operation from rescuing NFTs.
-
-### Tab 6: Emblem Vault
-
-Rescues Emblem Vault NFTs (both V2 and Legacy contracts) from your
-compromised wallet via MEV Blocker. Three sub-sections:
-
-**Scan & Rescue** — Scans your compromised wallet for Emblem Vault tokens
-on both the V2 contract (`0x82C7a8f7...`) and Legacy contract (`0x6Fc355D4...`).
-Shows vault name, image, and contained assets (BTC, DOGE, rare pepes, etc.)
-for each vault found. Select which vaults to rescue, enter your keys, and
-execute the transfer through MEV Blocker — same proven pattern as the NFT
-rescue tab.
-
-**Vault Inspector** — Look up any Emblem Vault by token ID to see its name,
-image, contained assets, and full metadata. Read-only — no keys needed.
-
-**Ownership Proof** — Generates a cryptographic signature proving you own a
-vault. This costs zero gas and is completely invisible to the sweeper bot.
-Use it to prove wallet ownership to Emblem support for profile migration
-without revealing your private key.
-![background](background.png)
 ---
 
+#### Tab 2: NATIVE SWEEP
 
+Shows native token balances (ETH, POL, AVAX, etc.) across all chains at once.
+If there's anything left after the NFT rescue, sweep it here to your clean wallet.
 
+---
 
-https://github.com/user-attachments/assets/aa12d7f5-e2cd-4769-8a71-a478da1b3b35
+#### Tab 3: COIN SWEEP
 
+Scans all chains for ERC-20 tokens — USDC, WETH, DAI, random airdrops, anything
+sitting there — and lets you sweep them one by one to your clean wallet.
 
+---
 
+#### Tab 4: QUIET FUND
+
+Sometimes you need gas in your compromised wallet to complete a manual operation
+— like an ENS transfer or unstaking a DeFi position — and you can't just send ETH
+normally because the bot will drain it in seconds.
+
+Quiet Fund solves this. It sends gas from your funding wallet to your compromised
+wallet through MEV Blocker's private relay — the bot doesn't see the deposit until
+it's confirmed and your transaction has already fired. Select the chain, enter your
+funding wallet key, enter the compromised wallet address, set the amount, and send.
+
+---
+
+#### Tab 5: OTHER ASSETS
+
+NFTs and tokens aren't the only things sitting on a compromised wallet. ENS names,
+staked positions, exchange-locked tokens, and domain names all need their own rescue
+plays. This tab walks you through each one with a full step-by-step guide.
+
+**ENS Names (.eth)**
+
+An ENS name has three components that all need to move — Owner, Manager, and ETH
+Address. Transferring just the NFT only moves the Owner. The Manager and ETH
+Address stay pointed at the compromised wallet, which means anyone sending crypto
+to your name keeps sending it to the dead wallet. This tab's ENS Send flow handles
+all three in the right order, in one signing session, using Quiet Fund to get gas
+in privately first.
+
+**DeFi Stakes (Lido, Aave, Compound, NFT staking)**
+
+The unstake transaction has to happen from the compromised wallet, which means that
+wallet needs gas. Same choreography as ENS: open the unstake page, get it ready to
+sign, use Quiet Fund to send gas privately, then immediately sign the unstake. Once
+assets are back in the wallet, rescue them with the normal NFT Rescue or Coin Sweep
+flow. Watch for cooldown periods — Lido is roughly 1–5 days. Plan accordingly.
+
+**Centralized Exchanges (Coinbase, Binance, Kraken, etc.)**
+
+If only your wallet was compromised (not your email or 2FA), your exchange assets
+are fine — they're in your exchange account, not on your wallet. Log into the
+exchange and withdraw directly to your clean wallet address. No Rescue Lifeboat needed.
+
+If your email or 2FA was also compromised, contact the exchange's support immediately.
+Most have account recovery and freeze procedures.
+
+**Other Domain Names**
+
+- **.crypto, .nft, .x (Unstoppable Domains):** NFTs on Polygon — LIFEBOAT scans Polygon, rescue with the normal flow
+- **.base names:** NFTs on Base — same as above
+- **.sol names (Solana/Bonfida):** Solana is not supported. Requires a separate Solana rescue tool.
+
+---
+
+#### Tab 6: MANIFOLD
+
+If you have a Manifold creator contract connected to your compromised wallet,
+this tab transfers ownership to your clean wallet. This is a separate operation
+from rescuing NFTs — your contract is a different kind of asset and needs its
+own transfer.
+
+---
+
+#### Tab 7: EMBLEM VAULT
+
+Rescues Emblem Vault NFTs (both V2 and Legacy contracts) from your compromised
+wallet via MEV Blocker. Three sub-sections:
+
+**Scan & Rescue** — Scans your compromised wallet for Emblem Vault tokens on both
+the V2 contract (`0x82C7a8f7...`) and Legacy contract (`0x6Fc355D4...`). Shows vault
+name, image, and contained assets (BTC, DOGE, rare pepes, etc.) for each vault found.
+Select which vaults to rescue, enter your keys, and execute the transfer through
+MEV Blocker — same proven pattern as the NFT Rescue tab.
+
+**Vault Inspector** — Look up any Emblem Vault by token ID to see its name, image,
+contained assets, and full metadata. Read-only — no keys needed.
+
+**Ownership Proof** — Generates a cryptographic signature proving you own a vault.
+This costs zero gas and is completely invisible to the sweeper bot. Use it to prove
+wallet ownership to Emblem support for profile migration without revealing your
+private key.
+
+---
 
 ## Troubleshooting
 
-## Can't Launch the Tool? (Install Errors)
+### Can't Launch the Tool? (Install Errors)
 
 These errors stop you before the tool even opens. Find your error message below.
 
-### MAC: "Abort trap: 6" or "dyld: Symbol not found" or "built for Mac OS X 13.5"
+#### MAC: "Abort trap: 6" or "dyld: Symbol not found" or "built for Mac OS X 13.5"
 
 The Node.js you installed is too new for your version of macOS. The current Node LTS requires macOS Ventura 13.5 or newer. Older Macs need an older version of Node.
 
@@ -260,11 +333,11 @@ The Node.js you installed is too new for your version of macOS. The current Node
    | Big Sur 11 / Catalina 10.15 | Node 18 (EOL but works) | [v18.20.8.pkg](https://nodejs.org/dist/v18.20.8/node-v18.20.8.pkg) |
    | Mojave 10.14 or older | Node 16 or older | [Previous Releases](https://nodejs.org/en/download/releases) |
 
-4. Run LIFEBOAT again with `./start.sh`.
+4. Run Rescue Lifeboat again with `./start.sh`.
 
-> Note: Node 18 is "end-of-life" (no more security patches) but works fine for LIFEBOAT because the tool runs locally for a brief rescue session — it's not a production server.
+> Note: Node 18 is "end-of-life" (no more security patches) but works fine for Rescue Lifeboat because the tool runs locally for a brief rescue session — it's not a production server.
 
-### MAC: "permission denied" when running ./start.sh
+#### MAC: "permission denied" when running ./start.sh
 
 The launcher isn't marked executable yet (common quirk of Mac-unzipped files). Fix:
 ```
@@ -272,13 +345,13 @@ chmod +x start.sh
 ```
 Then run `./start.sh` again.
 
-### MAC: "no such file or directory" when running ./start.sh
+#### MAC: "no such file or directory" when running ./start.sh
 
-You're not in the LIFEBOAT folder. Type `cd ` in Terminal (the letters c-d followed by a SPACE — the space matters), then drag the LIFEBOAT folder from Finder into the Terminal window. Press Enter. Try `./start.sh` again.
+You're not in the Rescue Lifeboat folder. Type `cd ` in Terminal (the letters c-d followed by a SPACE — the space matters), then drag the folder from Finder into the Terminal window. Press Enter. Try `./start.sh` again.
 
-### WINDOWS: "Windows protected your PC" / SmartScreen blocks start.bat
+#### WINDOWS: "Windows protected your PC" / SmartScreen blocks start.bat
 
-Windows blocks unsigned scripts from the internet by default. LIFEBOAT isn't malicious — it just doesn't have a paid code-signing certificate.
+Windows blocks unsigned scripts from the internet by default. Rescue Lifeboat isn't malicious — it just doesn't have a paid code-signing certificate.
 
 **Quick fix:** Click **More info** on the SmartScreen warning, then **Run anyway**.
 
@@ -288,7 +361,7 @@ Windows blocks unsigned scripts from the internet by default. LIFEBOAT isn't mal
 3. Click Apply, OK
 4. Double-click `start.bat` again
 
-### WINDOWS: "'npm' is not recognized as an internal or external command"
+#### WINDOWS: "'npm' is not recognized as an internal or external command"
 
 Node installed but didn't get added to your PATH.
 
@@ -298,49 +371,51 @@ Node installed but didn't get added to your PATH.
 3. **Restart your computer** (this step is often skipped — PATH changes only take effect for new sessions)
 4. Try `start.bat` again
 
-### WINDOWS: start.bat opens and immediately closes
+#### WINDOWS: start.bat opens and immediately closes
 
 Something errored, but the window closed before you could read it.
 
-**Fix:** Open Command Prompt manually (search "cmd" in Start), navigate to the LIFEBOAT folder, and run `start.bat` from there. Errors will stay visible.
+**Fix:** Open Command Prompt manually (search "cmd" in Start), navigate to the Rescue Lifeboat folder, and run `start.bat` from there. Errors will stay visible.
 
-To navigate: type `cd ` (with a space), drag the LIFEBOAT folder into the Command Prompt window, press Enter.
+To navigate: type `cd ` (with a space), drag the folder into the Command Prompt window, press Enter.
 
-### BOTH: "node: command not found" / Node doesn't seem installed
+#### BOTH: "node: command not found" / Node doesn't seem installed
 
 In Terminal/Command Prompt, type `node --version`. If you see a version number, Node IS installed and your problem is elsewhere. If you see "command not found," install from [nodejs.org](https://nodejs.org), then **close and reopen** your terminal before trying again.
 
 ---
 
-## Tool-Running Errors
+### Tool-Running Errors
 
-### "Module not found" or "Cannot find package"
-Run `npm install` in the LIFEBOAT folder. This downloads the required packages.
+**"Module not found" or "Cannot find package"**
+Run `npm install` in the Rescue Lifeboat folder. This downloads the required packages.
 
-### Browser doesn't open
+**Browser doesn't open**
 Go to http://localhost:3000 manually.
 
-### Scan finds no NFTs
+**Scan finds no NFTs**
 - Check that the wallet address is correct
 - Make sure your Alchemy API key is valid
 - Verify you enabled all chains in your Alchemy dashboard (not just Ethereum)
 
-### Only Ethereum NFTs appear
+**Only Ethereum NFTs appear**
 Your Alchemy key is only set up for Ethereum by default. Go to your Alchemy
 dashboard → your app → Networks → enable Polygon, Base, Optimism, Avalanche.
 
-### "Insufficient funds"
+**"Insufficient funds"**
 The funding wallet needs more ETH/POL/AVAX than the gas estimate shows.
 Add funds to the funding wallet and try again.
 
-### Transaction failed or stuck
+**Transaction failed or stuck**
 - Check the explorer link for details
-- Some contracts have transfer restrictions LIFEBOAT can't override
+- Some contracts have transfer restrictions Rescue Lifeboat can't override
 - The rescue data is preserved — you can retry individual tokens
 
-### ENS name didn't transfer
-ENS names require a manual transfer via app.ens.domains. Use LIFEBOAT's
-**Quiet Fund** tab (in Lifeboat) to get gas into your compromised wallet privately, then complete the transfer manually before the bot can react. See the **Other Assets** tab in the tool for a full step-by-step.
+**ENS name didn't transfer**
+ENS names require a manual transfer via app.ens.domains. Use the **Quiet Fund**
+tab to get gas into your compromised wallet privately, then complete the transfer
+manually before the bot can react. See the **Other Assets** tab for the full
+step-by-step.
 
 ---
 
@@ -364,7 +439,7 @@ bots are also less common there.
 ## Files in This Repository
 
 ```
-LIFEBOAT/
+Rescue-Lifeboat/
 ├── start.bat         # Windows launcher (double-click this)
 ├── start.sh          # Mac/Linux launcher
 ├── server.js         # Local Express server
@@ -382,11 +457,12 @@ LIFEBOAT/
 ```
 
 ---
+
 ![LIFEBOAT in action](radar.jpg)
 
 ## Testing
 
-Run the automated test suite from the LIFEBOAT folder:
+Run the automated test suite from the Rescue Lifeboat folder:
 
 ```
 node test-emblem.js
@@ -427,6 +503,10 @@ pull requests are welcome.
 
 If you're a developer who wants to understand the architecture before
 diving in, read the constitution.
+
+If you used this to recover your NFTs, drop a note. It helps.
+
+
 
 If you used this to recover your NFTs, drop a note. It helps.
 
