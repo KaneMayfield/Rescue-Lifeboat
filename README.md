@@ -126,27 +126,50 @@ If you skip this step, Rescue Lifeboat will only find your Ethereum NFTs.
 
 ### Step 3: Download Rescue Lifeboat
 
-Click the green **Code** button above → **Download ZIP**
+[![Download ZIP](https://img.shields.io/badge/⬇_Download_ZIP-Click_Here-blue?style=for-the-badge)](https://github.com/KaneMayfield/Rescue-Lifeboat/archive/refs/heads/main.zip)
 
-Unzip the folder somewhere easy to find. Desktop is fine.
+Click the button above — or click the green **Code** button at the top of this page → **Download ZIP**.
+
+Unzip the folder somewhere easy to find. **Desktop is fine.**
+
+> **Never used GitHub before?** That's okay. You don't need an account. Click Download ZIP, unzip it like any other file, and keep reading.
 
 ### Step 4: Run It
 
-- **Windows:** Double-click `start.bat`
-- **Mac/Linux:** Open Terminal, navigate to the Rescue Lifeboat folder, run `./start.sh`
+- **Windows:** Double-click `start.bat` inside the unzipped folder
+- **Mac/Linux:** Open Terminal, navigate to the folder, run `./start.sh`
 
-Your browser will open automatically to `localhost:3000`.
+Your browser will open automatically to `localhost:3000`. If it doesn't, go there manually: **http://localhost:3000**
 
-If the browser doesn't open, go there manually: **http://localhost:3000**
+---
 
-If you see an error about missing packages, open Terminal in the Rescue Lifeboat
-folder and run: `npm install` then try again.
+**Windows — "Windows protected your PC" (SmartScreen warning):**
+Rescue Lifeboat isn't malicious — it just doesn't have a paid code-signing certificate. Click **More info** → **Run anyway**. If it keeps blocking: right-click `start.bat` → Properties → check the **Unblock** box → Apply.
 
-**If you've never used Terminal before (Mac):**
-Terminal is a text-based way to tell your computer where to go. Open Terminal,
-type `cd ` (with a space after it), then drag the Rescue Lifeboat folder from Finder
-into the Terminal window. This pastes the folder path. Press Enter. Now you're
-in that folder and can run commands like `./start.sh` or `npm install`.
+**Windows — the window opens and immediately closes:**
+Something errored but the window closed before you could read it. Open Command Prompt manually (search "cmd" in Start menu), navigate to the folder, and run `start.bat` from there. The error will stay visible. To navigate: type `cd ` (with a space), drag the folder into the Command Prompt window, press Enter.
+
+**Windows — "'npm' is not recognized as an internal or external command":**
+Node installed but didn't get added to your PATH. Close all windows, reinstall Node.js from nodejs.org (leave "Add to PATH" checked), **restart your computer** — the restart is not optional, PATH changes don't take effect until you do — then try again.
+
+**Mac — "permission denied" when running ./start.sh:**
+The launcher needs to be marked executable first. In Terminal, run:
+```
+chmod +x start.sh
+```
+Then run `./start.sh` again.
+
+**Mac — "Abort trap: 6" or "dyld: Symbol not found":**
+The Node version you installed is too new for your macOS. See the full macOS troubleshooting section below.
+
+**Mac — never used Terminal before:**
+Open Terminal (press ⌘ Space, type "Terminal", press Enter). Type `cd ` (the letters c and d, then a space), then drag the Rescue Lifeboat folder from Finder into the Terminal window — the path pastes automatically. Press Enter. Then type `./start.sh` and press Enter.
+
+**Any platform — "Module not found" or "Cannot find package":**
+Run this in the Rescue Lifeboat folder, then try the launcher again:
+```
+npm install
+```
 
 ---
 
@@ -301,6 +324,10 @@ contained assets, and full metadata. Read-only — no keys needed.
 This costs zero gas and is completely invisible to the sweeper bot. Use it to prove
 wallet ownership to Emblem support for profile migration without revealing your
 private key.
+
+---
+
+https://github.com/user-attachments/assets/aa12d7f5-e2cd-4769-8a71-a478da1b3b35
 
 ---
 
@@ -507,7 +534,5 @@ diving in, read the constitution.
 If you used this to recover your NFTs, drop a note. It helps.
 
 
-
-If you used this to recover your NFTs, drop a note. It helps.
 
 https://kanemayfield.com/llms.txt
