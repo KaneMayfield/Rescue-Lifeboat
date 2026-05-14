@@ -1326,6 +1326,7 @@ body.tab-rescue .bg-scene-lifeboat { opacity: 0; }
       <button class="lb-tab" onclick="showLbTab('other',this)">Other Assets</button>
       <button class="lb-tab" onclick="showLbTab('manifold',this)">Manifold</button>
       <button class="lb-tab" onclick="showLbTab('emblem',this)">Emblem Vault</button>
+      <button class="lb-tab" onclick="showLbTab('fractal',this)">Fractal Visions</button>
     </div>
     <div class="lb-content">
       <!-- NFT TAB -->
@@ -1722,6 +1723,166 @@ body.tab-rescue .bg-scene-lifeboat { opacity: 0; }
             </div>
             <button class="btn btn-primary" onclick="generateEmblemProof()" style="width:100%;">✍ Generate Proof</button>
             <div id="emblemProofResult" style="display:none;margin-top:12px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FRACTAL VISIONS TAB -->
+      <div class="lb-tab-content" id="tab-fractal">
+
+        <!-- OPENING STATEMENT -->
+        <div style="max-width:720px;margin:0 auto 28px;">
+          <div style="text-align:center;margin-bottom:24px;">
+            <div style="font-family:var(--display);font-size:1.8rem;letter-spacing:0.1em;color:var(--text);">Fractal Visions <span style="color:var(--accent2);">Rescue Suite</span></div>
+            <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;max-width:560px;margin:14px auto 0;">Fractal Visions operates across a constellation of Superchain networks that conventional rescue tools don't reach. This tab was built specifically for that ecosystem — with native integrations for each chain, sourced directly from the explorers that index them.</div>
+          </div>
+
+          <div style="background:rgba(0,200,160,0.06);border:1px solid rgba(0,200,160,0.2);border-radius:6px;padding:16px 20px;font-size:0.68rem;color:var(--text2);line-height:1.9;">
+            <strong style="color:var(--accent2);">Why this tab exists separately:</strong> The standard NFT scanner uses Alchemy — a battle-tested indexer that covers Ethereum, Polygon, Base, Optimism, and Avalanche. Fractal Visions' Superchain deployments live on <strong style="color:var(--text);">Soneium, Shape, Superseed, and Unichain</strong> — networks Alchemy doesn't index. To reach them, we built a parallel scan using each chain's native Blockscout explorer API. Different source. Same result. Nothing falls through the floor.
+          </div>
+        </div>
+
+        <!-- ══ SECTION 1: COLLECTOR RESCUE ══════════════════════════════ -->
+        <div style="max-width:720px;margin:0 auto;">
+          <div style="font-family:var(--display);font-size:1.3rem;color:var(--accent2);margin-bottom:4px;">Collector Rescue</div>
+          <div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:16px;">Superchain NFT Recovery · Soneium · Shape · Superseed · Unichain</div>
+          <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+            Each of these four chains runs its own Blockscout instance — a live, indexed record of every token in every wallet. We query all four simultaneously and surface everything in one view. No API key required. No configuration. Just the wallet address and where to send what we find.
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">🔍</span><span class="tool-card-title">Scan All 4 Superchains</span></div>
+          <div class="tool-card-body">
+            <div class="field-group">
+              <div class="field-label">Compromised Wallet <span style="color:var(--danger);">Address</span> <span class="badge-sm badge-from">FROM</span></div>
+              <input type="text" class="field-input" id="fvNftWallet" placeholder="0x... compromised address" />
+            </div>
+            <div class="field-group">
+              <div class="field-label">Clean Destination <span style="color:var(--safe);">Address</span> <span class="badge-sm badge-to">TO</span></div>
+              <input type="text" class="field-input" id="fvNftDestination" placeholder="0x... clean wallet" />
+            </div>
+            <button class="btn btn-primary" onclick="scanFractalNFTs()" style="width:100%;">🔍 Scan All 4 Superchains</button>
+            <div id="fvNftScanStatus" style="font-size:0.6rem;color:var(--text3);margin-top:8px;"></div>
+          </div>
+        </div>
+
+        <!-- NFT Results -->
+        <div id="fvNftResults" style="display:none;margin-top:12px;">
+          <div class="tool-card">
+            <div class="tool-card-header"><span class="tool-card-icon">◎</span><span class="tool-card-title">NFTs Found — Select Chain to Rescue</span></div>
+            <div class="tool-card-body" id="fvNftRows"></div>
+          </div>
+
+          <!-- Execute Rescue -->
+          <div class="tool-card" style="margin-top:12px;">
+            <div class="tool-card-header"><span class="tool-card-icon">🔑</span><span class="tool-card-title">Execute NFT Rescue — Keys never stored, never transmitted</span></div>
+            <div class="tool-card-body">
+
+              <div style="background:rgba(255,149,0,0.08);border:1px solid rgba(255,149,0,0.3);border-radius:6px;padding:14px 18px;margin-bottom:16px;font-size:0.68rem;color:var(--text2);line-height:1.8;">
+                <strong style="color:var(--warn);">⚠ These chains do not have MEV protection.</strong><br><br>
+                Soneium, Shape, Superseed, and Unichain don't have the same MEV infrastructure as Ethereum mainnet. Transactions are not hidden from the mempool. If a sweeper bot is active and watching these chains, it may react. Work fast — have your funding wallet ready before you enter any keys.
+              </div>
+
+              <div class="field-group">
+                <div class="field-label">Chain to Rescue</div>
+                <select class="field-input" id="fvNftChain">
+                  <option value="soneium">Soneium</option>
+                  <option value="shape">Shape</option>
+                  <option value="superseed">Superseed</option>
+                  <option value="unichain">Unichain</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <div class="field-label">Compromised Wallet <span style="color:var(--danger);">KEY</span> <span class="badge-sm badge-from">FROM</span></div>
+                <input type="password" class="field-input" id="fvNftFromKey" placeholder="0x... compromised wallet private key" oninput="checkFvNftReady()" />
+              </div>
+              <div class="field-group">
+                <div class="field-label">Funding Wallet <span style="color:var(--danger);">KEY</span> <span class="badge-sm badge-from">FUND</span></div>
+                <input type="password" class="field-input" id="fvNftFundKey" placeholder="0x... funding wallet private key (pays gas)" oninput="checkFvNftReady()" />
+              </div>
+              <button class="btn btn-green" id="fvNftExecuteBtn" onclick="confirmFvNftRescue()" disabled style="width:100%;">▶ Execute Rescue</button>
+              <div id="fvNftExecuteStatus" style="font-size:0.6rem;color:var(--text3);margin-top:8px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ DIVIDER ════════════════════════════════════════════════════ -->
+        <div style="border-top:1px solid var(--border2);margin:40px 0 32px;"></div>
+
+        <!-- ══ SECTION 2: CREATOR OWNERSHIP ═════════════════════════════ -->
+        <div style="max-width:720px;margin:0 auto;">
+          <div style="font-family:var(--display);font-size:1.3rem;color:var(--accent2);margin-bottom:4px;">Creator Rescue</div>
+          <div style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:16px;">Smart Contract Ownership Transfer · All 7 Fractal Visions Chains</div>
+          <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+            When you launch a collection through the Fractal Visions Launchpad, a dedicated smart contract is deployed to your wallet address — not just an NFT, but a live contract you own. If that wallet is compromised, the contract is at risk too. This section reads the Launchpad registry directly to find every collection tied to your wallet across all seven Fractal Visions chains, then transfers ownership cleanly to your safe address.<br><br>
+            <span style="color:var(--text3);">The Launchpad uses a deterministic deployment pattern — the same contract address across all seven chains simultaneously. One scan finds everything.</span>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">⬡</span><span class="tool-card-title">Scan Launchpad Registry — Find Your Collections</span></div>
+          <div class="tool-card-body">
+            <div class="field-group">
+              <div class="field-label">Compromised Wallet <span style="color:var(--danger);">Address</span> <span class="badge-sm badge-from">FROM</span></div>
+              <input type="text" class="field-input" id="fractalWallet" placeholder="0x... compromised address" />
+            </div>
+            <div style="display:flex;gap:8px;margin-top:4px;">
+              <button class="btn btn-primary" onclick="scanFractalAll()" style="flex:1;">⬡ Scan All 7 Chains</button>
+              <select class="field-input" id="fractalChain" style="flex:1;max-width:200px;">
+                <option value="eth">Ethereum</option>
+                <option value="optimism">Optimism</option>
+                <option value="base">Base</option>
+                <option value="shape">Shape</option>
+                <option value="superseed">Superseed</option>
+                <option value="soneium">Soneium</option>
+                <option value="unichain">Unichain</option>
+              </select>
+              <button class="btn btn-ghost" onclick="scanFractalOne()" style="flex:0 0 auto;white-space:nowrap;">Scan One</button>
+            </div>
+            <div id="fractalScanStatus" style="font-size:0.6rem;color:var(--text3);margin-top:8px;"></div>
+          </div>
+        </div>
+
+        <div id="fractalResults" style="display:none;">
+          <div class="tool-card" style="margin-top:12px;">
+            <div class="tool-card-header"><span class="tool-card-icon">◎</span><span class="tool-card-title">Collections Found</span></div>
+            <div class="tool-card-body" id="fractalCollectionRows"></div>
+          </div>
+        </div>
+
+        <div class="tool-card" style="margin-top:12px;">
+          <div class="tool-card-header"><span class="tool-card-icon">🔑</span><span class="tool-card-title">Transfer Collection Ownership — Keys never stored, never transmitted</span></div>
+          <div class="tool-card-body">
+            <div style="font-size:0.68rem;color:var(--text2);line-height:1.8;padding:12px 16px;border-left:2px solid var(--accent2);margin-bottom:16px;">
+              This calls <code style="font-family:var(--mono);color:var(--accent);">transferOwnership()</code> directly on your collection contract — the same owner-only function that controls who can mint, update URIs, and manage royalties. After this transaction confirms, connect your clean wallet to <a href="https://fractalvisions.io" target="_blank" style="color:var(--accent2);">fractalvisions.io</a> and your collections will be waiting.
+            </div>
+            <div class="field-group">
+              <div class="field-label">Collection Contract Address</div>
+              <input type="text" class="field-input" id="fractalContract" placeholder="0x... paste directly or select from scan above" oninput="checkFractalReady()" />
+            </div>
+            <div class="field-group">
+              <div class="field-label">Chain</div>
+              <select class="field-input" id="fractalTransferChain" onchange="checkFractalReady()">
+                <option value="eth">Ethereum</option>
+                <option value="optimism">Optimism</option>
+                <option value="base">Base</option>
+                <option value="shape">Shape</option>
+                <option value="superseed">Superseed</option>
+                <option value="soneium">Soneium</option>
+                <option value="unichain">Unichain</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <div class="field-label">Compromised Wallet <span style="color:var(--danger);">KEY</span> <span class="badge-sm badge-from">FROM</span></div>
+              <input type="password" class="field-input" id="fractalFromKey" placeholder="0x... current owner private key" oninput="checkFractalReady()" />
+            </div>
+            <div class="field-group">
+              <div class="field-label">New Owner <span style="color:var(--safe);">Address</span> <span class="badge-sm badge-to">TO</span></div>
+              <input type="text" class="field-input" id="fractalNewOwner" placeholder="0x... clean wallet" oninput="checkFractalReady()" />
+            </div>
+            <button class="btn btn-green" id="fractalTransferBtn" onclick="confirmFractalTransfer()" disabled style="width:100%;">▶ Transfer Ownership</button>
+            <div id="fractalTransferStatus" style="font-size:0.6rem;color:var(--text3);margin-top:8px;"></div>
           </div>
         </div>
       </div>
@@ -2949,6 +3110,332 @@ function burnSession() {
   const td = document.getElementById('tokenDashboard');
   if (td) td.style.display = 'none';
   hideRescueVideo();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FRACTAL VISIONS — COLLECTOR NFT RESCUE (Blockscout)
+// ═══════════════════════════════════════════════════════════════════════════════
+const FV_SUPERCHAINS = { soneium: 'Soneium', shape: 'Shape', superseed: 'Superseed', unichain: 'Unichain' };
+let fvNftData = {}; // keyed by chain, value = rescue-data-format collections
+
+async function scanFractalNFTs() {
+  const wallet = document.getElementById('fvNftWallet').value.trim();
+  const dest   = document.getElementById('fvNftDestination').value.trim();
+  const status = document.getElementById('fvNftScanStatus');
+  const results = document.getElementById('fvNftResults');
+
+  if (!wallet) { status.style.color = 'var(--danger)'; status.textContent = '✗ Enter a compromised wallet address.'; return; }
+  if (!dest)   { status.style.color = 'var(--danger)'; status.textContent = '✗ Enter a clean destination address.'; return; }
+
+  status.style.color = 'var(--accent3)';
+  status.textContent = 'Scanning Soneium, Shape, Superseed, Unichain…';
+  results.style.display = 'none';
+  fvNftData = {};
+
+  try {
+    const res = await fetch(API + '/api/fractal-nft-scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error);
+
+    const collections = result.data.collections;
+
+    if (collections.length === 0) {
+      status.style.color = 'var(--text3)';
+      status.textContent = 'No Fractal Visions NFTs found on Superchain networks.';
+      return;
+    }
+
+    // Group by chain for the execute flow
+    for (const coll of collections) {
+      if (!fvNftData[coll.chain]) fvNftData[coll.chain] = [];
+      fvNftData[coll.chain].push(coll);
+    }
+
+    status.style.color = 'var(--safe)';
+    status.textContent = `✓ Found ${result.data.total} NFT(s) across ${collections.length} collection(s).`;
+
+    renderFvNftResults(collections, dest);
+    results.style.display = 'block';
+
+    // Auto-select first chain that has results
+    const firstChain = collections[0]?.chain;
+    if (firstChain) {
+      const sel = document.getElementById('fvNftChain');
+      for (let opt of sel.options) {
+        if (opt.value === firstChain) { opt.selected = true; break; }
+      }
+    }
+
+  } catch(e) {
+    status.style.color = 'var(--danger)';
+    status.textContent = '✗ ' + e.message;
+  }
+}
+
+function renderFvNftResults(collections, dest) {
+  const rows = document.getElementById('fvNftRows');
+  rows.innerHTML = '';
+
+  // Group by chain visually
+  const byChain = {};
+  for (const coll of collections) {
+    if (!byChain[coll.chain]) byChain[coll.chain] = [];
+    byChain[coll.chain].push(coll);
+  }
+
+  for (const [chainKey, colls] of Object.entries(byChain)) {
+    // Chain header
+    const header = document.createElement('div');
+    header.style.cssText = 'font-size:0.6rem;font-weight:600;color:var(--accent3);text-transform:uppercase;letter-spacing:0.08em;padding:10px 0 4px;';
+    header.textContent = FV_SUPERCHAINS[chainKey] || chainKey;
+    rows.appendChild(header);
+
+    for (const coll of colls) {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;';
+
+      // Image
+      const img = coll.tokens[0]?.image;
+      const imgEl = img
+        ? `<img src="${img}" style="width:40px;height:40px;border-radius:4px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">`
+        : `<div style="width:40px;height:40px;border-radius:4px;background:var(--border);flex-shrink:0;"></div>`;
+
+      row.innerHTML = `
+        ${imgEl}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.72rem;font-weight:600;color:var(--text);font-family:var(--mono);">${coll.collection}</div>
+          <div style="font-size:0.58rem;color:var(--text3);margin-top:2px;">${coll.token_type} · ${coll.tokens.length} token(s) · ${coll.tokens.reduce((s,t) => s + t.balance, 0)} total</div>
+          <div style="font-size:0.55rem;color:var(--text3);margin-top:1px;word-break:break-all;">${coll.contract}</div>
+        </div>
+        <a href="${coll.explorer}" target="_blank" class="kane-link-btn" style="font-size:0.6rem;padding:4px 8px;flex-shrink:0;">↗ View</a>
+      `;
+      rows.appendChild(row);
+    }
+  }
+}
+
+function checkFvNftReady() {
+  const fromKey = document.getElementById('fvNftFromKey').value.trim();
+  const fundKey = document.getElementById('fvNftFundKey').value.trim();
+  document.getElementById('fvNftExecuteBtn').disabled = !(fromKey && fundKey);
+}
+
+function confirmFvNftRescue() {
+  const chain = document.getElementById('fvNftChain').value;
+  const chainName = FV_SUPERCHAINS[chain] || chain;
+  const count = fvNftData[chain]?.reduce((s, c) => s + c.tokens.length, 0) || 0;
+  if (count === 0) {
+    document.getElementById('fvNftExecuteStatus').textContent = `✗ No NFTs found on ${chainName} in this scan.`;
+    document.getElementById('fvNftExecuteStatus').style.color = 'var(--danger)';
+    return;
+  }
+  showModal('🔍', `Rescue ${count} NFT(s) from ${chainName}`,
+    `This will transfer ${count} NFT(s) from your compromised wallet to your clean wallet on ${chainName}.\n\nThe funding wallet pays gas. Transfers route through the standard private RPC for ${chainName}.`,
+    [{label:'Cancel',cls:'btn-ghost',fn:closeModal},{label:'▶ Execute',cls:'btn-green',fn:()=>{closeModal();executeFvNftRescue();}}]
+  );
+}
+
+async function executeFvNftRescue() {
+  const status  = document.getElementById('fvNftExecuteStatus');
+  const chain   = document.getElementById('fvNftChain').value;
+  const fromKey = document.getElementById('fvNftFromKey').value.trim();
+  const fundKey = document.getElementById('fvNftFundKey').value.trim();
+  const dest    = document.getElementById('fvNftDestination').value.trim();
+
+  status.style.color = 'var(--accent3)';
+  status.textContent = 'Building rescue data…';
+  document.getElementById('fvNftExecuteBtn').disabled = true;
+
+  // Build rescue_data in the same format as the main execute endpoint
+  const rescueData = {
+    rescue_from: document.getElementById('fvNftWallet').value.trim(),
+    rescue_to: dest,
+    chains: { [chain]: fvNftData[chain] || [] },
+  };
+
+  if (!rescueData.chains[chain] || rescueData.chains[chain].length === 0) {
+    status.style.color = 'var(--danger)';
+    status.textContent = `✗ No NFTs found on ${FV_SUPERCHAINS[chain] || chain} — scan first.`;
+    document.getElementById('fvNftExecuteBtn').disabled = false;
+    return;
+  }
+
+  try {
+    const res = await fetch(API + '/api/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        rescue_data: rescueData,
+        chain,
+        compromised_key: fromKey,
+        funding_key: fundKey,
+        alchemy_key: STATE.alchemyKey,
+      })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error);
+
+    status.style.color = 'var(--safe)';
+    status.innerHTML = `✓ ${result.data.confirmed}/${result.data.submitted} NFT(s) rescued. <a href="${result.data.explorerBase}" target="_blank" style="color:var(--accent);">View on explorer ↗</a>`;
+  } catch(e) {
+    status.style.color = 'var(--danger)';
+    status.textContent = '✗ ' + e.message;
+    document.getElementById('fvNftExecuteBtn').disabled = false;
+  }
+}
+
+// FRACTAL VISIONS — CREATOR OWNERSHIP
+// ═══════════════════════════════════════════════════════════════════════════════
+// FRACTAL VISIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+const FV_ALL_CHAINS = ['eth','optimism','base','shape','superseed','soneium','unichain'];
+let fractalCollections = [];
+let fractalSelectedContract = null;
+let fractalSelectedChain = null;
+
+async function scanFractalAll() {
+  await runFractalScan(FV_ALL_CHAINS, 'all 7 chains');
+}
+
+async function scanFractalOne() {
+  const chain = document.getElementById('fractalChain').value;
+  const chainName = document.getElementById('fractalChain').options[document.getElementById('fractalChain').selectedIndex].text;
+  await runFractalScan([chain], chainName);
+}
+
+async function runFractalScan(chainKeys, label) {
+  const wallet  = document.getElementById('fractalWallet').value.trim();
+  const status  = document.getElementById('fractalScanStatus');
+  const results = document.getElementById('fractalResults');
+
+  if (!wallet) { status.style.color = 'var(--danger)'; status.textContent = '✗ Enter a wallet address first.'; return; }
+
+  status.style.color = 'var(--accent3)';
+  status.textContent = `Scanning ${label}…`;
+  results.style.display = 'none';
+
+  try {
+    const res = await fetch(API + '/api/fractal-scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet, chains: chainKeys, alchemyKey: STATE.alchemyKey })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error);
+
+    fractalCollections = result.data.collections;
+    const chainErrors = result.data.chainErrors || [];
+
+    if (fractalCollections.length === 0) {
+      let msg = `No Fractal Visions collections found on ${label}.`;
+      if (chainErrors.length > 0) {
+        msg += ` (${chainErrors.length} chain(s) had errors — check server console for details)`;
+      }
+      status.style.color = 'var(--text3)';
+      status.textContent = msg;
+      return;
+    }
+
+    let statusMsg = `✓ Found ${fractalCollections.length} collection(s) across ${label}.`;
+    if (chainErrors.length > 0) {
+      statusMsg += ` (${chainErrors.length} chain(s) failed — check server console)`;
+    }
+    status.style.color = 'var(--safe)';
+    status.textContent = statusMsg;
+    renderFractalCollections();
+    results.style.display = 'block';
+
+  } catch(e) {
+    status.style.color = 'var(--danger)';
+    status.textContent = '✗ ' + e.message;
+  }
+}
+
+function renderFractalCollections() {
+  const rows = document.getElementById('fractalCollectionRows');
+  rows.innerHTML = '';
+
+  fractalCollections.forEach((coll, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap;';
+    row.innerHTML = `
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.75rem;font-weight:600;color:var(--text);font-family:var(--mono);">${coll.name} <span style="color:var(--text3);">(${coll.symbol})</span></div>
+        <div style="font-size:0.6rem;color:var(--accent3);margin-top:2px;">${coll.chainName} · ${coll.tokenType} · Supply: ${coll.totalSupply} · License: ${coll.licenseName}</div>
+        <div style="font-size:0.58rem;color:var(--text3);margin-top:2px;word-break:break-all;">${coll.contract}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <a href="${coll.explorer}" target="_blank" class="kane-link-btn" style="font-size:0.6rem;padding:4px 8px;">↗ View</a>
+        <button class="btn btn-ghost" style="font-size:0.6rem;padding:4px 10px;" onclick="selectFractalCollection(${i})">Select</button>
+      </div>
+    `;
+    rows.appendChild(row);
+  });
+}
+
+function selectFractalCollection(index) {
+  const coll = fractalCollections[index];
+  fractalSelectedContract = coll.contract;
+  fractalSelectedChain = coll.chain;
+  document.getElementById('fractalContract').value = coll.contract;
+  // Set the transfer chain dropdown to match
+  const transferChain = document.getElementById('fractalTransferChain');
+  for (let opt of transferChain.options) {
+    if (opt.value === coll.chain) { opt.selected = true; break; }
+  }
+  checkFractalReady();
+  document.getElementById('fractalContract').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function checkFractalReady() {
+  const contract = document.getElementById('fractalContract').value.trim();
+  const key      = document.getElementById('fractalFromKey').value.trim();
+  const newOwner = document.getElementById('fractalNewOwner').value.trim();
+  document.getElementById('fractalTransferBtn').disabled = !(contract && key && newOwner);
+}
+
+function confirmFractalTransfer() {
+  const contract   = document.getElementById('fractalContract').value.trim();
+  const newOwner   = document.getElementById('fractalNewOwner').value.trim();
+  const chainSel   = document.getElementById('fractalTransferChain');
+  const chainName  = chainSel.options[chainSel.selectedIndex].text;
+  showModal('⬡', 'Transfer Fractal Visions Ownership',
+    `Collection ${shortAddr(contract)} ownership will transfer to ${shortAddr(newOwner)} on ${chainName}.\n\nAfter this, connect your clean wallet to fractalvisions.io to manage the collection.`,
+    [{label:'Cancel',cls:'btn-ghost',fn:closeModal},{label:'▶ Transfer',cls:'btn-green',fn:()=>{closeModal();executeFractalTransfer();}}]
+  );
+}
+
+async function executeFractalTransfer() {
+  const status   = document.getElementById('fractalTransferStatus');
+  const contract = document.getElementById('fractalContract').value.trim();
+  const key      = document.getElementById('fractalFromKey').value.trim();
+  const newOwner = document.getElementById('fractalNewOwner').value.trim();
+  const chain    = document.getElementById('fractalTransferChain').value;
+
+  status.style.color = 'var(--accent3)';
+  status.textContent = 'Executing transfer…';
+  document.getElementById('fractalTransferBtn').disabled = true;
+
+  try {
+    const res = await fetch(API + '/api/fractal-transfer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contractAddress: contract, newOwner, privateKey: key, chain, alchemyKey: STATE.alchemyKey })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error);
+
+    status.style.color = 'var(--safe)';
+    status.innerHTML = `✓ Ownership transferred. <a href="${result.data.explorer}" target="_blank" style="color:var(--accent);">View tx ↗</a> — Connect your clean wallet to fractalvisions.io to manage the collection.`;
+  } catch(e) {
+    status.style.color = 'var(--danger)';
+    status.textContent = '✗ ' + e.message;
+    document.getElementById('fractalTransferBtn').disabled = false;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

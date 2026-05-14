@@ -404,6 +404,99 @@ app.post('/api/quiet-fund', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// FRACTAL VISIONS ROUTES
+// ══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * POST /api/fractal-nft-scan
+ * Scans a compromised wallet for NFTs on Fractal Visions Superchain chains
+ * using Blockscout APIs (no Alchemy key required for these chains)
+ * Body: { wallet: string }
+ */
+app.post('/api/fractal-nft-scan', async (req, res) => {
+  try {
+    const { wallet } = req.body;
+    if (!wallet) {
+      return res.status(400).json({ success: false, error: 'Wallet address required' });
+    }
+    console.log(`  Scanning FV Superchain NFTs for ${wallet.slice(0, 10)}...`);
+    const result = await engine.scanFractalNFTs(wallet);
+    console.log(`  Found ${result.data.total} NFT(s) across ${result.data.collections.length} collection(s)`);
+    res.json(result);
+  } catch (e) {
+    console.error('  FV NFT scan error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+/**
+ * POST /api/fractal-scan
+ * Scans a wallet for Fractal Visions creator collections on a given chain
+ * Body: { wallet: string, chain: string, alchemyKey?: string }
+ */
+app.post('/api/fractal-scan', async (req, res) => {
+  try {
+    const { wallet, chain, chains, alchemyKey } = req.body;
+
+    if (!wallet) {
+      return res.status(400).json({ success: false, error: 'Wallet address required' });
+    }
+
+    // Accept either a single chain string or an array of chains
+    const chainKeys = chains || (chain ? [chain] : null);
+    if (!chainKeys || chainKeys.length === 0) {
+      return res.status(400).json({ success: false, error: 'Chain or chains required' });
+    }
+
+    console.log(`  Scanning Fractal Visions collections for ${wallet.slice(0, 10)}... on [${chainKeys.join(', ')}]`);
+    const result = await engine.scanFractalCollections(wallet, chainKeys, alchemyKey);
+    console.log(`  Found ${result.data.total} Fractal Visions collection(s)`);
+
+    res.json(result);
+  } catch (e) {
+    console.error('  Fractal scan error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+/**
+ * POST /api/fractal-transfer
+ * Transfers ownership of a Fractal Visions collection to a new wallet
+ * Body: { contractAddress, newOwner, privateKey, chain, alchemyKey? }
+ */
+app.post('/api/fractal-transfer', async (req, res) => {
+  try {
+    const { contractAddress, newOwner, privateKey, chain, alchemyKey } = req.body;
+
+    if (!contractAddress) {
+      return res.status(400).json({ success: false, error: 'Contract address required' });
+    }
+    if (!newOwner) {
+      return res.status(400).json({ success: false, error: 'New owner address required' });
+    }
+    if (!privateKey) {
+      return res.status(400).json({ success: false, error: 'Private key required' });
+    }
+    if (!chain) {
+      return res.status(400).json({ success: false, error: 'Chain required' });
+    }
+
+    if (!engine.validatePrivateKey(privateKey)) {
+      return res.status(400).json({ success: false, error: 'Invalid private key' });
+    }
+
+    console.log(`  Transferring Fractal Visions collection ${contractAddress.slice(0, 10)}... on ${chain}`);
+    const result = await engine.transferFractalOwnership(contractAddress, newOwner, privateKey, chain, alchemyKey);
+    console.log(`  Ownership transferred: ${result.data.txHash}`);
+
+    res.json(result);
+  } catch (e) {
+    console.error('  Fractal transfer error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // EMBLEM VAULT ROUTES (registered from emblem-server.js)
 // ══════════════════════════════════════════════════════════════════════════════
 registerEmblemRoutes(app);

@@ -72,6 +72,55 @@ export const CHAINS = {
     priorityFeeGwei: 25,
     gasForFunding: 21000,
   },
+  // ── FRACTAL VISIONS SUPERCHAIN CHAINS (Configured — not yet live-rescue tested) ──
+  'shape': {
+    name: 'Shape',
+    chainId: 360,
+    jsonKey: 'shape-mainnet',
+    rpc: 'https://mainnet.shape.network',
+    mevProtected: false,
+    nativeSymbol: 'ETH',
+    explorer: 'https://shapescan.xyz',
+    gasBuffer: 1.25,
+    priorityFeeGwei: 0.5,
+    gasForFunding: 21000,
+  },
+  'superseed': {
+    name: 'Superseed',
+    chainId: 5330,
+    jsonKey: 'superseed-mainnet',
+    rpc: 'https://mainnet.superseed.xyz',
+    mevProtected: false,
+    nativeSymbol: 'ETH',
+    explorer: 'https://superscan.network',
+    gasBuffer: 1.25,
+    priorityFeeGwei: 0.5,
+    gasForFunding: 21000,
+  },
+  'soneium': {
+    name: 'Soneium',
+    chainId: 1868,
+    jsonKey: 'soneium-mainnet',
+    rpc: 'https://rpc.soneium.org',
+    mevProtected: false,
+    nativeSymbol: 'ETH',
+    explorer: 'https://soneium.blockscout.com',
+    gasBuffer: 1.25,
+    priorityFeeGwei: 0.5,
+    gasForFunding: 21000,
+  },
+  'unichain': {
+    name: 'Unichain',
+    chainId: 130,
+    jsonKey: 'unichain-mainnet',
+    rpc: 'https://mainnet.unichain.org',
+    mevProtected: false,
+    nativeSymbol: 'ETH',
+    explorer: 'https://uniscan.xyz',
+    gasBuffer: 1.25,
+    priorityFeeGwei: 0.5,
+    gasForFunding: 21000,
+  },
 };
 
 // ── ABI FRAGMENTS ──────────────────────────────────────────────────────────────
@@ -104,13 +153,14 @@ function getProvider(chainKey, alchemyKey) {
     rpc = `https://polygon-mainnet.g.alchemy.com/v2/${alchemyKey}`;
   }
 
-  // MEV Blocker doesn't respond to eth_chainId probes — specify network statically
-  // to prevent "failed to detect network" retry loops on every call.
-  if (rpc.includes('mevblocker.io')) {
-    return new ethers.JsonRpcProvider(rpc, { chainId: chain.chainId, name: chain.name }, { staticNetwork: true });
-  }
-
-  return new ethers.JsonRpcProvider(rpc);
+  // Always specify network statically — prevents "failed to detect network"
+  // retry loops on MEV Blocker AND avoids proxy contract call failures on
+  // OP-stack chains where eth_chainId probes can interfere with call results.
+  return new ethers.JsonRpcProvider(
+    rpc,
+    { chainId: chain.chainId, name: chain.name },
+    { staticNetwork: true }
+  );
 }
 
 function validateAddress(addr) {
@@ -1014,7 +1064,245 @@ export async function sweepToken(fromKey, toAddress, chainKey, tokenContract, al
   };
 }
 
+// ── FRACTAL VISIONS ───────────────────────────────────────────────────────────
+const FRACTAL_LAUNCHPAD_ADDRESS = '0x7A10b7d6Dc513Ae5F98f2C1546269Be9DE94ebD3';
+
+const FRACTAL_LAUNCHPAD_ABI = [
+  'function getERC721sByCreator(address creator) view returns (address[])',
+  'function getERC1155sByCreator(address creator) view returns (address[])',
+];
+
+// ERC721 ABI — totalSupply() takes no args (selector 0x18160ddd)
+const FRACTAL_ERC721_ABI = [
+  'function name() view returns (string)',
+  'function symbol() view returns (string)',
+  'function totalSupply() view returns (uint256)',
+  'function owner() view returns (address)',
+  'function getLicenseName() view returns (string)',
+  'function transferOwnership(address newOwner)',
+];
+
+// ERC1155 ABI — totalSupply(uint256) takes a tokenId (selector 0xbd85b039)
+const FRACTAL_ERC1155_ABI = [
+  'function name() view returns (string)',
+  'function symbol() view returns (string)',
+  'function totalSupply(uint256 id) view returns (uint256)',
+  'function owner() view returns (address)',
+  'function getLicenseName() view returns (string)',
+  'function transferOwnership(address newOwner)',
+];
+
+export async function scanFractalCollections(walletAddress, chainKeys, alchemyKey) {
+  const validAddress = validateAddress(walletAddress);
+  if (!validAddress) throw new Error('Invalid wallet address');
+
+  // Accept a single chain string or an array of chains
+  const chains = Array.isArray(chainKeys) ? chainKeys : [chainKeys];
+
+  const allCollections = [];
+  const chainErrors = [];
+
+  await Promise.all(chains.map(async (chainKey) => {
+    const chain = CHAINS[chainKey];
+    if (!chain) {
+      chainErrors.push({ chain: chainKey, error: 'Unknown chain' });
+      return;
+    }
+
+    try {
+      const provider = getProvider(chainKey, alchemyKey);
+      const launchpad = new ethers.Contract(FRACTAL_LAUNCHPAD_ADDRESS, FRACTAL_LAUNCHPAD_ABI, provider);
+
+      const [erc721s, erc1155s] = await Promise.all([
+        launchpad.getERC721sByCreator(validAddress).catch(() => []),
+        launchpad.getERC1155sByCreator(validAddress).catch(() => []),
+      ]);
+
+      const fetchDetails = async (contractAddress, tokenType) => {
+        try {
+          // Use correct ABI per type — ERC1155 totalSupply(uint256) vs ERC721 totalSupply()
+          const abi = tokenType === 'ERC721' ? FRACTAL_ERC721_ABI : FRACTAL_ERC1155_ABI;
+          const coll = new ethers.Contract(contractAddress, abi, provider);
+
+          const [name, symbol, owner, licenseName] = await Promise.all([
+            coll.name().catch(() => 'Unknown'),
+            coll.symbol().catch(() => '???'),
+            coll.owner().catch(() => ''),
+            coll.getLicenseName().catch(() => '—'),
+          ]);
+
+          let totalSupply = '—';
+          try {
+            if (tokenType === 'ERC721') {
+              const ts = await coll.totalSupply();
+              totalSupply = ts.toString();
+            } else {
+              const ts = await coll.totalSupply(0);
+              totalSupply = ts.toString();
+            }
+          } catch (e) {}
+
+          allCollections.push({
+            contract: contractAddress,
+            tokenType,
+            name,
+            symbol,
+            totalSupply,
+            owner,
+            licenseName,
+            chain: chainKey,
+            chainName: chain.name,
+            explorer: `${chain.explorer}/address/${contractAddress}`,
+          });
+        } catch (e) {
+          // Skip contracts we can't read
+        }
+      };
+
+      await Promise.all([
+        ...erc721s.map(addr => fetchDetails(addr, 'ERC721')),
+        ...erc1155s.map(addr => fetchDetails(addr, 'ERC1155')),
+      ]);
+    } catch (e) {
+      chainErrors.push({ chain: chainKey, error: e.message });
+    }
+  }));
+
+  return {
+    success: true,
+    data: {
+      wallet: validAddress,
+      collections: allCollections,
+      total: allCollections.length,
+      chainErrors, // surface errors so UI can show what failed
+    }
+  };
+}
+
+export async function transferFractalOwnership(contractAddress, newOwner, privateKey, chainKey, alchemyKey) {
+  const validContract = validateAddress(contractAddress);
+  const validOwner = validateAddress(newOwner);
+
+  if (!validContract) throw new Error('Invalid contract address');
+  if (!validOwner) throw new Error('Invalid new owner address');
+  if (!validatePrivateKey(privateKey)) throw new Error('Invalid private key');
+
+  const chain = CHAINS[chainKey];
+  if (!chain) throw new Error(`Unknown chain: ${chainKey}`);
+
+  const provider = getProvider(chainKey, alchemyKey);
+  const wallet = new ethers.Wallet(privateKey, provider);
+  const contract = new ethers.Contract(validContract, FRACTAL_ERC721_ABI, wallet);
+
+  // Verify caller is actually the owner
+  const currentOwner = await contract.owner();
+  if (currentOwner.toLowerCase() !== wallet.address.toLowerCase()) {
+    throw new Error(`You are not the owner of this contract. Current owner: ${currentOwner}`);
+  }
+
+  const feeData = await provider.getFeeData();
+  const maxFee = feeData.maxFeePerGas || ethers.parseUnits('20', 'gwei');
+  const priorityFeeGwei = chain.minPriorityFeeGwei
+    ? Math.max(chain.priorityFeeGwei, chain.minPriorityFeeGwei)
+    : chain.priorityFeeGwei;
+  const priorityFee = ethers.parseUnits(String(priorityFeeGwei), 'gwei');
+
+  const tx = await contract.transferOwnership(validOwner, {
+    maxFeePerGas: maxFee,
+    maxPriorityFeePerGas: priorityFee,
+    type: 2,
+  });
+
+  await tx.wait(1);
+
+  return {
+    success: true,
+    data: {
+      contract: validContract,
+      newOwner: validOwner,
+      txHash: tx.hash,
+      chain: chainKey,
+      chainName: chain.name,
+      explorer: `${chain.explorer}/tx/${tx.hash}`,
+    }
+  };
+}
+
 // ── EXPORTS ────────────────────────────────────────────────────────────────────
+// ── FRACTAL VISIONS — COLLECTOR NFT SCAN (Blockscout) ─────────────────────────
+// Uses Blockscout REST API to find NFTs on the 4 Superchain chains Alchemy doesn't cover.
+// All 4 chains run Blockscout with the same /api/v2/addresses/{wallet}/nft endpoint.
+
+const FV_BLOCKSCOUT_CHAINS = [
+  { key: 'soneium',   name: 'Soneium',   baseUrl: 'https://soneium.blockscout.com',  explorer: 'https://soneium.blockscout.com'  },
+  { key: 'shape',     name: 'Shape',     baseUrl: 'https://shapescan.xyz',            explorer: 'https://shapescan.xyz'            },
+  { key: 'superseed', name: 'Superseed', baseUrl: 'https://explorer.superseed.xyz',   explorer: 'https://explorer.superseed.xyz'   },
+  { key: 'unichain',  name: 'Unichain',  baseUrl: 'https://unichain.blockscout.com',  explorer: 'https://unichain.blockscout.com'  },
+];
+
+export async function scanFractalNFTs(walletAddress) {
+  const validAddress = validateAddress(walletAddress);
+  if (!validAddress) throw new Error('Invalid wallet address');
+
+  const allNFTs = [];
+  const chainErrors = [];
+
+  await Promise.all(FV_BLOCKSCOUT_CHAINS.map(async (chain) => {
+    try {
+      const url = `${chain.baseUrl}/api/v2/addresses/${validAddress}/nft?type=ERC-721,ERC-1155`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        chainErrors.push({ chain: chain.key, error: `HTTP ${response.status}` });
+        return;
+      }
+
+      const data = await response.json();
+      const items = data.items || [];
+
+      // Group by collection contract — same pattern as scanAllChains
+      const collections = {};
+      for (const item of items) {
+        const contract = item.token?.address_hash;
+        if (!contract) continue;
+
+        if (!collections[contract]) {
+          collections[contract] = {
+            collection: item.token?.name || 'Unknown Collection',
+            contract,
+            token_type: item.token?.type?.replace('-', '') || 'ERC721', // normalize ERC-721 → ERC721
+            chain: chain.key,
+            chainName: chain.name,
+            explorer: `${chain.explorer}/address/${contract}`,
+            tokens: [],
+          };
+        }
+
+        collections[contract].tokens.push({
+          tokenId: item.id,
+          name: item.metadata?.name || `#${item.id}`,
+          image: item.image_url || item.media_url || '',
+          balance: parseInt(item.value) || 1,
+        });
+      }
+
+      allNFTs.push(...Object.values(collections));
+    } catch (e) {
+      chainErrors.push({ chain: chain.key, error: e.message });
+    }
+  }));
+
+  return {
+    success: true,
+    data: {
+      wallet: validAddress,
+      collections: allNFTs,
+      total: allNFTs.reduce((sum, c) => sum + c.tokens.length, 0),
+      chainErrors,
+    }
+  };
+}
+
 export default {
   CHAINS,
   scanAllChains,
@@ -1027,6 +1315,9 @@ export default {
   sweepETH,
   quietFund,
   transferManifoldOwnership,
+  scanFractalCollections,
+  transferFractalOwnership,
+  scanFractalNFTs,
   validateAddress,
   validatePrivateKey,
 };
