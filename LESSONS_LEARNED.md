@@ -8,7 +8,7 @@ This tool was built in 18 hours during an actual wallet compromise. February 16,
 
 Some of what's in this document will seem obvious. It wasn't obvious at 3am when the fifth approach failed and the bot was still sitting there waiting.
 
-If you're thinking about opening a PR that suggests something in here — read this first. We probably tried it. If we didn't, and you've got something better, we want to hear it. But if it's in here, it's in here because we already bled on that rock.
+If you're thinking about opening a PR that suggests something in here... read this first. We probably tried it. If we didn't, and you've got something better, we want to hear it. But if it's in here, it's in here because we already bled on that rock.
 
 ---
 
@@ -31,7 +31,7 @@ This is the table. These are the things that did not work. Do not revisit them w
 | `safeTransferFrom` on ENS (0x57f1887a) | ENS registrar rejects standard NFT transfer. Reverts every time. | Skip ENS in the tool, direct user to `app.ens.domains` |
 | `address payable[]` in ethers v6 ABI | ethers v6 rejects `payable` and `calldata` keywords in ABI strings | Use `address[]` only. Strip keywords. |
 | Single shared ABI for ERC721 and ERC1155 `totalSupply` | ERC721 uses `totalSupply()` (selector `0x18160ddd`, no args). ERC1155 uses `totalSupply(uint256 id)` (selector `0xbd85b039`, requires a tokenId). One ABI for both causes the ERC1155 call to silently fail, and because it's in a `Promise.all`, it takes `name()`, `symbol()`, and `owner()` down with it. Everything returns the fallback value. You see "Unknown (???)" and have no idea why. | Two separate ABIs. `FRACTAL_ERC721_ABI` with `totalSupply()`. `FRACTAL_ERC1155_ABI` with `totalSupply(uint256 id)`. Select by token type before instantiating the contract. |
-| `calldata` keyword in ABI strings | Same — ethers v6 rejects it | Use `bytes` instead |
+| `calldata` keyword in ABI strings | Same... ethers v6 rejects it | Use `bytes` instead |
 | CommonJS `require()` in engine.js | ESM/CJS conflict with `type: module` in package.json | ESM `import` throughout. Use `.cjs` extension if you absolutely need CommonJS. |
 | Arweave-hosted HTML with browser execution | CORS + key security + MEV Blocker conflict. Triple failure. | Downloadable folder with local server. Settled. |
 | Standalone HTML+JS split (pre-V10) | Two separate files. User has to understand which one does what. Clunky UX for someone in crisis. | Unified local web server. One window, one experience. |
@@ -47,7 +47,7 @@ It did nothing.
 
 The blockchain calls were stubbed. The buttons were wired to console.log. It was a beautiful car with no engine.
 
-Meanwhile, the ugly Node.js script running in a terminal window — no UI, just text output — had already rescued 115 NFTs on Ethereum mainnet.
+Meanwhile, the ugly Node.js script running in a terminal window... no UI, just text output... had already rescued 115 NFTs on Ethereum mainnet.
 
 V10 exists because we needed both: the engine that actually works AND an interface that doesn't make someone in crisis feel like they need a computer science degree. The local web server architecture is the answer. Node.js handles blockchain. The browser handles humans.
 
@@ -61,19 +61,19 @@ The RPC nodes reject transactions with priority fees below ~25 gwei. The documen
 
 LIFEBOAT hardcodes a 30 gwei floor for Polygon. It's higher than you'd set manually, but it guarantees your transactions don't get rejected at the RPC level.
 
-### MEV Blocker doesn't respond to `eth_chainId` — and neither do OP-stack chains with proxy contracts
+### MEV Blocker doesn't respond to `eth_chainId` and neither do OP-stack chains with proxy contracts
 
 Standard practice: when you connect to an RPC, you call `eth_chainId` to confirm you're on the right network. MEV Blocker doesn't respond to this probe. ethers.js interprets silence as "failed to detect network" and enters a retry loop. Your app hangs.
 
-It turns out `staticNetwork: true` is not just a MEV Blocker fix — it's the correct setting for ALL providers in this codebase. UUPS proxy contracts on OP-stack chains (Optimism, Base, Shape, Soneium, etc.) also exhibit degraded behavior when ethers.js probes for the chain ID during contract calls. The delegated call results can be incorrect or empty.
+It turns out `staticNetwork: true` is not just a MEV Blocker fix... it's the correct setting for ALL providers in this codebase. UUPS proxy contracts on OP-stack chains (Optimism, Base, Shape, Soneium, etc.) also exhibit degraded behavior when ethers.js probes for the chain ID during contract calls. The delegated call results can be incorrect or empty.
 
-The fix — applied globally:
+The fix... applied globally:
 
 ```javascript
-// Wrong — causes retry loops on MEV Blocker, bad call results on proxy contracts
+// Wrong - causes retry loops on MEV Blocker, bad call results on proxy contracts
 new ethers.JsonRpcProvider('https://rpc.mevblocker.io')
 
-// Right — works correctly everywhere
+// Right - works correctly everywhere
 new ethers.JsonRpcProvider(
   rpc,
   { chainId: chain.chainId, name: chain.name },
@@ -93,7 +93,7 @@ LIFEBOAT falls back to conservative flat estimates (150k for ERC-721, 200k for E
 
 During the Fractal Visions integration we added verbose `console.log` statements throughout `scanFractalCollections()` to debug silent failures. They worked. We then had to audit and remove every single one.
 
-The rule going forward: **engine.js has zero console statements.** The engine is not a terminal app. Server.js does the logging — it has visibility into what the user is doing and logs at the right level of abstraction. Engine internals logging is noise that leaks partial contract addresses and internal state to whoever is watching the terminal.
+The rule going forward: **engine.js has zero console statements.** The engine is not a terminal app. Server.js does the logging... it has visibility into what the user is doing and logs at the right level of abstraction. Engine internals logging is noise that leaks partial contract addresses and internal state to whoever is watching the terminal.
 
 If you need to debug engine internals, add logs temporarily, fix the bug, remove the logs before committing.
 
@@ -103,7 +103,7 @@ If you need to debug engine internals, add logs temporarily, fix the bug, remove
 
 ### NFTs listed on marketplace escrow don't appear in the scan
 
-If a user has listed an NFT for sale on Foundation (or any marketplace that moves the token into an escrow contract), the NFT is not in their wallet on-chain. `balanceOf` returns 0. Alchemy doesn't return it. LIFEBOAT correctly sees nothing — because there's nothing there to see.
+If a user has listed an NFT for sale on Foundation (or any marketplace that moves the token into an escrow contract), the NFT is not in their wallet on-chain. `balanceOf` returns 0. Alchemy doesn't return it. LIFEBOAT correctly sees nothing... because there's nothing there to see.
 
 The user sees it as "theirs" on the marketplace UI because the marketplace tracks their listing separately. But on-chain it belongs to the escrow contract.
 
@@ -113,7 +113,7 @@ Worth a FAQ entry. Not worth a code change.
 
 ### ThirdWeb role-gated transfer restrictions cannot be overridden
 
-Some contracts — particularly those deployed through ThirdWeb's `DropERC721` template — use role-based access control on every transfer. The admin can revoke `TRANSFER_ROLE` from `address(0)`, which effectively makes the token non-transferable until the admin re-grants it.
+Some contracts... particularly those deployed through ThirdWeb's `DropERC721` template use role-based access control on every transfer. The admin can revoke `TRANSFER_ROLE` from `address(0)`, which effectively makes the token non-transferable until the admin re-grants it.
 
 LIFEBOAT handles this correctly: `estimateGas` detects the revert and skips the token. This is the right behavior. There is no workaround. The contract admin holds the key, not the user. No tool — including LIFEBOAT — can override a restriction that lives inside the contract itself.
 
@@ -174,7 +174,7 @@ Gas floors exist for a reason. Users can't negotiate themselves into failure. Th
 When the script said 60 confirmations and Etherscan said 115, Etherscan was right. The chain is the source of truth. The script can misreport. The chain cannot.
 
 **"Your lifeboats have reached safety"**
-The completion message. After the terror, after the waiting, after the confirmations — this is the exhale.
+The completion message. After the terror, after the waiting, after the confirmations... this is the exhale.
 
 ---
 
@@ -193,7 +193,7 @@ When something fails, you should stop, look at the explorer, understand what hap
 
 ### Transfer restriction override
 
-Some contracts have transfer restrictions — role-gated, paused, or soulbound by design. LIFEBOAT detects these via `estimateGas` revert and skips them. There is no override. The contract's rules are the rules.
+Some contracts have transfer restrictions... role-gated, paused, or soulbound by design. LIFEBOAT detects these via `estimateGas` revert and skips them. There is no override. The contract's rules are the rules.
 
 Do not build "force transfer" logic. It cannot work. The restriction lives inside the contract on-chain. No external tool can bypass it.
 
@@ -201,7 +201,7 @@ Do not build "force transfer" logic. It cannot work. The restriction lives insid
 
 LIFEBOAT doesn't tell you what your NFTs are worth. It doesn't query marketplaces.
 
-In a rescue scenario, this information is noise. You're not deciding what to rescue based on floor price — you're deciding based on what matters to you. The POAP from a friend's wedding doesn't have a floor price. It's priceless.
+In a rescue scenario, this information is noise. You're not deciding what to rescue based on floor price... you're deciding based on what matters to you. The POAP from a friend's wedding doesn't have a floor price. It's priceless.
 
 ### Solana
 
