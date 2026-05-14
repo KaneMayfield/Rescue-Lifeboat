@@ -72,6 +72,10 @@ Compromised wallet drained to zero. Bot has nothing left to watch.
 - **Transfers Manifold creator contract ownership** to your clean wallet
 - **Rescues Emblem Vaults** (V2 + Legacy) with vault contents inspection
   and gas-free ownership proof signing for profile migration
+- **Rescues Fractal Visions NFTs** across Soneium, Shape, Superseed, and Unichain
+  via native Blockscout integrations — chains conventional scanners don't reach
+- **Transfers Fractal Visions collection ownership** from a compromised creator
+  wallet across all seven Fractal Visions chains via the Launchpad registry
 - **Cleans up** with a burn button that wipes your keys from memory the
   moment you're done
 
@@ -123,6 +127,10 @@ Base, Optimism, or Avalanche, you need to turn those on:
 4. Save. Your same API key now covers all chains
 
 If you skip this step, Rescue Lifeboat will only find your Ethereum NFTs.
+
+> **Note for Fractal Visions users:** NFTs on Soneium, Shape, Superseed, and
+> Unichain are found through a separate Blockscout scan in the Fractal Visions
+> tab — no Alchemy key required for those chains.
 
 ### Step 3: Download Rescue Lifeboat
 
@@ -198,7 +206,7 @@ This tab finds everything in your compromised wallet. **You don't need your priv
 
 ### LIFEBOAT Section — Execute the Rescue
 
-Once you've scanned and selected your NFTs, the LIFEBOAT section is where the rescue actually happens. It has seven tabs:
+Once you've scanned and selected your NFTs, the LIFEBOAT section is where the rescue actually happens. It has eight tabs:
 
 ---
 
@@ -327,6 +335,33 @@ private key.
 
 ---
 
+#### Tab 8: FRACTAL VISIONS
+
+A dedicated rescue suite for the Fractal Visions NFT ecosystem. Fractal Visions
+operates across a constellation of Superchain networks that conventional rescue
+tools don't reach. This tab was built specifically for that ecosystem — with native
+integrations for each chain, sourced directly from the explorers that index them.
+
+**Why it exists separately:** The standard NFT scanner uses Alchemy, which covers
+Ethereum, Polygon, Base, Optimism, and Avalanche. Fractal Visions' Superchain
+deployments live on Soneium, Shape, Superseed, and Unichain — networks Alchemy
+doesn't index. To reach them, Rescue Lifeboat uses each chain's native Blockscout
+explorer API directly. Different source. Same result. Nothing falls through the floor.
+
+**Collector Rescue** — Scans all four Superchains simultaneously using Blockscout's
+live indexed data. No API key required. Surfaces every Fractal Visions NFT in the
+compromised wallet with images and collection details, then executes the rescue
+chain by chain using the same proven transfer engine.
+
+**Creator Rescue** — If your compromised wallet is a Fractal Visions creator, this
+section reads the Launchpad registry directly to find every collection contract tied
+to your address across all seven Fractal Visions chains. The Launchpad uses a
+deterministic deployment pattern — the same contract address on every chain — so
+one scan finds everything. Transfers collection ownership cleanly to your safe wallet
+by calling `transferOwnership()` on each contract directly.
+
+---
+
 https://github.com/user-attachments/assets/aa12d7f5-e2cd-4769-8a71-a478da1b3b35
 
 ---
@@ -448,18 +483,26 @@ step-by-step.
 
 ## Supported Chains
 
-| Chain       | MEV Protected | Native Token | Status       |
-|-------------|---------------|--------------|--------------|
-| Ethereum    | ✅ Yes        | ETH          | Tested       |
-| Polygon     | No            | POL          | Tested       |
-| Base        | No            | ETH          | Tested       |
-| Optimism    | No            | ETH          | Configured   |
-| Avalanche   | No            | AVAX         | Configured   |
+| Chain       | MEV Protected | Native Token | Status       | Scanner      |
+|-------------|---------------|--------------|--------------|--------------|
+| Ethereum    | ✅ Yes        | ETH          | Tested       | Alchemy      |
+| Polygon     | No            | POL          | Tested       | Alchemy      |
+| Base        | No            | ETH          | Tested       | Alchemy      |
+| Optimism    | No            | ETH          | Configured   | Alchemy      |
+| Avalanche   | No            | AVAX         | Configured   | Alchemy      |
+| Soneium     | No            | ETH          | Configured   | Blockscout   |
+| Shape       | No            | ETH          | Configured   | Blockscout   |
+| Superseed   | No            | ETH          | Configured   | Blockscout   |
+| Unichain    | No            | ETH          | Configured   | Blockscout   |
 
 MEV protection (via MEV Blocker) hides your transactions from the public
 mempool. This is what prevents sweeper bots from seeing your moves on
 Ethereum. Other chains don't have the same MEV infrastructure, but sweeper
 bots are also less common there.
+
+The four Blockscout chains (Soneium, Shape, Superseed, Unichain) are scanned
+via the Fractal Visions tab using each chain's native explorer API. No Alchemy
+key required for those chains.
 
 ---
 
@@ -536,3 +579,4 @@ If you used this to recover your NFTs, drop a note. It helps.
 
 
 https://kanemayfield.com/llms.txt
+
