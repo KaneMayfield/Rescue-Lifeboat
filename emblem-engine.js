@@ -99,12 +99,45 @@ function extractContainedAssets(metadata) {
 
 
 // ── SCANNING ──────────────────────────────────────────────────────────────────
+
+// Curated collections API endpoint — returns live list of all Emblem contracts
+const EMBLEM_CURATED_API = 'https://v2.emblemvault.io/curated';
+const EMBLEM_MYVAULTS_API = 'https://v2.emblemvault.io/myvaults';
+
+/**
+ * fetchCuratedContracts()
+ * Fetches the live curated contract list from Emblem's API.
+ * Returns array of { address, name, standard } for Ethereum mainnet.
+ */
+async function fetchCuratedContracts() {
+  try {
+    const res = await fetch(EMBLEM_CURATED_API);
+    if (!res.ok) return [];
+    const curated = await res.json();
+    const CHAIN_ID = '1'; // Ethereum mainnet
+    return curated
+      .filter(c => c.contracts && c.contracts[CHAIN_ID])
+      .map(c => ({
+        address: c.contracts[CHAIN_ID],
+        name: c.name || 'Emblem Curated',
+        standard: c.collectionType || 'ERC-1155',
+      }));
+  } catch {
+    return [];
+  }
+}
+
 /**
  * scanEmblemVaults(walletAddress, alchemyKey)
  *
- * Scans BOTH Emblem V2 and Legacy contracts on Ethereum mainnet for vault NFTs
- * owned by walletAddress. For each vault, fetches tokenURI and decodes metadata
- * to extract vault name, image, contained assets, etc.
+ * Primary: Uses Emblem Vault's own /myvaults API — contract-agnostic,
+ * returns all vaults across ALL Emblem systems including curated collections.
+ *
+ * Fallback: Scans V2 and Legacy contracts via Alchemy if the primary API
+ * returns no results or fails.
+ *
+ * This fixes the missing Rare Pepe / curated ERC-1155 issue where Alchemy's
+ * contract-filtered getNFTsForOwner silently missed ERC-1155 vaults.
  */
 export async function scanEmblemVaults(walletAddress, alchemyKey) {
   const validWallet = validateAddress(walletAddress);
@@ -113,59 +146,106 @@ export async function scanEmblemVaults(walletAddress, alchemyKey) {
 
   const vaults = [];
 
-  // Scan both contracts via Alchemy NFT API
-  for (const contractAddr of VAULT_CONTRACTS) {
-    try {
-      const url = `https://eth-mainnet.g.alchemy.com/nft/v3/${alchemyKey}/getNFTsForOwner?owner=${validWallet}&contractAddresses[]=${contractAddr}&withMetadata=true&pageSize=100`;
-      const response = await fetch(url);
-      if (!response.ok) continue;
+  // ── PRIMARY: Emblem's own myvaults API ────────────────────────────────────
+  try {
+    const url = `${EMBLEM_MYVAULTS_API}/${validWallet}?vaultType=vaulted`;
+    const res = await fetch(url);
 
-      const data = await response.json();
-      const nfts = data.ownedNfts || [];
+    if (res.ok) {
+      const data = await res.json();
+      const items = Array.isArray(data) ? data : (data.vaults || data.items || []);
 
-      // Use Alchemy provider for tokenURI calls (avoid MEV Blocker for reads)
-      const provider = getAlchemyProvider(alchemyKey);
-      const contract = new ethers.Contract(contractAddr, EMBLEM_ABI, provider);
+      for (const item of items) {
+        // Normalize fields from Emblem API response
+        const contractAddr = item.contract || item.contractAddress || EMBLEM_V2_ADDRESS;
+        const contractName = CONTRACT_NAMES[contractAddr.toLowerCase()] || item.collectionName || 'Emblem Vault';
 
-      for (const nft of nfts) {
-        const tokenId = nft.tokenId;
-        const contractName = CONTRACT_NAMES[contractAddr.toLowerCase()] || 'Emblem Vault';
-
-        // Try to get tokenURI from contract for full metadata
-        let metadata = null;
+        // Extract contained assets from attributes
         let containedAssets = '';
-        try {
-          const uri = await contract.tokenURI(tokenId);
-          metadata = decodeTokenURI(uri);
-          if (metadata && !metadata._needsFetch) {
-            containedAssets = extractContainedAssets(metadata);
-          }
-        } catch {
-          // tokenURI may fail on some tokens — fall back to Alchemy metadata
-        }
-
-        // Fall back to Alchemy-provided metadata if tokenURI decode failed
-        if (!metadata || metadata._needsFetch) {
-          const alchemyMeta = nft.raw?.metadata || {};
-          metadata = alchemyMeta;
-          containedAssets = extractContainedAssets(alchemyMeta);
+        if (item.attributes) {
+          containedAssets = extractContainedAssets({ attributes: item.attributes });
+        } else if (item.containedAssets) {
+          containedAssets = item.containedAssets;
         }
 
         vaults.push({
           contract: contractAddr,
           contractName,
-          tokenId,
-          name: metadata?.name || nft.name || `Vault #${tokenId}`,
-          image: metadata?.image || nft.image?.cachedUrl || nft.image?.originalUrl || '',
-          description: metadata?.description || nft.description || '',
+          tokenId: String(item.tokenId || item.id || ''),
+          name: item.name || `Vault #${item.tokenId}`,
+          image: item.image || item.imageUrl || item.cachedImage || '',
+          description: item.description || '',
           containedAssets,
-          rawMetadata: metadata,
+          rawMetadata: item,
+          source: 'emblem-api',
         });
       }
-    } catch (e) {
-      // Contract scan failed — continue with the other
-      console.error(`Emblem scan error (${contractAddr}):`, e.message);
     }
+  } catch {
+    // Primary API failed — fall through to Alchemy fallback
+  }
+
+  // ── FALLBACK: Alchemy scan if primary returned nothing ────────────────────
+  if (vaults.length === 0) {
+    // Fetch live curated contract list + hardcoded V2/Legacy
+    const curatedContracts = await fetchCuratedContracts();
+    const allContracts = [
+      { address: EMBLEM_V2_ADDRESS, name: 'Emblem Vault V2', standard: 'ERC-721' },
+      { address: EMBLEM_LEGACY_ADDRESS, name: 'Emblem Vault Legacy', standard: 'ERC-721' },
+      ...curatedContracts,
+    ];
+
+    const provider = getAlchemyProvider(alchemyKey);
+
+    await Promise.all(allContracts.map(async ({ address: contractAddr, name: contractName }) => {
+      try {
+        const url = `https://eth-mainnet.g.alchemy.com/nft/v3/${alchemyKey}/getNFTsForOwner?owner=${validWallet}&contractAddresses[]=${contractAddr}&withMetadata=true&pageSize=100`;
+        const response = await fetch(url);
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const nfts = data.ownedNfts || [];
+        if (nfts.length === 0) return;
+
+        const contract = new ethers.Contract(contractAddr, EMBLEM_ABI, provider);
+
+        for (const nft of nfts) {
+          const tokenId = nft.tokenId;
+
+          let metadata = null;
+          let containedAssets = '';
+          try {
+            const uri = await contract.tokenURI(tokenId);
+            metadata = decodeTokenURI(uri);
+            if (metadata && !metadata._needsFetch) {
+              containedAssets = extractContainedAssets(metadata);
+            }
+          } catch {
+            // tokenURI may fail on ERC-1155 — fall back to Alchemy metadata
+          }
+
+          if (!metadata || metadata._needsFetch) {
+            const alchemyMeta = nft.raw?.metadata || {};
+            metadata = alchemyMeta;
+            containedAssets = extractContainedAssets(alchemyMeta);
+          }
+
+          vaults.push({
+            contract: contractAddr,
+            contractName,
+            tokenId,
+            name: metadata?.name || nft.name || `Vault #${tokenId}`,
+            image: metadata?.image || nft.image?.cachedUrl || nft.image?.originalUrl || '',
+            description: metadata?.description || nft.description || '',
+            containedAssets,
+            rawMetadata: metadata,
+            source: 'alchemy-fallback',
+          });
+        }
+      } catch {
+        // Contract scan failed — skip silently
+      }
+    }));
   }
 
   return {
