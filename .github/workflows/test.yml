@@ -25,7 +25,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run tests
-        run: node test-emblem.js
+      - name: Pin critical package versions
+        run: npm install ethers@6.7.1 @toruslabs/torus.js@6.4.1 @toruslabs/fetch-node-details@6.0.1
+
+      - name: Run full test suite
+        run: node test-suite.js --no-server
         env:
           ALCHEMY_KEY: ${{ secrets.ALCHEMY_KEY }}
