@@ -18,7 +18,7 @@ import { registerMarkVRoutes } from './markv-server.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = 3000;
+const PORT = parseInt(process.env.PORT) || 3000;
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
