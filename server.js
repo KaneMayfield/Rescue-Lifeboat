@@ -3,8 +3,8 @@
  * ║  LIFEBOAT V10 — Local Web Server                                  ║
  * ║  by Kane Mayfield · kanemayfield.com                             ║
  * ╚══════════════════════════════════════════════════════════════════╝
- * 
- * This server runs LOCALLY on your machine. Private keys are sent 
+ *
+ * This server runs LOCALLY on your machine. Private keys are sent
  * to localhost only — they never leave your computer.
  */
 
@@ -14,6 +14,7 @@ import path from 'path';
 import open from 'open';
 import engine from './engine.js';
 import { registerEmblemRoutes } from './emblem-server.js';
+import { registerMarkVRoutes } from './markv-server.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -68,7 +69,7 @@ app.get('/api/chains', (req, res) => {
 app.post('/api/scan', async (req, res) => {
   try {
     const { wallet, alchemyKey } = req.body;
-    
+
     if (!wallet) {
       return res.status(400).json({ success: false, error: 'Wallet address required' });
     }
@@ -78,8 +79,7 @@ app.post('/api/scan', async (req, res) => {
 
     console.log(`  Scanning wallet: ${wallet.slice(0, 10)}...`);
     const result = await engine.scanAllChains(wallet, alchemyKey);
-    
-    // Count total NFTs found
+
     let totalNFTs = 0;
     for (const chain of Object.values(result.data.chains)) {
       for (const coll of chain) {
@@ -98,12 +98,12 @@ app.post('/api/scan', async (req, res) => {
 /**
  * POST /api/estimate
  * Estimates gas costs for a chain rescue
- * Body: { chain: string, rescueData: object, alchemyKey?: string }
+ * Body: { chain: string, rescueData: object, alchemyKey: string }
  */
 app.post('/api/estimate', async (req, res) => {
   try {
     const { chain, rescueData, alchemyKey } = req.body;
-    
+
     if (!chain) {
       return res.status(400).json({ success: false, error: 'Chain required' });
     }
@@ -113,7 +113,7 @@ app.post('/api/estimate', async (req, res) => {
 
     console.log(`  Estimating gas for ${chain}...`);
     const result = await engine.estimateChainGas(chain, rescueData, alchemyKey);
-    console.log(`  Estimate: ${result.data.tokenCount} tokens, ${result.data.totalCostNative} ${result.data.nativeSymbol}`);
+    console.log(`  Estimate: ${result.data.totalCostNative} ${result.data.nativeSymbol}`);
 
     res.json(result);
   } catch (e) {
@@ -124,15 +124,15 @@ app.post('/api/estimate', async (req, res) => {
 
 /**
  * POST /api/balance
- * Checks wallet balances
- * Body: { addresses: string[], chain: string, alchemyKey?: string }
+ * Checks wallet balances on a single chain
+ * Body: { addresses: string[], chain: string, alchemyKey: string }
  */
 app.post('/api/balance', async (req, res) => {
   try {
     const { addresses, chain, alchemyKey } = req.body;
-    
-    if (!addresses || !Array.isArray(addresses)) {
-      return res.status(400).json({ success: false, error: 'Addresses array required' });
+
+    if (!addresses || addresses.length === 0) {
+      return res.status(400).json({ success: false, error: 'Addresses required' });
     }
     if (!chain) {
       return res.status(400).json({ success: false, error: 'Chain required' });
@@ -147,107 +147,9 @@ app.post('/api/balance', async (req, res) => {
 });
 
 /**
- * POST /api/execute
- * Executes the NFT rescue for a specific chain
- * Body: { chain, rescueData, compromisedKey, fundingKey, alchemyKey? }
- * 
- * SECURITY NOTE: Keys are received, used, and discarded.
- * They are never logged or stored.
- */
-app.post('/api/execute', async (req, res) => {
-  try {
-    const { chain, rescueData, compromisedKey, fundingKey, alchemyKey } = req.body;
-    
-    if (!chain) {
-      return res.status(400).json({ success: false, error: 'Chain required' });
-    }
-    if (!rescueData) {
-      return res.status(400).json({ success: false, error: 'Rescue data required' });
-    }
-    if (!compromisedKey) {
-      return res.status(400).json({ success: false, error: 'Compromised wallet key required' });
-    }
-    if (!fundingKey) {
-      return res.status(400).json({ success: false, error: 'Funding wallet key required' });
-    }
-
-    // Validate keys before starting
-    if (!engine.validatePrivateKey(compromisedKey)) {
-      return res.status(400).json({ success: false, error: 'Invalid compromised wallet private key' });
-    }
-    if (!engine.validatePrivateKey(fundingKey)) {
-      return res.status(400).json({ success: false, error: 'Invalid funding wallet private key' });
-    }
-
-    console.log(`  Executing rescue on ${chain}...`);
-    
-    // Track progress for potential SSE streaming in future
-    const progressLog = [];
-    const onProgress = (p) => {
-      progressLog.push({ ...p, timestamp: Date.now() });
-      console.log(`    [${p.step}] ${p.message}`);
-    };
-
-    const result = await engine.executeChainRescue(
-      chain, 
-      rescueData, 
-      compromisedKey, 
-      fundingKey, 
-      alchemyKey,
-      onProgress
-    );
-
-    console.log(`  Rescue complete: ${result.data.confirmed}/${result.data.submitted} confirmed`);
-
-    // Include progress log in response
-    result.data.progressLog = progressLog;
-    res.json(result);
-  } catch (e) {
-    console.error('  Execute error:', e.message);
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-/**
- * POST /api/sweep
- * Sweeps remaining ETH from a wallet
- * Body: { fromKey, toAddress, chain, alchemyKey? }
- */
-app.post('/api/sweep', async (req, res) => {
-  try {
-    const { fromKey, toAddress, chain, alchemyKey } = req.body;
-    
-    if (!fromKey) {
-      return res.status(400).json({ success: false, error: 'Source wallet key required' });
-    }
-    if (!toAddress) {
-      return res.status(400).json({ success: false, error: 'Destination address required' });
-    }
-    if (!chain) {
-      return res.status(400).json({ success: false, error: 'Chain required' });
-    }
-
-    console.log(`  Sweeping ${chain}...`);
-    const result = await engine.sweepETH(fromKey, toAddress, chain, alchemyKey);
-    console.log(`  Swept ${result.data.amount} ${result.data.nativeSymbol}`);
-
-    res.json(result);
-  } catch (e) {
-    console.error('  Sweep error:', e.message);
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-/**
- * POST /api/manifold
- * Transfers Manifold contract ownership
- * Body: { contractAddress, newOwner, privateKey, alchemyKey? }
- */
-
-/**
  * POST /api/balances-all
- * Checks native balances across ALL chains for a given private key
- * Body: { privateKey, alchemyKey? }
+ * Checks native balances across ALL chains for a given private key or address
+ * Body: { privateKey, address, alchemyKey? }
  */
 app.post('/api/balances-all', async (req, res) => {
   try {
@@ -267,6 +169,62 @@ app.post('/api/balances-all', async (req, res) => {
 });
 
 /**
+ * POST /api/execute
+ * Executes NFT transfers for a chain
+ * Body: { chain, rescueData, compromisedKey, fundingKey, alchemyKey }
+ */
+app.post('/api/execute', async (req, res) => {
+  try {
+    const { chain, rescueData, compromisedKey, fundingKey, alchemyKey } = req.body;
+
+    if (!chain) return res.status(400).json({ success: false, error: 'Chain required' });
+    if (!rescueData) return res.status(400).json({ success: false, error: 'Rescue data required' });
+    if (!compromisedKey) return res.status(400).json({ success: false, error: 'Compromised wallet key required' });
+    if (!fundingKey) return res.status(400).json({ success: false, error: 'Funding wallet key required' });
+
+    console.log(`  Executing rescue on ${chain}...`);
+
+    const onProgress = (progress) => {
+      console.log(`  [${progress.step}] ${progress.message}`);
+    };
+
+    const result = await engine.executeChainRescue(
+      chain, rescueData, compromisedKey, fundingKey, alchemyKey, onProgress
+    );
+
+    console.log(`  Rescue complete: ${result.data.confirmed} confirmed, ${result.data.failed} failed`);
+    res.json(result);
+  } catch (e) {
+    console.error('  Execute error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+/**
+ * POST /api/sweep
+ * Sweeps remaining native tokens from a wallet
+ * Body: { fromKey, toAddress, chain, alchemyKey? }
+ */
+app.post('/api/sweep', async (req, res) => {
+  try {
+    const { fromKey, toAddress, chain, alchemyKey } = req.body;
+
+    if (!fromKey) return res.status(400).json({ success: false, error: 'From key required' });
+    if (!toAddress) return res.status(400).json({ success: false, error: 'Destination address required' });
+    if (!chain) return res.status(400).json({ success: false, error: 'Chain required' });
+
+    console.log(`  Sweeping native balance on ${chain}...`);
+    const result = await engine.sweepETH(fromKey, toAddress, chain, alchemyKey);
+    console.log(`  Swept ${result.data.amount} ${result.data.nativeSymbol}`);
+
+    res.json(result);
+  } catch (e) {
+    console.error('  Sweep error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+/**
  * POST /api/tokens
  * Scans all chains for ERC-20 token balances
  * Body: { privateKey, alchemyKey }
@@ -274,12 +232,8 @@ app.post('/api/balances-all', async (req, res) => {
 app.post('/api/tokens', async (req, res) => {
   try {
     const { privateKey, alchemyKey } = req.body;
-    if (!privateKey) {
-      return res.status(400).json({ success: false, error: 'Private key required' });
-    }
-    if (!alchemyKey) {
-      return res.status(400).json({ success: false, error: 'Alchemy key required' });
-    }
+    if (!privateKey) return res.status(400).json({ success: false, error: 'Private key required' });
+    if (!alchemyKey) return res.status(400).json({ success: false, error: 'Alchemy key required' });
 
     const result = await engine.scanAllTokens(privateKey, alchemyKey);
     console.log(`  Found ${result.data.tokens.length} tokens with balances`);
@@ -302,7 +256,7 @@ app.post('/api/sweep-token', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
 
-    console.log(`  Sweeping token ${tokenContract} on ${chain}...`);
+    console.log(`  Sweeping token ${tokenContract.slice(0,10)}... on ${chain}...`);
     const result = await engine.sweepToken(fromKey, toAddress, chain, tokenContract, alchemyKey);
     console.log(`  Swept ${result.data.amount} ${result.data.symbol}`);
     res.json(result);
@@ -312,32 +266,120 @@ app.post('/api/sweep-token', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/manifold
+ * Transfers Manifold contract ownership
+ * Body: { contractAddress, newOwner, privateKey, alchemyKey? }
+ */
 app.post('/api/manifold', async (req, res) => {
   try {
     const { contractAddress, newOwner, privateKey, alchemyKey } = req.body;
-    
-    if (!contractAddress) {
-      return res.status(400).json({ success: false, error: 'Contract address required' });
-    }
-    if (!newOwner) {
-      return res.status(400).json({ success: false, error: 'New owner address required' });
-    }
-    if (!privateKey) {
-      return res.status(400).json({ success: false, error: 'Private key required' });
-    }
+
+    if (!contractAddress) return res.status(400).json({ success: false, error: 'Contract address required' });
+    if (!newOwner) return res.status(400).json({ success: false, error: 'New owner address required' });
+    if (!privateKey) return res.status(400).json({ success: false, error: 'Private key required' });
 
     console.log(`  Transferring Manifold ownership...`);
-    const result = await engine.transferManifoldOwnership(
-      contractAddress, 
-      newOwner, 
-      privateKey, 
-      alchemyKey
-    );
+    const result = await engine.transferManifoldOwnership(contractAddress, newOwner, privateKey, alchemyKey);
     console.log(`  Ownership transferred to ${newOwner.slice(0, 10)}...`);
 
     res.json(result);
   } catch (e) {
     console.error('  Manifold error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+/**
+ * POST /api/quiet-fund
+ * Sends a precise amount of gas privately to a compromised wallet
+ * Body: { fromKey, toAddress, amount, chain, alchemyKey? }
+ */
+app.post('/api/quiet-fund', async (req, res) => {
+  try {
+    const { fromKey, toAddress, amount, chain, alchemyKey } = req.body;
+
+    if (!fromKey) return res.status(400).json({ success: false, error: 'Funding key required' });
+    if (!toAddress) return res.status(400).json({ success: false, error: 'Destination address required' });
+    if (!amount) return res.status(400).json({ success: false, error: 'Amount required' });
+    if (!chain) return res.status(400).json({ success: false, error: 'Chain required' });
+
+    console.log(`  Quiet fund: sending ${amount} on ${chain}...`);
+    const result = await engine.quietFund(fromKey, toAddress, amount, chain, alchemyKey);
+    console.log(`  Sent ${result.data.amount} ${result.data.nativeSymbol}`);
+
+    res.json(result);
+  } catch (e) {
+    console.error('  Quiet fund error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+/**
+ * POST /api/fractal-scan
+ * Scans Fractal Visions Launchpad registry for creator collections
+ * Body: { wallet, chains?, alchemyKey? }
+ */
+app.post('/api/fractal-scan', async (req, res) => {
+  try {
+    const { wallet, chains, alchemyKey } = req.body;
+    if (!wallet) return res.status(400).json({ success: false, error: 'Wallet address required' });
+
+    const chainKeys = chains || ['eth', 'optimism', 'base', 'shape', 'superseed', 'soneium', 'unichain'];
+    console.log(`  Fractal scan: ${wallet.slice(0, 10)}... on ${chainKeys.length} chains`);
+
+    const result = await engine.scanFractalCollections(wallet, chainKeys, alchemyKey);
+    console.log(`  Found ${result.data.total} Fractal collections`);
+
+    res.json(result);
+  } catch (e) {
+    console.error('  Fractal scan error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+/**
+ * POST /api/fractal-transfer
+ * Transfers Fractal Visions collection ownership
+ * Body: { contractAddress, newOwner, privateKey, chain, alchemyKey? }
+ */
+app.post('/api/fractal-transfer', async (req, res) => {
+  try {
+    const { contractAddress, newOwner, privateKey, chain, alchemyKey } = req.body;
+
+    if (!contractAddress) return res.status(400).json({ success: false, error: 'Contract address required' });
+    if (!newOwner) return res.status(400).json({ success: false, error: 'New owner address required' });
+    if (!privateKey) return res.status(400).json({ success: false, error: 'Private key required' });
+    if (!chain) return res.status(400).json({ success: false, error: 'Chain required' });
+
+    console.log(`  Fractal ownership transfer on ${chain}...`);
+    const result = await engine.transferFractalOwnership(contractAddress, newOwner, privateKey, chain, alchemyKey);
+    console.log(`  Transferred to ${newOwner.slice(0, 10)}...`);
+
+    res.json(result);
+  } catch (e) {
+    console.error('  Fractal transfer error:', e.message);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+/**
+ * POST /api/fractal-nft-scan
+ * Scans Blockscout for Fractal Visions NFTs (collector rescue — no Alchemy)
+ * Body: { wallet }
+ */
+app.post('/api/fractal-nft-scan', async (req, res) => {
+  try {
+    const { wallet } = req.body;
+    if (!wallet) return res.status(400).json({ success: false, error: 'Wallet address required' });
+
+    console.log(`  Fractal NFT scan (Blockscout): ${wallet.slice(0, 10)}...`);
+    const result = await engine.scanFractalNFTs(wallet);
+    console.log(`  Found ${result.data.total} Fractal NFTs across Superchains`);
+
+    res.json(result);
+  } catch (e) {
+    console.error('  Fractal NFT scan error:', e.message);
     res.status(500).json({ success: false, error: e.message });
   }
 });
@@ -349,7 +391,7 @@ app.post('/api/manifold', async (req, res) => {
  */
 app.post('/api/validate', (req, res) => {
   const { type, value } = req.body;
-  
+
   if (type === 'address') {
     const valid = engine.validateAddress(value);
     res.json({ success: true, valid: !!valid, normalized: valid || null });
@@ -362,144 +404,14 @@ app.post('/api/validate', (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
-// QUIET FUND
-// Sends a specific amount from funding wallet to a destination wallet.
-// On Ethereum mainnet, automatically uses MEV Blocker (private mempool).
-// On other chains, uses standard RPC — visible to bots, no stealth mode.
-// Used for: funding gas to a compromised wallet so the user can manually sign
-// transactions on third-party sites (ENS, unstake contracts, etc.) without
-// the bundled NFT-rescue flow.
-// ══════════════════════════════════════════════════════════════════════════════
-
-/**
- * POST /api/quiet-fund
- * Body: { fundingKey, toAddress, amountEth, chain, alchemyKey? }
- */
-app.post('/api/quiet-fund', async (req, res) => {
-  try {
-    const { fundingKey, toAddress, amountEth, chain, alchemyKey } = req.body;
-
-    if (!fundingKey) {
-      return res.status(400).json({ success: false, error: 'Funding wallet key required' });
-    }
-    if (!toAddress) {
-      return res.status(400).json({ success: false, error: 'Destination address required' });
-    }
-    if (!amountEth) {
-      return res.status(400).json({ success: false, error: 'Amount required' });
-    }
-    if (!chain) {
-      return res.status(400).json({ success: false, error: 'Chain required' });
-    }
-
-    console.log(`  Quiet fund: ${amountEth} on ${chain}...`);
-    const result = await engine.quietFund(fundingKey, toAddress, amountEth, chain, alchemyKey);
-    console.log(`  Sent ${result.data.amount} ${result.data.nativeSymbol} (MEV protected: ${result.data.mevProtected})`);
-
-    res.json(result);
-  } catch (e) {
-    console.error('  Quiet fund error:', e.message);
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-// ══════════════════════════════════════════════════════════════════════════════
-// FRACTAL VISIONS ROUTES
-// ══════════════════════════════════════════════════════════════════════════════
-
-/**
- * POST /api/fractal-nft-scan
- * Scans a compromised wallet for NFTs on Fractal Visions Superchain chains
- * using Blockscout APIs (no Alchemy key required for these chains)
- * Body: { wallet: string }
- */
-app.post('/api/fractal-nft-scan', async (req, res) => {
-  try {
-    const { wallet } = req.body;
-    if (!wallet) {
-      return res.status(400).json({ success: false, error: 'Wallet address required' });
-    }
-    console.log(`  Scanning FV Superchain NFTs for ${wallet.slice(0, 10)}...`);
-    const result = await engine.scanFractalNFTs(wallet);
-    console.log(`  Found ${result.data.total} NFT(s) across ${result.data.collections.length} collection(s)`);
-    res.json(result);
-  } catch (e) {
-    console.error('  FV NFT scan error:', e.message);
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-/**
- * POST /api/fractal-scan
- * Scans a wallet for Fractal Visions creator collections on a given chain
- * Body: { wallet: string, chain: string, alchemyKey?: string }
- */
-app.post('/api/fractal-scan', async (req, res) => {
-  try {
-    const { wallet, chain, chains, alchemyKey } = req.body;
-
-    if (!wallet) {
-      return res.status(400).json({ success: false, error: 'Wallet address required' });
-    }
-
-    // Accept either a single chain string or an array of chains
-    const chainKeys = chains || (chain ? [chain] : null);
-    if (!chainKeys || chainKeys.length === 0) {
-      return res.status(400).json({ success: false, error: 'Chain or chains required' });
-    }
-
-    console.log(`  Scanning Fractal Visions collections for ${wallet.slice(0, 10)}... on [${chainKeys.join(', ')}]`);
-    const result = await engine.scanFractalCollections(wallet, chainKeys, alchemyKey);
-    console.log(`  Found ${result.data.total} Fractal Visions collection(s)`);
-
-    res.json(result);
-  } catch (e) {
-    console.error('  Fractal scan error:', e.message);
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-/**
- * POST /api/fractal-transfer
- * Transfers ownership of a Fractal Visions collection to a new wallet
- * Body: { contractAddress, newOwner, privateKey, chain, alchemyKey? }
- */
-app.post('/api/fractal-transfer', async (req, res) => {
-  try {
-    const { contractAddress, newOwner, privateKey, chain, alchemyKey } = req.body;
-
-    if (!contractAddress) {
-      return res.status(400).json({ success: false, error: 'Contract address required' });
-    }
-    if (!newOwner) {
-      return res.status(400).json({ success: false, error: 'New owner address required' });
-    }
-    if (!privateKey) {
-      return res.status(400).json({ success: false, error: 'Private key required' });
-    }
-    if (!chain) {
-      return res.status(400).json({ success: false, error: 'Chain required' });
-    }
-
-    if (!engine.validatePrivateKey(privateKey)) {
-      return res.status(400).json({ success: false, error: 'Invalid private key' });
-    }
-
-    console.log(`  Transferring Fractal Visions collection ${contractAddress.slice(0, 10)}... on ${chain}`);
-    const result = await engine.transferFractalOwnership(contractAddress, newOwner, privateKey, chain, alchemyKey);
-    console.log(`  Ownership transferred: ${result.data.txHash}`);
-
-    res.json(result);
-  } catch (e) {
-    console.error('  Fractal transfer error:', e.message);
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-// ══════════════════════════════════════════════════════════════════════════════
-// EMBLEM VAULT ROUTES (registered from emblem-server.js)
+// EMBLEM VAULT ROUTES
 // ══════════════════════════════════════════════════════════════════════════════
 registerEmblemRoutes(app);
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MARK V ROUTES — Massive Tactical Extraction
+// ══════════════════════════════════════════════════════════════════════════════
+registerMarkVRoutes(app);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SERVE FRONTEND
@@ -521,11 +433,13 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
   console.log('');
   console.log('╔══════════════════════════════════════════════════════════════╗');
-  console.log('║                     LIFEBOAT V10                              ║');
-  console.log('║              NFT Rescue Tool · Local Server                   ║');
+  console.log('║           RESCUE LIFEBOAT · MARK V                            ║');
+  console.log('║           NFT Rescue Tool + Massive Tactical Extraction       ║');
   console.log('╠══════════════════════════════════════════════════════════════╣');
   console.log('║                                                               ║');
   console.log(`║   Running at: http://localhost:${PORT}                          ║`);
+  console.log('║                                                               ║');
+  console.log('║   RESCUE · LIFEBOAT · MARK V                                  ║');
   console.log('║                                                               ║');
   console.log('║   Your private keys NEVER leave this machine.                 ║');
   console.log('║   All blockchain operations run locally.                      ║');

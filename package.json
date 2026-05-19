@@ -1,17 +1,51 @@
 {
-  "name": "lifeboat",
+  "name": "rescue-lifeboat",
   "version": "10.0.0",
-  "description": "NFT Rescue Tool for Compromised EVM Wallets",
-  "main": "server.js",
+  "description": "NFT rescue tool for compromised EVM wallets. Free. Open source. No percentage. No catch.",
   "type": "module",
+  "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node test-emblem.js"
   },
   "dependencies": {
-    "ethers": "^6.11.0",
+    "@toruslabs/fetch-node-details": "^6.0.1",
+    "@toruslabs/torus.js": "^6.4.1",
+    "bip39": "^3.1.0",
+    "crypto-js": "^4.2.0",
+    "emblem-vault-sdk": "^1.0.0",
+    "ethers": "^6.7.1",
     "express": "^4.18.2",
-    "open": "^10.0.0"
+    "hdkey": "^2.1.0",
+    "open": "^9.1.0"
   },
-  "author": "Kane Mayfield",
-  "license": "MIT"
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Kane Mayfield <kanemayfield.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/KaneMayfield/Rescue-Lifeboat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KaneMayfield/Rescue-Lifeboat.git"
+  },
+  "keywords": [
+    "nft",
+    "rescue",
+    "ethereum",
+    "polygon",
+    "base",
+    "evm",
+    "sweeper-bot",
+    "mev",
+    "wallet-recovery",
+    "emblem-vault",
+    "mark-v",
+    "counterparty",
+    "xcp"
+  ],
+  "_notes": {
+    "torus-version": "Pinned to v6.x. v7+ changed retrieveShares() signature. Do not upgrade without updating markv-engine.js unvault flow.",
+    "ethers-version": "Must stay on v6.x. v5 has different API for JsonRpcProvider, wallet, BigInt handling."
+  }
 }

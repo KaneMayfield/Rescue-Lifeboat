@@ -30,6 +30,9 @@
   --head:    'Syne', sans-serif;
   --radius: 2px;
   --transition: 0.15s ease;
+  --accent-mv:  #c8960f;
+  --accent-mv2: #e8b020;
+  --accent-mv-dim: rgba(200,150,15,0.15);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -84,6 +87,13 @@ body.tab-lifeboat .bg-scene-rescue { opacity: 0; }
 body.tab-lifeboat .bg-scene-lifeboat { opacity: 0.18; }
 body.tab-rescue .bg-scene-rescue { opacity: 0.14; }
 body.tab-rescue .bg-scene-lifeboat { opacity: 0; }
+body.tab-markv .bg-scene-rescue { opacity: 0; }
+body.tab-markv .bg-scene-lifeboat { opacity: 0; }
+body.tab-markv .bg-scene-markv { opacity: 0.22; }
+.bg-scene-markv {
+  background-image: url('MarkVbackground.png');
+  opacity: 0;
+}
 
 .bg-vignette {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
@@ -267,6 +277,7 @@ body.tab-rescue .bg-scene-lifeboat { opacity: 0; }
 .nav-btn.active { color: var(--accent); }
 .nav-rescue.active { color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 4px; }
 .nav-lifeboat.active { color: var(--accent2); border-bottom: 2px solid var(--accent2); padding-bottom: 4px; }
+.nav-markv.active { color: var(--accent-mv2); border-bottom: 2px solid var(--accent-mv2); padding-bottom: 4px; }
 .nav-faq.active { color: var(--text2); border-bottom: 2px solid var(--border3); padding-bottom: 4px; }
 
 .header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
@@ -1187,12 +1198,513 @@ body.tab-rescue .bg-scene-lifeboat { opacity: 0; }
 }
 .rescue-video-mute:hover { color: var(--text); }
 
+/* Mark V Gas Calculator */
+.mv-calc-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  user-select: none;
+}
+.mv-calc-book {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.mv-calc-overlay {
+  position: absolute;
+  /* Right page of the notebook — approximately right half */
+  top: 7.5%; right: 2.5%;
+  width: 47%; height: 84%;
+  display: flex;
+  flex-direction: column;
+  padding: 5% 5% 4%;
+  gap: 0;
+}
+.mv-calc-title {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  color: rgba(200,150,15,0.85);
+  text-transform: uppercase;
+  margin-bottom: 10%;
+  text-align: center;
+}
+.mv-calc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 6%;
+}
+.mv-calc-label {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  color: rgba(180,160,100,0.7);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.mv-calc-input {
+  background: rgba(200,150,15,0.07);
+  border: 1px solid rgba(200,150,15,0.25);
+  border-radius: 1px;
+  color: rgba(220,190,100,0.95);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  padding: 5px 8px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.mv-calc-input:focus { border-color: rgba(200,150,15,0.6); }
+.mv-calc-select {
+  background: rgba(6,8,9,0.8);
+  border: 1px solid rgba(200,150,15,0.25);
+  border-radius: 1px;
+  color: rgba(220,190,100,0.95);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  padding: 5px 8px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  cursor: pointer;
+}
+.mv-calc-btn {
+  background: rgba(200,150,15,0.15);
+  border: 1px solid rgba(200,150,15,0.4);
+  color: rgba(220,190,100,0.95);
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 7px 0;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s, border-color 0.15s;
+  margin-top: 2%;
+}
+.mv-calc-btn:hover {
+  background: rgba(200,150,15,0.28);
+  border-color: rgba(200,150,15,0.7);
+}
+.mv-calc-result {
+  margin-top: 4%;
+  padding: 8px;
+  background: rgba(6,8,9,0.6);
+  border: 1px solid rgba(200,150,15,0.2);
+  min-height: 30%;
+  font-family: var(--mono);
+}
+.mv-calc-result-line {
+  font-size: 0.55rem;
+  color: rgba(180,160,100,0.7);
+  line-height: 1.9;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(200,150,15,0.08);
+  padding: 2px 0;
+}
+.mv-calc-result-line:last-child { border-bottom: none; }
+.mv-calc-result-val {
+  color: rgba(220,190,100,0.95);
+  font-weight: 600;
+}
+.mv-calc-verdict {
+  margin-top: 6px;
+  font-size: 0.58rem;
+  text-align: center;
+  letter-spacing: 0.1em;
+  padding: 4px 0;
+}
+.mv-calc-verdict.go    { color: rgba(0,220,140,0.9); }
+.mv-calc-verdict.wait  { color: rgba(255,140,0,0.9); }
+.mv-calc-verdict.abort { color: rgba(255,60,60,0.9); }
+.mv-calc-live-badge {
+  font-size: 0.5rem;
+  color: rgba(0,200,140,0.7);
+  font-family: var(--mono);
+  letter-spacing: 0.1em;
+  text-align: right;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+.mv-calc-live-badge:hover { color: rgba(0,220,160,0.95); }
+
+/* Mark V extraction video */
+/* Mark V extraction video */
+.mv-video-wrap {
+  display: none;
+  width: 100%;
+  background: rgba(6,8,9,0.97);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.mv-video-wrap.visible { display: block; }
+.mv-video-inner { position: relative; max-width: 100%; }
+.mv-video-inner video {
+  width: 100%; height: auto;
+  display: block; opacity: 0.92;
+}
+.mv-video-mute {
+  position: absolute; top: 10px; right: 14px;
+  background: rgba(6,8,9,0.8);
+  border: 1px solid rgba(200,150,15,0.3);
+  color: var(--text3); font-size: 0.6rem;
+  font-family: var(--mono); padding: 4px 10px;
+  cursor: pointer; letter-spacing: 0.08em;
+  transition: color 0.15s;
+}
+.mv-video-mute:hover { color: var(--accent-mv2); }
+.mv-video-label {
+  position: absolute; bottom: 10px; left: 14px;
+  font-size: 0.55rem; font-family: var(--mono);
+  color: var(--accent-mv); letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: rgba(6,8,9,0.7); padding: 3px 8px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   MARK V — MASSIVE TACTICAL EXTRACTION
+   ══════════════════════════════════════════════════════════ */
+
+/* Mark V hero / splash panel */
+.mv-hero {
+  position: relative;
+  width: 100%;
+  min-height: 580px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+  padding: 0 24px 56px;
+  border-bottom: 1px solid var(--border2);
+  background: #070e18;
+}
+.mv-hero-bg {
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+.mv-hero-bg img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center 20%;
+  opacity: 0.6;
+}
+.mv-hero-vignette {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 35%, rgba(7,14,24,0.0) 0%, rgba(7,14,24,0.5) 60%, rgba(7,14,24,0.98) 100%),
+    linear-gradient(to bottom, rgba(7,14,24,0.3) 0%, transparent 30%, transparent 55%, rgba(7,14,24,0.95) 100%);
+  pointer-events: none;
+}
+/* markvalt as intro section bg */
+.mv-intro-section {
+  position: relative;
+  overflow: hidden;
+  background: rgba(6,8,9,0.97);
+  border-bottom: 1px solid var(--border2);
+}
+.mv-intro-bg {
+  position: absolute; inset: 0;
+  background-image: url('markvalt.png');
+  background-size: cover; background-position: center;
+  opacity: 0.07;
+  pointer-events: none;
+  filter: grayscale(30%);
+}
+.mv-hero-content {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  text-align: center;
+  width: 100%;
+}
+.mv-logo {
+  width: 100px; height: 100px; object-fit: contain;
+  filter: drop-shadow(0 0 28px rgba(200,150,15,0.5)) drop-shadow(0 0 10px rgba(200,150,15,0.25));
+  animation: mvFloat 8s ease-in-out infinite;
+  margin-bottom: 4px;
+}
+@keyframes mvFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+.mv-title {
+  font-family: var(--display);
+  font-size: 3.2rem; letter-spacing: 0.18em;
+  color: var(--accent-mv2);
+  text-shadow: 0 0 60px rgba(200,150,15,0.4), 0 2px 0 rgba(0,0,0,0.8);
+  line-height: 1;
+}
+.mv-subtitle {
+  font-size: 0.72rem; letter-spacing: 0.32em;
+  color: var(--text3); text-transform: uppercase;
+}
+.mv-tagline {
+  font-size: 0.62rem; letter-spacing: 0.2em;
+  color: var(--accent-mv); text-transform: uppercase;
+  margin-top: 4px;
+}
+.mv-meta-row {
+  display: flex; gap: 24px; align-items: center; margin-top: 8px;
+}
+.mv-meta-item {
+  font-size: 0.55rem; color: var(--text3); letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 6px;
+}
+.mv-meta-dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--accent-mv);
+}
+
+/* Mark V warning box */
+.mv-warning {
+  background: rgba(255,149,0,0.07);
+  border: 1px solid rgba(255,149,0,0.3);
+  border-left: 3px solid var(--warn);
+  padding: 16px 20px;
+  font-size: 0.7rem; color: var(--text2); line-height: 1.85;
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.mv-warning-icon { color: var(--warn); font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.mv-warning strong { color: var(--warn); }
+.mv-warning a { color: var(--accent2); text-decoration: none; }
+.mv-warning a:hover { text-decoration: underline; }
+
+/* Mark V sub-tabs */
+.mv-tab-bar {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  background: rgba(6,8,9,0.97);
+  position: sticky; top: 68px; z-index: 90;
+  backdrop-filter: blur(12px);
+}
+.mv-tab {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text3);
+  background: transparent; border: none;
+  padding: 14px 18px; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: var(--transition);
+  position: relative; top: 1px;
+}
+.mv-tab:hover { color: var(--text2); }
+.mv-tab.active { color: var(--accent-mv2); border-bottom-color: var(--accent-mv2); }
+
+.mv-tab-content { display: none; }
+.mv-tab-content.active { display: block; }
+
+/* Mark V content area */
+.mv-content {
+  max-width: 900px; width: 100%;
+  margin: 0 auto; padding: 24px 24px 60px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+/* Alchemy Pro requirement banner */
+.mv-pro-banner {
+  background: rgba(200,150,15,0.07);
+  border: 1px solid rgba(200,150,15,0.3);
+  border-left: 3px solid var(--accent-mv);
+  padding: 14px 18px;
+  display: flex; gap: 12px; align-items: flex-start;
+  font-size: 0.68rem; color: var(--text2); line-height: 1.8;
+}
+.mv-pro-banner-icon { color: var(--accent-mv2); font-size: 0.9rem; flex-shrink: 0; margin-top: 2px; }
+.mv-pro-banner a { color: var(--accent-mv2); text-decoration: none; }
+.mv-pro-banner a:hover { text-decoration: underline; }
+.mv-pro-banner strong { color: var(--accent-mv2); }
+
+/* Fleet wallet input rows */
+.mv-fleet-row {
+  display: flex; gap: 8px; align-items: center;
+  padding: 8px 10px;
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.15s;
+}
+.mv-fleet-row:hover { border-color: var(--border2); }
+.mv-fleet-idx {
+  font-size: 0.55rem; color: var(--text3); min-width: 22px;
+  font-family: var(--mono); text-align: right; flex-shrink: 0;
+}
+.mv-fleet-nick {
+  background: var(--s2); border: 1px solid var(--border);
+  color: var(--text2); font-family: var(--mono); font-size: 0.68rem;
+  padding: 6px 10px; border-radius: var(--radius);
+  width: 120px; flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+.mv-fleet-nick:focus { outline: none; border-color: var(--accent-mv); }
+.mv-fleet-nick::placeholder { color: var(--text3); font-style: italic; }
+.mv-fleet-addr {
+  background: var(--s2); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono); font-size: 0.7rem;
+  padding: 6px 10px; border-radius: var(--radius);
+  flex: 1;
+  transition: border-color 0.15s;
+}
+.mv-fleet-addr:focus { outline: none; border-color: var(--border3); }
+.mv-fleet-addr::placeholder { color: var(--text3); }
+.mv-fleet-addr.valid { border-color: rgba(0,200,160,0.4); }
+.mv-fleet-addr.invalid { border-color: rgba(255,60,60,0.4); }
+.mv-fleet-remove {
+  background: transparent; border: none;
+  color: var(--text3); font-size: 0.9rem; cursor: pointer;
+  padding: 4px 6px; border-radius: var(--radius);
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+.mv-fleet-remove:hover { color: var(--danger); }
+
+/* Fleet summary header */
+.mv-fleet-summary {
+  display: flex; gap: 20px; align-items: center;
+  padding: 12px 16px;
+  background: var(--s2); border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+.mv-fleet-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.mv-fleet-stat-val {
+  font-family: var(--display); font-size: 1.4rem;
+  color: var(--accent-mv2); letter-spacing: 0.05em;
+}
+.mv-fleet-stat-lbl {
+  font-size: 0.52rem; color: var(--text3); letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Fleet scan results — wallet accordion */
+.mv-wallet-block {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; margin-bottom: 4px;
+}
+.mv-wallet-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.mv-wallet-header:hover { background: var(--s2); }
+.mv-wallet-nick {
+  font-family: var(--display); font-size: 0.95rem;
+  color: var(--accent-mv2); letter-spacing: 0.06em;
+}
+.mv-wallet-addr { font-size: 0.6rem; color: var(--text3); font-family: var(--mono); }
+.mv-wallet-count { font-size: 0.6rem; color: var(--text2); margin-left: auto; }
+.mv-wallet-status {
+  font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 1px; flex-shrink: 0;
+}
+.mv-wallet-status.scanning { color: var(--accent3); border: 1px solid rgba(68,153,221,0.3); background: rgba(68,153,221,0.08); }
+.mv-wallet-status.ready    { color: var(--safe); border: 1px solid rgba(0,232,122,0.3); background: rgba(0,232,122,0.06); }
+.mv-wallet-status.funding  { color: var(--warn); border: 1px solid rgba(255,149,0,0.3); background: rgba(255,149,0,0.08); }
+.mv-wallet-status.transferring { color: var(--accent-mv2); border: 1px solid rgba(200,150,15,0.3); background: rgba(200,150,15,0.08); }
+.mv-wallet-status.complete { color: var(--safe); border: 1px solid rgba(0,232,122,0.4); background: rgba(0,232,122,0.1); }
+.mv-wallet-status.error    { color: var(--danger); border: 1px solid rgba(255,60,60,0.3); background: rgba(255,60,60,0.08); }
+.mv-wallet-body { padding: 12px 16px; display: none; }
+.mv-wallet-block.open .mv-wallet-body { display: block; }
+
+/* Fleet key entry */
+.mv-key-row {
+  display: flex; gap: 8px; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.mv-key-row:last-child { border-bottom: none; }
+.mv-key-nick { font-size: 0.65rem; color: var(--accent-mv2); min-width: 100px; flex-shrink: 0; font-family: var(--mono); }
+.mv-key-input {
+  background: var(--s2); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono); font-size: 0.68rem;
+  padding: 7px 10px; border-radius: var(--radius); flex: 1;
+  transition: border-color 0.15s;
+}
+.mv-key-input:focus { outline: none; border-color: rgba(200,150,15,0.4); }
+.mv-key-input::placeholder { color: var(--text3); }
+
+/* Fleet operation log */
+.mv-op-log {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px;
+  font-family: var(--mono); font-size: 0.6rem;
+  max-height: 400px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.mv-log-line { display: flex; gap: 10px; line-height: 1.5; }
+.mv-log-ts { color: var(--text3); flex-shrink: 0; min-width: 70px; }
+.mv-log-wallet { color: var(--accent-mv); flex-shrink: 0; min-width: 80px; }
+.mv-log-ok   { color: var(--safe); }
+.mv-log-warn { color: var(--warn); }
+.mv-log-err  { color: var(--danger); }
+.mv-log-dim  { color: var(--text3); }
+.mv-log-line a { color: var(--accent3); }
+
+/* Mission complete screen */
+.mv-complete-screen {
+  display: none;
+  flex-direction: column; align-items: center; gap: 20px;
+  padding: 48px 24px;
+  background: rgba(6,8,9,0.8);
+  border: 1px solid rgba(200,150,15,0.3);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.mv-complete-screen.visible { display: flex; }
+.mv-complete-logo {
+  width: 80px; height: 80px; object-fit: contain;
+  filter: drop-shadow(0 0 24px rgba(200,150,15,0.5));
+}
+.mv-complete-title {
+  font-family: var(--display); font-size: 2.2rem;
+  letter-spacing: 0.14em; color: var(--accent-mv2);
+}
+.mv-complete-sub {
+  font-size: 0.68rem; letter-spacing: 0.22em;
+  color: var(--text2); text-transform: uppercase;
+}
+.mv-complete-stats {
+  display: flex; gap: 32px; justify-content: center; flex-wrap: wrap;
+  padding: 20px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  width: 100%;
+}
+.mv-complete-stat-val {
+  font-family: var(--display); font-size: 2rem; color: var(--safe);
+}
+.mv-complete-stat-lbl {
+  font-size: 0.55rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.14em;
+}
+
+/* Emblem Mark V tab */
+.mv-emblem-section-title {
+  font-family: var(--display); font-size: 1.2rem;
+  color: var(--accent-mv2); letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.mv-emblem-section-sub {
+  font-size: 0.6rem; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.14em;
+  margin-bottom: 16px;
+}
+
+/* Gas estimate bar */
+.mv-gas-bar {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  padding: 12px 16px;
+  background: var(--s2); border: 1px solid var(--border2);
+  border-radius: var(--radius); font-size: 0.65rem;
+}
+.mv-gas-chain { color: var(--text3); }
+.mv-gas-chain strong { color: var(--text); }
+
 </style>
 </head>
 <body class="tab-rescue">
 
 <div class="bg-scene bg-scene-rescue"></div>
 <div class="bg-scene bg-scene-lifeboat"></div>
+<div class="bg-scene bg-scene-markv"></div>
 
 <!-- SPLASH -->
 <div class="splash" id="splash">
@@ -1240,6 +1752,7 @@ body.tab-rescue .bg-scene-lifeboat { opacity: 0; }
     <nav class="nav-bar">
       <button class="nav-btn nav-rescue active" id="nav-rescue" onclick="showPage('rescue',this)">⬡ Rescue</button>
       <button class="nav-btn nav-lifeboat" id="nav-lifeboat" onclick="showPage('lifeboat',this)">▶ Lifeboat</button>
+      <button class="nav-btn nav-markv" id="nav-markv" onclick="showPage('markv',this)">⬡ Mark V</button>
       <button class="nav-btn nav-faq" id="nav-faq" onclick="showPage('faq',this)">FAQ</button>
     </nav>
     <div class="header-right">
@@ -1960,6 +2473,717 @@ body.tab-rescue .bg-scene-lifeboat { opacity: 0; }
     </footer>
   </div>
 
+  <!-- MARK V PAGE -->
+  <div id="page-markv" class="page">
+
+    <!-- Hero -->
+    <div class="mv-hero">
+      <div class="mv-hero-bg"><img src="MarkVbackground.png" alt="" /></div>
+      <div class="mv-hero-vignette"></div>
+      <div class="mv-hero-content">
+        <img class="mv-logo" src="markvlogo.png" alt="Mark V" />
+        <div class="mv-title">MARK V</div>
+        <div class="mv-subtitle">Massive Tactical Extraction</div>
+        <div class="mv-tagline">One Operation. Total Recovery.</div>
+        <div class="mv-meta-row">
+          <div class="mv-meta-item"><div class="mv-meta-dot"></div>Multi-Wallet Fleet</div>
+          <div class="mv-meta-item"><div class="mv-meta-dot"></div>Simultaneous Execution</div>
+          <div class="mv-meta-item"><div class="mv-meta-dot"></div>No One Left Behind</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- The Admiral Introduction -->
+    <div class="mv-intro-section">
+      <div class="mv-intro-bg"></div>
+      <div style="position:relative;z-index:1;max-width:860px;margin:0 auto;padding:52px 24px 48px;">
+
+        <!-- Name Lore -->
+        <div style="margin-bottom:44px;padding-bottom:40px;border-bottom:1px solid var(--border);">
+          <div style="font-family:var(--display);font-size:1.4rem;letter-spacing:0.1em;color:var(--accent-mv2);margin-bottom:16px;">Why It Is Called The Mark V</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+            <div style="font-size:0.75rem;color:var(--text2);line-height:2.1;">
+              The <strong style="color:var(--text);">Mark V Special Operations Craft</strong> is the U.S. Navy SEALs' primary high-speed insertion and extraction vessel. 82 feet long. Twin MTU diesel engines. 35-knot top speed. Designed for one specific mission: moving a large team of operators into and out of hostile territory simultaneously, at maximum speed, with everything they need to complete the objective.
+            </div>
+            <div style="font-size:0.75rem;color:var(--text2);line-height:2.1;">
+              It is not a rescue boat. It is not a patrol boat. It is a purpose-built extraction platform — made for the team that already knows what they are doing and needs the vehicle to match their capability. The name is not aesthetic. It is a description. This tool does exactly what the boat does, for assets instead of operators. <strong style="color:var(--accent-mv2);">Massive. Tactical. Extraction.</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- You Are Not A Typical User -->
+        <div style="margin-bottom:40px;">
+          <div style="font-family:var(--display);font-size:1.6rem;letter-spacing:0.08em;color:var(--accent-mv2);margin-bottom:20px;">You Are Not A Typical User.</div>
+          <div style="font-size:0.8rem;color:var(--text2);line-height:2.1;margin-bottom:16px;">
+            Most people have one wallet. Maybe two. They use the standard Rescue and Lifeboat tabs — and those tools work. You are not most people.
+          </div>
+          <div style="font-size:0.8rem;color:var(--text);line-height:2.1;margin-bottom:16px;">
+            You have been collecting seriously. Across multiple wallets. For long enough that moving your entire portfolio one chain at a time, one wallet at a time, is not a rescue operation — it is a logistics problem. You are not panicking. You are planning. And the tool you are looking at was built specifically for people who operate at your scale.
+          </div>
+          <div style="font-size:0.8rem;color:var(--text2);line-height:2.1;">
+            The top 0.1% of crypto collectors did not build what they built by moving slowly, trusting blindly, or waiting for someone else to build the right tool. Mark V was built for you — for the operators who understood what they were acquiring before most people knew the word NFT. This tool respects that. It does not talk down to you. It moves as fast as you do.
+          </div>
+        </div>
+
+        <!-- Three Capability Cards -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:40px;">
+          <div style="background:rgba(200,150,15,0.06);border:1px solid rgba(200,150,15,0.2);border-top:2px solid var(--accent-mv2);padding:22px 18px;">
+            <div style="font-family:var(--display);font-size:1.05rem;color:var(--accent-mv2);letter-spacing:0.06em;margin-bottom:10px;">Fleet Scale</div>
+            <div style="font-size:0.68rem;color:var(--text2);line-height:1.9;">Up to 50 wallets in a single operation. Every wallet scanned simultaneously across all 5 chains. The complete picture in one view — no switching, no repeating.</div>
+          </div>
+          <div style="background:rgba(200,150,15,0.06);border:1px solid rgba(200,150,15,0.2);border-top:2px solid var(--accent-mv2);padding:22px 18px;">
+            <div style="font-family:var(--display);font-size:1.05rem;color:var(--accent-mv2);letter-spacing:0.06em;margin-bottom:10px;">Parallel Execution</div>
+            <div style="font-size:0.68rem;color:var(--text2);line-height:1.9;">All wallets execute simultaneously. Independent nonce counters mean Wallet 1 and Wallet 47 are moving at the same time. Not waiting in line. Running parallel.</div>
+          </div>
+          <div style="background:rgba(200,150,15,0.06);border:1px solid rgba(200,150,15,0.2);border-top:2px solid var(--accent-mv2);padding:22px 18px;">
+            <div style="font-family:var(--display);font-size:1.05rem;color:var(--accent-mv2);letter-spacing:0.06em;margin-bottom:10px;">One Funding Wallet</div>
+            <div style="font-size:0.68rem;color:var(--text2);line-height:1.9;">One wallet covers gas for the entire fleet across every chain. You manage one source. The engine calculates, funds, and executes every wallet from that single point.</div>
+          </div>
+        </div>
+
+        <!-- Kane Quote -->
+        <div style="border-top:1px solid var(--border);padding-top:28px;display:flex;align-items:flex-start;gap:20px;">
+          <div style="font-size:1.8rem;color:var(--accent-mv);flex-shrink:0;line-height:1;">"</div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--text3);line-height:2;font-style:italic;max-width:680px;">
+              The rescue tools exist because I needed them. Mark V exists because I know there are people out there with portfolios that make mine look like a warm-up. This one is for them. Built with the same rigor. Given away for the same reason. No percentage. No catch. Just the right tool, finally.
+            </div>
+            <div style="font-size:0.58rem;color:var(--accent-mv);margin-top:10px;letter-spacing:0.14em;text-transform:uppercase;">— Kane Mayfield &nbsp;·&nbsp; kanemayfield.com</div>
+          </div>
+        </div>
+
+
+        <!-- Alchemy Cost — Upfront, Honest -->
+<div style="background:rgba(200,150,15,0.08);border:1px solid rgba(200,150,15,0.3);border-left:3px solid var(--accent-mv2);padding:20px 24px;margin-bottom:44px;">
+          <div style="font-family:var(--display);font-size:0.95rem;letter-spacing:0.1em;color:var(--accent-mv2);margin-bottom:10px;">BEFORE YOU START — THE HONEST COST BREAKDOWN</div>
+          <div style="font-size:0.72rem;color:var(--text);line-height:2;margin-bottom:12px;">
+            Two separate costs apply to a Mark V operation: <strong style="color:var(--accent-mv2);">Alchemy API fees</strong> (small, pennies) and <strong style="color:var(--accent-mv2);">blockchain gas</strong> (potentially significant, depending on your fleet size and current network conditions). Both are broken down honestly below.
+          </div>
+          <div style="background:rgba(255,60,60,0.06);border:1px solid rgba(255,60,60,0.2);padding:14px 18px;margin-bottom:14px;">
+            <div style="font-size:0.6rem;color:var(--danger);text-transform:uppercase;letter-spacing:0.14em;margin-bottom:8px;">Blockchain Gas — The Big Number</div>
+            <div style="font-size:0.68rem;color:var(--text2);line-height:1.9;margin-bottom:8px;">
+              Gas is paid to the network — not to us. It varies with network congestion and your NFT count. A <code style="color:var(--accent);">safeTransferFrom</code> on Ethereum costs approximately 65,000 gas per token. At 20 gwei (normal): <strong style="color:var(--text);">~0.0013 ETH per NFT.</strong>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:0.62rem;">
+              <div style="padding:8px 10px;background:rgba(6,8,9,0.5);border:1px solid var(--border);">
+                <div style="color:var(--text3);margin-bottom:4px;">Small fleet</div>
+                <div style="color:var(--text);">5 wallets · 50 NFTs each</div>
+                <div style="color:var(--accent-mv2);font-weight:600;margin-top:4px;">~0.3–0.8 ETH</div>
+              </div>
+              <div style="padding:8px 10px;background:rgba(6,8,9,0.5);border:1px solid var(--border);">
+                <div style="color:var(--text3);margin-bottom:4px;">Medium fleet</div>
+                <div style="color:var(--text);">15 wallets · 100 NFTs each</div>
+                <div style="color:var(--accent-mv2);font-weight:600;margin-top:4px;">~1.0–3.0 ETH</div>
+              </div>
+              <div style="padding:8px 10px;background:rgba(6,8,9,0.5);border:1px solid var(--border);">
+                <div style="color:var(--text3);margin-bottom:4px;">Large fleet</div>
+                <div style="color:var(--text);">50 wallets · 200 NFTs each</div>
+                <div style="color:var(--accent-mv2);font-weight:600;margin-top:4px;">~5.0–15.0 ETH</div>
+              </div>
+            </div>
+            <div style="font-size:0.62rem;color:var(--text3);margin-top:8px;line-height:1.7;">
+              Polygon, Base, Optimism, and Avalanche gas is orders of magnitude cheaper — typically under $1 total regardless of NFT count. The numbers above are Ethereum mainnet estimates. The Fleet Execute tab runs a live gas estimate before any keys are entered so you know the exact number before committing.
+            </div>
+          </div>
+          <div style="font-size:0.7rem;color:var(--text2);line-height:2;margin-bottom:14px;">
+            The free Alchemy tier allows 25 requests per second. Mark V fires up to 250 simultaneous API calls when scanning 50 wallets across 5 chains. That will hit the free rate limit in under a second and your scan will return empty. The tool will not break — it just will not work correctly on a free key. <strong style="color:var(--text);">You need Pay As You Go or higher.</strong>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+            <div style="background:rgba(6,8,9,0.6);border:1px solid var(--border2);padding:16px 18px;">
+              <div style="font-size:0.6rem;color:var(--accent-mv);text-transform:uppercase;letter-spacing:0.14em;margin-bottom:8px;">What You Are Paying For</div>
+              <div style="font-size:0.68rem;color:var(--text2);line-height:1.9;">
+                Alchemy charges in <strong style="color:var(--text);">Compute Units (CU)</strong>. A full Mark V scan of 50 wallets uses roughly 25,000–75,000 CU. A full execute adds another 50,000–150,000 CU in RPC calls. A complete fleet operation on 50 wallets with large collections costs approximately <strong style="color:var(--accent-mv2);">100,000–300,000 CU total.</strong>
+              </div>
+            </div>
+            <div style="background:rgba(6,8,9,0.6);border:1px solid var(--border2);padding:16px 18px;">
+              <div style="font-size:0.6rem;color:var(--accent-mv);text-transform:uppercase;letter-spacing:0.14em;margin-bottom:8px;">What That Costs in Dollars</div>
+              <div style="font-size:0.68rem;color:var(--text2);line-height:1.9;">
+                Pay As You Go charges <strong style="color:var(--text);">$0.45 per million CU</strong>. A full 50-wallet operation costs approximately <strong style="color:var(--accent-mv2);">$0.05 to $0.15.</strong> The free tier's 30M monthly CU allowance covers hundreds of operations on CU alone — you are only upgrading for the throughput speed, not the volume. The money does not go to us. It goes to Alchemy.
+              </div>
+            </div>
+          </div>
+          <div style="font-size:0.67rem;color:var(--text2);line-height:1.9;padding:12px 16px;background:rgba(0,200,160,0.05);border:1px solid rgba(0,200,160,0.15);">
+            <strong style="color:var(--accent2);">Bottom line:</strong> Pay As You Go starts free and charges only what you use. For most Mark V operators, the actual API cost per operation is under a quarter. Get your key at <a href="https://dashboard.alchemy.com" target="_blank" style="color:var(--accent-mv2);">dashboard.alchemy.com</a> — the Pay As You Go plan requires no upfront commitment.
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+    <!-- MANDATORY WARNING — Full Width, Cannot Miss -->
+    <div style="background:rgba(180,60,0,0.12);border-top:2px solid rgba(255,100,0,0.5);border-bottom:2px solid rgba(255,100,0,0.5);">
+      <div style="max-width:820px;margin:0 auto;padding:24px 24px;">
+        <div style="display:flex;gap:20px;align-items:flex-start;">
+          <div style="font-size:2rem;flex-shrink:0;line-height:1;margin-top:2px;">⛔</div>
+          <div>
+            <div style="font-family:var(--display);font-size:1.1rem;letter-spacing:0.08em;color:var(--warn);margin-bottom:10px;">CLEAN WALLETS ONLY — READ THIS BEFORE YOU PROCEED</div>
+            <div style="font-size:0.75rem;color:var(--text);line-height:2;margin-bottom:12px;">
+              Mark V sends gas to multiple wallets simultaneously and then fires transfers. If <strong>any wallet in your fleet is compromised</strong>, a sweeper bot will drain that gas the moment it arrives — before the transfer queue gets to it. You will lose the gas. The NFTs will not move. The bot wins.
+            </div>
+            <div style="font-size:0.75rem;color:var(--text2);line-height:2;margin-bottom:16px;">
+              This is not a warning about edge cases. This is the architecture. Mark V is a consolidation tool for operators who have already secured their wallets. If you have even one compromised wallet in this fleet, you need to remove it, run it through
+              <a onclick="showPage('rescue',document.getElementById('nav-rescue'));" style="cursor:pointer;color:var(--accent2);font-weight:600;">Rescue Lifeboat</a> first, and come back to Mark V after it is clean.
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <div style="background:rgba(0,232,122,0.08);border:1px solid rgba(0,232,122,0.25);padding:10px 16px;font-size:0.65rem;color:var(--safe);line-height:1.6;">
+                <strong>✓ Mark V is for:</strong><br/>Clean wallets you control · Portfolio consolidation · Post-rescue cleanup · Multi-wallet reorganization
+              </div>
+              <div style="background:rgba(255,60,60,0.08);border:1px solid rgba(255,60,60,0.25);padding:10px 16px;font-size:0.65rem;color:var(--danger);line-height:1.6;">
+                <strong>✗ Mark V is NOT for:</strong><br/>Compromised wallets · Emergency rescues · Any wallet a bot might be watching
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mark V Sub-Tabs -->
+    <div class="mv-tab-bar">
+      <button class="mv-tab active" id="mv-tab-scan" onclick="showMvTab('scan',this)">⬡ Fleet Scan</button>
+      <button class="mv-tab" id="mv-tab-execute" onclick="showMvTab('execute',this)">▶ Fleet Execute</button>
+      <button class="mv-tab" id="mv-tab-status" onclick="showMvTab('status',this)">◎ Fleet Status</button>
+      <button class="mv-tab" id="mv-tab-tokens" onclick="showMvTab('tokens',this)">🪙 Fleet Tokens</button>
+      <button class="mv-tab" id="mv-tab-native" onclick="showMvTab('native',this)">⬡ Fleet Native</button>
+      <button class="mv-tab" id="mv-tab-emblem" onclick="showMvTab('emblem',this)">⬡ Emblem Vaults</button>
+    </div>
+
+    <!-- ══ FLEET SCAN TAB ══════════════════════════════════════════════════════ -->
+    <div id="mv-tab-content-scan" class="mv-tab-content active">
+      <div class="mv-content">
+
+        <!-- Gas Calculator -->
+        <div class="mv-calc-wrap" id="mvGasCalc">
+          <img class="mv-calc-book" src="calculations.png" alt="Mark V Gas Calculator" />
+          <div class="mv-calc-overlay">
+            <div class="mv-calc-live-badge" onclick="mvCalcFetchGas()" title="Click to fetch live gas price">⬡ FETCH LIVE GWEI</div>
+            <div class="mv-calc-field">
+              <div class="mv-calc-label">Chain</div>
+              <select class="mv-calc-select" id="mvCalcChain" onchange="mvCalcRun()">
+                <option value="eth">Ethereum</option>
+                <option value="polygon">Polygon</option>
+                <option value="base">Base</option>
+                <option value="optimism">Optimism</option>
+                <option value="avalanche">Avalanche</option>
+              </select>
+            </div>
+            <div class="mv-calc-field">
+              <div class="mv-calc-label">NFT Count</div>
+              <input class="mv-calc-input" type="number" id="mvCalcNFTs" value="100" min="1" max="5000" oninput="mvCalcRun()" />
+            </div>
+            <div class="mv-calc-field">
+              <div class="mv-calc-label">Current Gwei</div>
+              <input class="mv-calc-input" type="number" id="mvCalcGwei" value="3" min="0.1" step="0.1" oninput="mvCalcRun()" />
+            </div>
+            <div class="mv-calc-field">
+              <div class="mv-calc-label">Target Max Gwei</div>
+              <input class="mv-calc-input" type="number" id="mvCalcTarget" value="5" min="0.1" step="0.1" oninput="mvCalcRun()" />
+            </div>
+            <button class="mv-calc-btn" onclick="mvCalcRun()">⬡ CALCULATE</button>
+            <div class="mv-calc-result" id="mvCalcResult">
+              <div class="mv-calc-result-line">
+                <span>Est. gas cost</span>
+                <span class="mv-calc-result-val" id="mvCalcCostNative">—</span>
+              </div>
+              <div class="mv-calc-result-line">
+                <span>At target gwei</span>
+                <span class="mv-calc-result-val" id="mvCalcCostTarget">—</span>
+              </div>
+              <div class="mv-calc-result-line">
+                <span>Savings if you wait</span>
+                <span class="mv-calc-result-val" id="mvCalcSavings">—</span>
+              </div>
+              <div class="mv-calc-verdict" id="mvCalcVerdict"></div>
+            </div>
+          </div>
+        </div>
+
+      <!-- Alchemy Pro Requirement -->
+        <div class="mv-pro-banner">
+          <span class="mv-pro-banner-icon">⬡</span>
+          <div>
+            <strong>Alchemy Growth plan or higher required.</strong> Mark V fires simultaneous scans across up to 50 wallets × 5 chains. A free Alchemy key will rate-limit instantly and your scan will fail. Upgrade at <a href="https://dashboard.alchemy.com" target="_blank">dashboard.alchemy.com</a> before proceeding.
+          </div>
+        </div>
+
+        <!-- Alchemy Key for Mark V -->
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">⬡</span><span class="tool-card-title">Alchemy API Key — Growth Plan Required</span></div>
+          <div class="tool-card-body">
+            <div class="field-group">
+              <div class="field-label">Alchemy API Key <a href="https://dashboard.alchemy.com" target="_blank" style="color:var(--accent-mv2);font-size:0.65rem;margin-left:6px;">Upgrade plan →</a></div>
+              <input type="text" class="field-input" id="mvAlchemyKey" placeholder="Paste your Alchemy Growth key here" oninput="mvSyncAlchemyKey()" />
+              <div class="field-hint">This key is used for all fleet scans. Must have Polygon, Base, Optimism, and Avalanche enabled in your Alchemy dashboard.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fleet Wallet Input -->
+        <div class="tool-card">
+          <div class="tool-card-header">
+            <span class="tool-card-icon">⬡</span>
+            <span class="tool-card-title">Fleet Manifest — Load Your Wallets</span>
+            <span style="margin-left:auto;font-size:0.6rem;color:var(--text3);" id="mvWalletCount">0 wallets</span>
+          </div>
+          <div class="tool-card-body">
+            <div style="font-size:0.68rem;color:var(--text2);line-height:1.8;margin-bottom:16px;">
+              Add each wallet address below. Give each one a nickname so the fleet view is readable. Up to 50 wallets. No private keys here — scan is address-only.
+            </div>
+            <div id="mvFleetRows"></div>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+              <button class="btn btn-ghost" onclick="mvAddWalletRow()" style="flex:1;">+ Add Wallet</button>
+              <button class="btn btn-ghost" onclick="mvAddBulkWallets()" style="flex:1;">↑ Paste Multiple</button>
+            </div>
+            <div id="mvBulkInput" style="display:none;margin-top:10px;">
+              <div class="field-label" style="margin-bottom:6px;">Paste wallet addresses — one per line</div>
+              <textarea class="field-input" id="mvBulkText" rows="6" placeholder="0x...&#10;0x...&#10;0x..." style="resize:vertical;font-size:0.68rem;"></textarea>
+              <button class="btn btn-primary" onclick="mvParseBulk()" style="width:100%;margin-top:8px;">Import Addresses</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Destination -->
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">⬡</span><span class="tool-card-title">Destination Wallet</span></div>
+          <div class="tool-card-body">
+            <div class="field-group">
+              <div class="field-label">All assets move to this wallet <span class="badge-sm badge-to">TO</span></div>
+              <input type="text" class="field-input to-wallet" id="mvDestination" placeholder="0x... your safe destination wallet" oninput="mvCheckScanReady()" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Scan Button + Summary -->
+        <button class="btn btn-primary" id="mvScanBtn" onclick="mvStartFleetScan()" disabled style="width:100%;padding:14px;font-size:0.8rem;letter-spacing:0.18em;">
+          ⬡ Scan All Wallets — All Chains
+        </button>
+        <div id="mvScanStatus" style="font-size:0.6rem;color:var(--text3);text-align:center;display:none;"></div>
+
+        <!-- Fleet Summary (shown after scan) -->
+        <div id="mvFleetSummary" style="display:none;">
+          <div class="mv-fleet-summary">
+            <div class="mv-fleet-stat">
+              <div class="mv-fleet-stat-val" id="mvStatWallets">0</div>
+              <div class="mv-fleet-stat-lbl">Wallets</div>
+            </div>
+            <div class="mv-fleet-stat">
+              <div class="mv-fleet-stat-val" id="mvStatNFTs">0</div>
+              <div class="mv-fleet-stat-lbl">NFTs</div>
+            </div>
+            <div class="mv-fleet-stat">
+              <div class="mv-fleet-stat-val" id="mvStatCollections">0</div>
+              <div class="mv-fleet-stat-lbl">Collections</div>
+            </div>
+            <div class="mv-fleet-stat">
+              <div class="mv-fleet-stat-val" id="mvStatChains">0</div>
+              <div class="mv-fleet-stat-lbl">Chains</div>
+            </div>
+            <div style="margin-left:auto;">
+              <button class="btn btn-primary" onclick="showMvTab('execute',document.getElementById('mv-tab-execute'))" style="font-family:var(--display);letter-spacing:0.14em;">
+                ▶ Proceed to Execute
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fleet Scan Results -->
+        <div id="mvScanResults" style="display:none;"></div>
+
+      </div>
+    </div>
+
+    <!-- ══ FLEET EXECUTE TAB ═══════════════════════════════════════════════════ -->
+    <div id="mv-tab-content-execute" class="mv-tab-content">
+      <div class="mv-content">
+
+        <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;padding:4px 0 16px;">
+          Enter private keys for each wallet in the fleet. One funding wallet covers gas for all operations simultaneously. Check balances first, then run the gas estimate before committing.
+        </div>
+
+        <!-- Balance Check -->
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">⬡</span><span class="tool-card-title">Check Balances Before Committing Keys</span></div>
+          <div class="tool-card-body">
+            <div style="font-size:0.68rem;color:var(--text2);line-height:1.8;margin-bottom:12px;">
+              Verify your funding wallet has enough to cover the entire fleet. This uses the wallet addresses from Fleet Scan — no private keys needed for this check.
+            </div>
+            <div class="field-group">
+              <div class="field-label">Funding Wallet Address <span style="color:var(--text3);font-size:0.6rem;">(public address, not key)</span></div>
+              <input type="text" class="field-input" id="mvFundingCheckAddr" placeholder="0x... funding wallet public address" />
+            </div>
+            <button class="btn btn-ghost" onclick="mvCheckAllBalances()" style="width:100%;margin-top:10px;">⬡ Check All Balances</button>
+            <div id="mvBalanceCheckResult" style="display:none;margin-top:12px;"></div>
+          </div>
+        </div>
+
+        <!-- Gas Tier -->
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">⬡</span><span class="tool-card-title">Gas Tier</span></div>
+          <div class="tool-card-body">
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-ghost active" id="mvTier-recommended" onclick="mvSetTier('recommended',this)" style="flex:1;">Recommended (1.1×)</button>
+              <button class="btn btn-ghost" id="mvTier-safe" onclick="mvSetTier('safe',this)" style="flex:1;">Safe (1.25×)</button>
+              <button class="btn btn-ghost" id="mvTier-maximum" onclick="mvSetTier('maximum',this)" style="flex:1;">Maximum (1.5×)</button>
+            </div>
+            <div style="font-size:0.6rem;color:var(--text3);margin-top:8px;">Floor is Recommended. This is not a democracy.</div>
+          </div>
+        </div>
+
+        <!-- Funding Wallet -->
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">⬡</span><span class="tool-card-title">Funding Wallet — Pays Gas For Entire Fleet</span></div>
+          <div class="tool-card-body">
+            <div class="field-group">
+              <div class="field-label">Funding Wallet <span class="badge badge-danger">PRIVATE KEY</span></div>
+              <input type="password" class="field-input key-field" id="mvFundingKey" placeholder="0x... private key of wallet that pays gas" oninput="mvCheckExecuteReady()" />
+              <div class="field-hint">This wallet funds gas for all fleet wallets simultaneously. Must have sufficient ETH + native tokens per chain. Keys never leave your machine.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fleet Private Keys -->
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">🔑</span><span class="tool-card-title">Fleet Private Keys — Keys Never Stored, Never Transmitted</span></div>
+          <div class="tool-card-body">
+            <div id="mvKeyRows">
+              <div style="font-size:0.65rem;color:var(--text3);text-align:center;padding:16px;">
+                Complete Fleet Scan first to load wallet list.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gas Estimate -->
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">⬡</span><span class="tool-card-title">Pre-Execute Gas Estimate</span></div>
+          <div class="tool-card-body">
+            <button class="btn btn-ghost" id="mvEstimateBtn" onclick="mvRunEstimate()" disabled style="width:100%;margin-bottom:12px;">⬡ Calculate Fleet Gas Requirements</button>
+            <div id="mvGasEstimate" style="display:none;">
+              <div class="mv-gas-bar" id="mvGasBars"></div>
+              <div style="margin-top:10px;padding:10px 14px;background:var(--s2);border:1px solid var(--border2);border-radius:var(--radius);font-size:0.68rem;color:var(--text2);">
+                Total required funding: <span id="mvGasTotal" style="color:var(--accent-mv2);font-family:var(--mono);">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Execute -->
+        <button class="btn btn-primary" id="mvExecuteBtn" onclick="mvConfirmExecute()" disabled style="width:100%;padding:16px;font-size:0.85rem;letter-spacing:0.2em;font-family:var(--display);">
+          ▶ EXECUTE FLEET OPERATION
+        </button>
+        <div id="mvExecuteStatus" style="font-size:0.6rem;color:var(--text3);text-align:center;margin-top:8px;display:none;"></div>
+
+      </div>
+    </div>
+
+    <!-- ══ FLEET STATUS TAB ════════════════════════════════════════════════════ -->
+    <div id="mv-tab-content-status" class="mv-tab-content">
+      <div class="mv-content">
+
+        <!-- Extraction video -->
+        <div class="mv-video-wrap" id="mvVideoWrap">
+          <div class="mv-video-inner">
+            <video id="mvVideo" src="extractmax.mp4"
+              loop muted playsinline preload="none"></video>
+            <button class="mv-video-mute" id="mvVideoMuteBtn" onclick="toggleMvVideoMute()">🔇 SOUND OFF</button>
+            <div class="mv-video-label">⬡ EXTRACTION IN PROGRESS</div>
+          </div>
+        </div>
+
+        <!-- Per-wallet status panel -->
+        <div id="mvWalletStatusPanel" style="display:none;">
+          <div class="tool-card">
+            <div class="tool-card-header"><span class="tool-card-icon">◎</span><span class="tool-card-title">Fleet Status — Live</span></div>
+            <div class="tool-card-body" id="mvWalletStatusRows"></div>
+          </div>
+        </div>
+
+        <!-- Post-execution summary table -->
+        <div id="mvExecutionSummary" style="display:none;">
+          <div class="tool-card">
+            <div class="tool-card-header">
+              <span class="tool-card-icon">◎</span>
+              <span class="tool-card-title">Execution Summary</span>
+            </div>
+            <div class="tool-card-body" style="padding:0;">
+              <div id="mvSummaryRows" style="font-family:var(--mono);font-size:0.62rem;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Operation log -->
+        <div class="tool-card">
+          <div class="tool-card-header">
+            <span class="tool-card-icon">◎</span>
+            <span class="tool-card-title">Operation Log</span>
+            <button class="btn btn-ghost" onclick="mvExportLog()" style="margin-left:auto;font-size:0.58rem;padding:4px 10px;">↓ Export CSV</button>
+          </div>
+          <div class="tool-card-body" style="padding:0;">
+            <div class="mv-op-log" id="mvOpLog">
+              <div class="mv-log-line"><span class="mv-log-dim">— Awaiting operation —</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mission complete -->
+        <div class="mv-complete-screen" id="mvCompleteScreen">
+          <img class="mv-complete-logo" src="markvlogo.png" alt="Mark V" />
+          <div class="mv-complete-title">NO ONE LEFT BEHIND</div>
+          <div class="mv-complete-sub">Fleet Operation Complete</div>
+          <div class="mv-complete-stats">
+            <div class="mv-fleet-stat">
+              <div class="mv-complete-stat-val" id="mvCompleteWallets">0</div>
+              <div class="mv-complete-stat-lbl">Wallets Cleared</div>
+            </div>
+            <div class="mv-fleet-stat">
+              <div class="mv-complete-stat-val" id="mvCompleteAssets">0</div>
+              <div class="mv-complete-stat-lbl">Assets Moved</div>
+            </div>
+            <div class="mv-fleet-stat">
+              <div class="mv-complete-stat-val" id="mvCompleteGas">—</div>
+              <div class="mv-complete-stat-lbl">Gas Spent</div>
+            </div>
+          </div>
+          <div style="font-size:0.6rem;color:var(--text3);letter-spacing:0.12em;" id="mvCompleteTimestamp"></div>
+
+          <div style="width:100%;background:rgba(6,8,9,0.8);border:1px solid var(--border2);padding:20px 24px;text-align:left;margin-top:8px;">
+            <div style="font-family:var(--display);font-size:0.85rem;letter-spacing:0.1em;color:var(--accent-mv2);margin-bottom:14px;">OPERATOR DEBRIEF</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:0.68rem;color:var(--text2);line-height:1.8;">
+              <div style="display:flex;gap:10px;align-items:flex-start;">
+                <span style="color:var(--safe);flex-shrink:0;margin-top:1px;">✓</span>
+                <span><strong style="color:var(--text);">Remove all private keys immediately.</strong> Click the 🔥 Clear Session button below. Your keys exist in memory right now — burn them the moment you are done verifying.</span>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start;">
+                <span style="color:var(--safe);flex-shrink:0;margin-top:1px;">✓</span>
+                <span><strong style="color:var(--text);">Verify on-chain.</strong> Open your destination wallet in Etherscan, Polygonscan, or your wallet of choice and confirm the assets arrived. The log below has transaction links.</span>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start;">
+                <span style="color:var(--safe);flex-shrink:0;margin-top:1px;">✓</span>
+                <span><strong style="color:var(--text);">Review any failed wallets.</strong> Check the error summary below. Partial failures can usually be retried — run Fleet Scan again on just the wallets that need attention.</span>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start;">
+                <span style="color:var(--accent-mv);flex-shrink:0;margin-top:1px;">→</span>
+                <span><strong style="color:var(--text);">Consider hardware wallet consolidation.</strong> You now have your collection in one place. A Ledger or Trezor for your new unified wallet is worth the 15 minutes it takes to set up. You have already done the hard part.</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <button class="btn btn-ghost" onclick="mvExportLog()">↓ Export Full Log</button>
+            <button class="btn-fire" onclick="confirmBurn()">🔥 Clear Session</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ FLEET TOKENS TAB ══════════════════════════════════════════════════ -->
+    <div id="mv-tab-content-tokens" class="mv-tab-content">
+      <div class="mv-content">
+
+        <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;padding:4px 0 16px;">
+          Scan all fleet wallets for ERC-20 tokens simultaneously — USDC, WETH, airdrops, community coins, everything. Per-wallet sweep buttons let you move each token individually. Destination auto-fills from Fleet Scan.
+        </div>
+
+        <!-- Wallets auto-loaded from Fleet Scan -->
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">🪙</span><span class="tool-card-title">Fleet Token Scanner</span></div>
+          <div class="tool-card-body">
+            <div id="mvTokenWalletCheck" style="font-size:0.65rem;color:var(--text3);margin-bottom:12px;"></div>
+            <div class="field-group">
+              <div class="field-label">Destination <span style="color:var(--safe);">Address</span> <span class="badge-sm badge-to">TO</span></div>
+              <input type="text" class="field-input to-wallet" id="mvTokenDest" placeholder="Auto-filled from Fleet Scan" />
+              <div class="field-hint">All tokens sweep to this address. Pre-filled from Fleet Scan destination if set.</div>
+            </div>
+            <button class="btn btn-primary" id="mvTokenScanBtn" onclick="mvScanFleetTokens()" style="width:100%;margin-top:8px;">🪙 Scan All Fleet Wallets for Tokens</button>
+            <div id="mvTokenScanStatus" style="font-size:0.6rem;color:var(--text3);margin-top:8px;"></div>
+          </div>
+        </div>
+
+        <!-- Token results grouped by wallet -->
+        <div id="mvTokenResults" style="display:none;"></div>
+
+        <!-- Per-wallet key entry (shown after scan) -->
+        <div id="mvTokenKeySection" style="display:none;">
+          <div class="tool-card">
+            <div class="tool-card-header"><span class="tool-card-icon">🔑</span><span class="tool-card-title">Wallet Keys — Required to Sweep</span></div>
+            <div class="tool-card-body">
+              <div style="font-size:0.65rem;color:var(--text2);line-height:1.8;margin-bottom:12px;">Enter the private key for each wallet you want to sweep tokens from. Only wallets with keys entered will be sweepable.</div>
+              <div id="mvTokenKeyRows"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ FLEET NATIVE TAB ════════════════════════════════════════════════════ -->
+    <div id="mv-tab-content-native" class="mv-tab-content">
+      <div class="mv-content">
+
+        <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;padding:4px 0 16px;">
+          After NFT and token transfers complete, each wallet may have residual native balance — ETH, POL, AVAX — left from gas funding. Sweep the dust back to your funding wallet or destination so nothing is left behind.
+        </div>
+
+        <div class="mv-pro-banner" style="margin-bottom:16px;">
+          <span class="mv-pro-banner-icon">⬡</span>
+          <div>The native sweep runs <strong>after</strong> all other operations are complete. Sweeping native balance before NFT or token transfers will leave wallets unable to pay gas for pending transfers. Run this last.
+          </div>
+        </div>
+
+        <!-- Native balance scanner -->
+        <div class="tool-card">
+          <div class="tool-card-header"><span class="tool-card-icon">⬡</span><span class="tool-card-title">Fleet Native Balance Scanner</span></div>
+          <div class="tool-card-body">
+            <div class="field-group">
+              <div class="field-label">Sweep Destination <span class="badge-sm badge-to">TO</span></div>
+              <input type="text" class="field-input to-wallet" id="mvNativeDest" placeholder="0x... where to sweep remaining native balance" />
+              <div class="field-hint">Usually your funding wallet — recoup leftover gas. Or sweep to your main destination wallet.</div>
+            </div>
+            <button class="btn btn-primary" id="mvNativeScanBtn" onclick="mvScanFleetNative()" style="width:100%;margin-top:8px;">⬡ Check Native Balances Across Fleet</button>
+            <div id="mvNativeScanStatus" style="font-size:0.6rem;color:var(--text3);margin-top:8px;"></div>
+          </div>
+        </div>
+
+        <!-- Native results grouped by wallet -->
+        <div id="mvNativeResults" style="display:none;"></div>
+
+        <!-- Per-wallet key entry (shown after scan) -->
+        <div id="mvNativeKeySection" style="display:none;">
+          <div class="tool-card">
+            <div class="tool-card-header"><span class="tool-card-icon">🔑</span><span class="tool-card-title">Wallet Keys — Required to Sweep</span></div>
+            <div class="tool-card-body">
+              <div style="font-size:0.65rem;color:var(--text2);line-height:1.8;margin-bottom:12px;">Enter the private key for each wallet you want to sweep native balance from.</div>
+              <div id="mvNativeKeyRows"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ EMBLEM VAULTS TAB ═══════════════════════════════════════════════════ -->
+    <div id="mv-tab-content-emblem" class="mv-tab-content">
+      <div class="mv-content">
+
+        <div class="mv-emblem-section-title">Emblem Vault Fleet Operations</div>
+        <div class="mv-emblem-section-sub">Bulk Transfer · Unvault · XCP Extraction</div>
+
+        <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;padding-bottom:16px;border-bottom:1px solid var(--border);">
+          Two operations available. <strong style="color:var(--text);">Bulk Transfer</strong> moves Emblem Vault NFTs (the EVM token) from multiple wallets to a destination — standard EVM transfer, no keys inside the vault touched. <strong style="color:var(--text);">Unvault</strong> opens the vault and extracts the contained XCP/Bitcoin assets to a native Counterparty wallet.
+        </div>
+
+        <!-- Section divider -->
+        <div style="display:flex;gap:16px;margin:8px 0;">
+          <button class="btn btn-ghost active" id="mvEmblemSection-transfer" onclick="mvSetEmblemSection('transfer',this)" style="flex:1;">Bulk Vault Transfer (EVM)</button>
+          <button class="btn btn-ghost" id="mvEmblemSection-unvault" onclick="mvSetEmblemSection('unvault',this)" style="flex:1;">Unvault + XCP Extract</button>
+        </div>
+
+        <!-- ── BULK TRANSFER ── -->
+        <div id="mvEmblemTransferSection">
+          <div class="tool-card">
+            <div class="tool-card-header"><span class="tool-card-icon">⬡</span><span class="tool-card-title">Scan Fleet for Emblem Vaults</span></div>
+            <div class="tool-card-body">
+              <div style="font-size:0.68rem;color:var(--text2);line-height:1.8;margin-bottom:12px;">
+                Scans all wallets loaded in Fleet Scan for Emblem Vault NFTs (V2 + Legacy contracts). Uses <code style="color:var(--accent);">fetchVaultsOfType</code> from emblem-vault-sdk for accurate results including curated ERC-1155 collections.
+              </div>
+              <div class="field-group">
+                <div class="field-label">Alchemy API Key</div>
+                <input type="text" class="field-input" id="mvEmblemAlchemyKey" placeholder="Auto-filled from Fleet Scan if available" />
+              </div>
+              <button class="btn btn-primary" onclick="mvEmblemScanFleet()" style="width:100%;margin-top:10px;">⬡ Scan Fleet for Vaults</button>
+              <div id="mvEmblemScanStatus" style="font-size:0.6rem;color:var(--text3);margin-top:8px;"></div>
+            </div>
+          </div>
+
+          <div id="mvEmblemVaultResults" style="display:none;">
+            <div class="tool-card">
+              <div class="tool-card-header"><span class="tool-card-icon">◎</span><span class="tool-card-title">Vaults Found</span></div>
+              <div class="tool-card-body" id="mvEmblemVaultRows"></div>
+            </div>
+
+            <div class="tool-card" style="margin-top:12px;">
+              <div class="tool-card-header"><span class="tool-card-icon">🔑</span><span class="tool-card-title">Execute Bulk Vault Transfer</span></div>
+              <div class="tool-card-body">
+                <div style="font-size:0.68rem;color:var(--text2);line-height:1.8;margin-bottom:12px;">
+                  Transfers selected Emblem Vault NFTs to the destination wallet set in Fleet Scan. Uses the fleet funding wallet for gas. Standard EVM transfer — no vault contents are affected.
+                </div>
+                <div class="field-group">
+                  <div class="field-label">Funding Wallet <span class="badge badge-danger">PRIVATE KEY</span></div>
+                  <input type="password" class="field-input key-field" id="mvEmblemFundKey" placeholder="0x... funding wallet private key (pays gas)" />
+                </div>
+                <div id="mvEmblemKeyRows" style="margin-top:10px;"></div>
+                <button class="btn btn-primary" id="mvEmblemTransferBtn" onclick="mvEmblemExecuteTransfer()" disabled style="width:100%;margin-top:12px;">▶ Execute Bulk Vault Transfer</button>
+                <div id="mvEmblemTransferStatus" style="font-size:0.6rem;color:var(--text3);margin-top:8px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── UNVAULT ── -->
+        <div id="mvEmblemUnvaultSection" style="display:none;">
+          <div class="mv-pro-banner" style="margin-bottom:16px;">
+            <span class="mv-pro-banner-icon">⬡</span>
+            <div>
+              <strong>What happens during unvault:</strong> The tool signs a claim message with your EVM wallet, contacts Emblem's signer proxy to verify ownership, retrieves the Torus decryption keys, decrypts the vault's internal BIP39 mnemonic, and derives the Bitcoin/XCP private key. Your XCP assets are then sent to your destination Counterparty address. All operations happen locally — nothing leaves your machine.
+            </div>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-card-header"><span class="tool-card-icon">⬡</span><span class="tool-card-title">Unvault Configuration</span></div>
+            <div class="tool-card-body">
+              <div class="field-group">
+                <div class="field-label">Destination XCP / Bitcoin Address</div>
+                <input type="text" class="field-input" id="mvUnvaultXcpDest" placeholder="1... or bc1... your native Bitcoin/XCP wallet address" />
+                <div class="field-hint">XCP assets will be sent here. Must be a standard Bitcoin address you control. Not an EVM address.</div>
+              </div>
+              <div class="field-group" style="margin-top:12px;">
+                <div class="field-label">BTC Funding Amount for Fees</div>
+                <input type="text" class="field-input" id="mvUnvaultBtcFee" placeholder="e.g. 0.0001" value="0.0001" />
+                <div class="field-hint">Small amount of BTC sent to each internal vault wallet to cover Counterparty transaction fees. This comes from your funding wallet on Bitcoin.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-card-header"><span class="tool-card-icon">⬡</span><span class="tool-card-title">Select Vaults to Unvault</span></div>
+            <div class="tool-card-body">
+              <div style="font-size:0.68rem;color:var(--text2);line-height:1.8;margin-bottom:12px;">
+                Run Fleet Scan and Bulk Vault Scan first to populate the vault list. Then select which vaults to unvault here.
+              </div>
+              <div id="mvUnvaultVaultList">
+                <div style="font-size:0.65rem;color:var(--text3);text-align:center;padding:16px;">Complete Emblem vault scan first.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-card-header"><span class="tool-card-icon">🔑</span><span class="tool-card-title">Vault Owner Keys — Required for Claim Signatures</span></div>
+            <div class="tool-card-body">
+              <div id="mvUnvaultKeyRows">
+                <div style="font-size:0.65rem;color:var(--text3);text-align:center;padding:16px;">Complete vault scan first to load key fields.</div>
+              </div>
+              <button class="btn btn-primary" id="mvUnvaultBtn" onclick="mvEmblemExecuteUnvault()" disabled style="width:100%;margin-top:14px;font-family:var(--display);letter-spacing:0.14em;padding:14px;">
+                ▶ EXECUTE UNVAULT SEQUENCE
+              </button>
+              <div id="mvUnvaultStatus" style="font-size:0.6rem;color:var(--text3);margin-top:8px;"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-main">
+        <span>Created by <strong>Kane Mayfield</strong></span>
+        <span>—</span>
+        <a href="https://kanemayfield.com" target="_blank">kanemayfield.com</a>
+        <span>—</span>
+        <span>Mark V · Massive Tactical Extraction</span>
+      </div>
+    </footer>
+  </div>
+
   <!-- FAQ PAGE -->
   <div id="page-faq" class="page">
     <div style="max-width:740px;margin:0 auto;padding:40px 24px 60px;">
@@ -2246,6 +3470,39 @@ function hideRescueVideo() {
 function toggleVideoMute() {
   const vid = document.getElementById('rescueVideo');
   const btn = document.getElementById('rescueVideoMuteBtn');
+  if (vid.muted) {
+    vid.muted = false;
+    vid.volume = 0.18;
+    btn.textContent = '🔊 SOUND ON';
+  } else {
+    vid.muted = true;
+    btn.textContent = '🔇 SOUND OFF';
+  }
+}
+
+// ── MARK V EXTRACTION VIDEO ───────────────────────────────────────────────────
+function showMvVideo() {
+  const wrap = document.getElementById('mvVideoWrap');
+  const vid  = document.getElementById('mvVideo');
+  if (!wrap || !vid) return;
+  wrap.classList.add('visible');
+  vid.load();
+  vid.play().catch(() => {});
+}
+
+function hideMvVideo() {
+  const wrap = document.getElementById('mvVideoWrap');
+  const vid  = document.getElementById('mvVideo');
+  if (!wrap || !vid) return;
+  wrap.classList.remove('visible');
+  vid.pause();
+  vid.currentTime = 0;
+}
+
+function toggleMvVideoMute() {
+  const vid = document.getElementById('mvVideo');
+  const btn = document.getElementById('mvVideoMuteBtn');
+  if (!vid || !btn) return;
   if (vid.muted) {
     vid.muted = false;
     vid.volume = 0.18;
@@ -3321,6 +4578,176 @@ async function executeFractalTransfer() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// FRACTAL VISIONS — NFT RESCUE (SUPERCHAIN / BLOCKSCOUT)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let fvNftScanResults = []; // stores NFTs found across Superchains
+
+async function scanFractalNFTs() {
+  const wallet = document.getElementById('fvNftWallet')?.value.trim();
+  const status = document.getElementById('fvNftScanStatus');
+
+  if (!wallet || !wallet.match(/^0x[0-9a-fA-F]{40}$/)) {
+    showModal('⚠', 'Wallet Required', 'Enter the compromised wallet address to scan.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  status.style.color = 'var(--accent3)';
+  status.textContent = 'Scanning Soneium, Shape, Superseed, and Unichain via Blockscout…';
+  document.getElementById('fvNftResults').style.display = 'none';
+
+  try {
+    const res = await fetch(API + '/api/fractal-nft-scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error || 'Scan failed');
+
+    fvNftScanResults = result.data.nfts || [];
+    const total = result.data.total || fvNftScanResults.length;
+
+    if (total === 0) {
+      status.style.color = 'var(--text3)';
+      status.textContent = 'No NFTs found on any of the four Superchains.';
+      return;
+    }
+
+    status.style.color = 'var(--safe)';
+    status.textContent = `Found ${total} NFT${total !== 1 ? 's' : ''} across ${result.data.chains?.length || 'multiple'} chains.`;
+
+    // Render results
+    const rows = document.getElementById('fvNftRows');
+    const chainColors = { soneium: '#6c8ebf', shape: '#82b366', superseed: '#d6a429', unichain: '#d14d80' };
+
+    let html = '';
+    // Group by chain
+    const byChain = {};
+    for (const nft of fvNftScanResults) {
+      if (!byChain[nft.chain]) byChain[nft.chain] = [];
+      byChain[nft.chain].push(nft);
+    }
+
+    for (const [chain, nfts] of Object.entries(byChain)) {
+      const color = chainColors[chain] || 'var(--accent)';
+      html += `<div style="margin-bottom:14px;">
+        <div style="font-size:0.6rem;color:${color};text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);">
+          ${esc(chain)} — ${nfts.length} NFT${nfts.length !== 1 ? 's' : ''}
+        </div>`;
+      for (const nft of nfts) {
+        html += `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
+          ${nft.image ? `<img src="${esc(nft.image)}" style="width:36px;height:36px;object-fit:cover;border-radius:2px;flex-shrink:0;" onerror="this.style.display='none'" />` : '<div style="width:36px;height:36px;background:var(--s2);border-radius:2px;flex-shrink:0;"></div>'}
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:0.65rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(nft.name || 'Unknown')}</div>
+            <div style="font-size:0.55rem;color:var(--text3);">${esc(nft.contract?.slice(0,10) || '')}… · #${esc(nft.tokenId || '—')}</div>
+          </div>
+          <span style="font-size:0.55rem;color:${color};background:rgba(255,255,255,0.04);padding:2px 6px;border-radius:1px;">${esc(chain)}</span>
+        </div>`;
+      }
+      html += '</div>';
+    }
+
+    rows.innerHTML = html || '<div style="color:var(--text3);font-size:0.65rem;padding:8px;">No NFTs to display.</div>';
+    document.getElementById('fvNftResults').style.display = 'block';
+
+    // Pre-select chain in the execute dropdown if only one chain found
+    const chains = Object.keys(byChain);
+    if (chains.length === 1) {
+      const sel = document.getElementById('fvNftChain');
+      if (sel) sel.value = chains[0];
+    }
+
+  } catch(e) {
+    status.style.color = 'var(--danger)';
+    status.textContent = '✗ ' + e.message;
+  }
+}
+
+function checkFvNftReady() {
+  const fromKey = document.getElementById('fvNftFromKey')?.value.trim();
+  const fundKey = document.getElementById('fvNftFundKey')?.value.trim();
+  const btn = document.getElementById('fvNftExecuteBtn');
+  if (btn) btn.disabled = !(fromKey && fromKey.length > 10 && fundKey && fundKey.length > 10);
+}
+
+function confirmFvNftRescue() {
+  const fromKey  = document.getElementById('fvNftFromKey')?.value.trim();
+  const fundKey  = document.getElementById('fvNftFundKey')?.value.trim();
+  const dest     = document.getElementById('fvNftDestination')?.value.trim();
+  const chain    = document.getElementById('fvNftChain')?.value;
+
+  if (!fromKey || !fundKey) {
+    showModal('⚠', 'Keys Required', 'Enter both the compromised and funding wallet keys.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+  if (!dest || !dest.match(/^0x[0-9a-fA-F]{40}$/)) {
+    showModal('⚠', 'Destination Required', 'Enter a valid destination wallet address.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  const chainNFTs = fvNftScanResults.filter(n => n.chain === chain);
+  if (chainNFTs.length === 0) {
+    showModal('⚠', 'No NFTs', `No NFTs found on ${chain}. Scan first, then select the chain.`, [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  showModal(
+    '⚠',
+    'Confirm Fractal NFT Rescue',
+    `Moving <strong>${chainNFTs.length} NFT${chainNFTs.length !== 1 ? 's' : ''}</strong> from <strong>${chain}</strong> to <strong>${dest.slice(0,8)}…</strong>.<br><br><strong style="color:var(--warn);">These chains do not have MEV protection.</strong> Make sure your funding wallet is ready before confirming.`,
+    [
+      { label: 'Cancel', cls: 'btn-ghost', fn: closeModal },
+      { label: '▶ Execute', cls: 'btn-green', fn: () => { closeModal(); executeFvNftRescue(fromKey, fundKey, dest, chain, chainNFTs); } }
+    ]
+  );
+}
+
+async function executeFvNftRescue(fromKey, fundKey, dest, chain, nfts) {
+  const status = document.getElementById('fvNftExecuteStatus');
+  const btn    = document.getElementById('fvNftExecuteBtn');
+  status.style.color = 'var(--accent3)';
+  status.textContent = `Executing rescue on ${chain}…`;
+  btn.disabled = true;
+
+  try {
+    // Build rescue data in the same shape engine.executeChainRescue expects
+    const rescueData = {
+      collections: Object.values(
+        nfts.reduce((acc, nft) => {
+          if (!acc[nft.contract]) acc[nft.contract] = { contract: nft.contract, collection: nft.collectionName || 'Unknown', token_type: nft.tokenType || 'ERC721', tokens: [] };
+          acc[nft.contract].tokens.push({ tokenId: nft.tokenId, name: nft.name });
+          return acc;
+        }, {})
+      ),
+      destination: dest,
+    };
+
+    const res = await fetch(API + '/api/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chain,
+        rescueData,
+        compromisedKey: fromKey,
+        fundingKey: fundKey,
+        alchemyKey: STATE.alchemyKey,
+      })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error || 'Rescue failed');
+
+    const d = result.data;
+    status.style.color = 'var(--safe)';
+    status.textContent = `✓ ${d.confirmed || 0} NFT${d.confirmed !== 1 ? 's' : ''} rescued on ${chain}.`;
+  } catch(e) {
+    status.style.color = 'var(--danger)';
+    status.textContent = '✗ ' + e.message;
+    btn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // EMBLEM VAULT
 // ═══════════════════════════════════════════════════════════════════════════════
 const EMBLEM_V2 = '0x82C7a8f707110f5FBb16184A5933E9F78a34c6ab';
@@ -3664,6 +5091,1486 @@ function copyEmblemProof() {
     emblemKeyEl.value = STATE.alchemyKey;
   }
 })();
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARK V — STATE
+// ═══════════════════════════════════════════════════════════════════════════════
+const MV_STATE = {
+  wallets: [],          // [{ nick, address }]
+  destination: '',
+  alchemyKey: '',
+  scanResults: {},      // keyed by address
+  fleetStats: { wallets: 0, nfts: 0, tokens: 0, chains: 0 },
+  gasTier: 'recommended',
+  walletStatuses: {},   // keyed by address: 'scanning'|'ready'|'funding'|'transferring'|'complete'|'error'
+  opLog: [],            // { ts, wallet, msg, type, txHash, chain }
+  completeStats: { wallets: 0, assets: 0, gas: '—' },
+  emblemVaults: [],     // discovered emblem vaults across fleet
+  emblemSection: 'transfer',
+  activeEventSource: null, // SSE stream reference — closed on error or complete
+};
+
+const MV_TIERS = { recommended: 1.1, safe: 1.25, maximum: 1.5 };
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARK V — NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════════════
+function showMvTab(name, btn) {
+  document.querySelectorAll('.mv-tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('mv-tab-content-' + name).classList.add('active');
+  document.querySelectorAll('.mv-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Auto-fill alchemy key if already set
+  if (name === 'emblem') mvEmblemSyncKey();
+  // Auto-fill destinations from Fleet Scan when switching to token/native tabs
+  if (name === 'tokens' || name === 'native') {
+    const dest = MV_STATE.destination;
+    if (dest) {
+      const tokenDest = document.getElementById('mvTokenDest');
+      const nativeDest = document.getElementById('mvNativeDest');
+      if (tokenDest && !tokenDest.value) tokenDest.value = dest;
+      if (nativeDest && !nativeDest.value) nativeDest.value = dest;
+    }
+    // Show wallet count reminder
+    const validWallets = MV_STATE.wallets.filter(w => w.address.match(/^0x[0-9a-fA-F]{40}$/));
+    const checkEl = document.getElementById('mvTokenWalletCheck');
+    if (checkEl) checkEl.textContent = validWallets.length > 0
+      ? `${validWallets.length} wallet${validWallets.length > 1 ? 's' : ''} loaded from Fleet Scan.`
+      : 'No wallets loaded — complete Fleet Scan first.';
+  }
+}
+
+function mvSetEmblemSection(which, btn) {
+  MV_STATE.emblemSection = which;
+  document.querySelectorAll('[id^="mvEmblemSection-"]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('mvEmblemTransferSection').style.display = which === 'transfer' ? 'block' : 'none';
+  document.getElementById('mvEmblemUnvaultSection').style.display = which === 'unvault' ? 'block' : 'none';
+}
+
+function mvSetTier(tier, btn) {
+  MV_STATE.gasTier = tier;
+  document.querySelectorAll('[id^="mvTier-"]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARK V — WALLET FLEET MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════════════════
+function mvRenderFleetRows() {
+  const container = document.getElementById('mvFleetRows');
+  if (!container) return;
+
+  if (MV_STATE.wallets.length === 0) {
+    container.innerHTML = '<div style="font-size:0.65rem;color:var(--text3);text-align:center;padding:12px;">No wallets added yet. Click + Add Wallet to begin.</div>';
+    document.getElementById('mvWalletCount').textContent = '0 wallets';
+    return;
+  }
+
+  container.innerHTML = MV_STATE.wallets.map((w, i) => `
+    <div class="mv-fleet-row" id="mv-fleet-row-${i}">
+      <span class="mv-fleet-idx">${String(i + 1).padStart(2, '0')}</span>
+      <input class="mv-fleet-nick" type="text" value="${esc(w.nick)}"
+        placeholder="Nickname" oninput="mvUpdateWallet(${i},'nick',this.value)" />
+      <input class="mv-fleet-addr ${w.address.length > 5 ? (w.address.match(/^0x[0-9a-fA-F]{40}$/) ? 'valid' : 'invalid') : ''}"
+        type="text" value="${esc(w.address)}"
+        placeholder="0x... wallet address"
+        oninput="mvUpdateWallet(${i},'address',this.value)" />
+      <button class="mv-fleet-remove" onclick="mvRemoveWallet(${i})" title="Remove">✕</button>
+    </div>
+  `).join('');
+
+  document.getElementById('mvWalletCount').textContent = MV_STATE.wallets.length + ' wallet' + (MV_STATE.wallets.length !== 1 ? 's' : '');
+  mvCheckScanReady();
+}
+
+function mvAddWalletRow() {
+  if (MV_STATE.wallets.length >= 50) {
+    showModal('⚠', 'Fleet Full', 'Mark V supports up to 50 wallets per operation.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+  MV_STATE.wallets.push({ nick: 'Vault ' + (MV_STATE.wallets.length + 1), address: '' });
+  mvRenderFleetRows();
+}
+
+function mvRemoveWallet(idx) {
+  MV_STATE.wallets.splice(idx, 1);
+  mvRenderFleetRows();
+}
+
+function mvUpdateWallet(idx, field, val) {
+  MV_STATE.wallets[idx][field] = val.trim();
+  if (field === 'address') {
+    const row = document.getElementById('mv-fleet-row-' + idx);
+    const input = row ? row.querySelector('.mv-fleet-addr') : null;
+    if (input) {
+      const valid = val.trim().match(/^0x[0-9a-fA-F]{40}$/);
+      input.classList.toggle('valid', !!valid && val.trim().length > 0);
+      input.classList.toggle('invalid', !valid && val.trim().length > 5);
+    }
+  }
+  mvCheckScanReady();
+}
+
+function mvAddBulkWallets() {
+  const bulk = document.getElementById('mvBulkInput');
+  bulk.style.display = bulk.style.display === 'none' ? 'block' : 'none';
+}
+
+function mvParseBulk() {
+  const text = document.getElementById('mvBulkText').value;
+  const lines = text.split(/[\n,]+/).map(l => l.trim()).filter(l => l.match(/^0x[0-9a-fA-F]{40}$/));
+  if (lines.length === 0) {
+    showModal('⚠', 'No Valid Addresses', 'No valid 0x addresses found. Each address should be on its own line.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+  const available = 50 - MV_STATE.wallets.length;
+  const toAdd = lines.slice(0, available);
+  toAdd.forEach((addr, i) => {
+    MV_STATE.wallets.push({ nick: 'Vault ' + (MV_STATE.wallets.length + 1), address: addr });
+  });
+  document.getElementById('mvBulkInput').style.display = 'none';
+  document.getElementById('mvBulkText').value = '';
+  mvRenderFleetRows();
+  if (lines.length > available) {
+    showModal('⚠', 'Some Wallets Skipped', `Added ${toAdd.length} wallets. ${lines.length - available} skipped — 50 wallet limit reached.`, [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+  }
+}
+
+function mvSyncAlchemyKey() {
+  MV_STATE.alchemyKey = document.getElementById('mvAlchemyKey').value.trim();
+  mvCheckScanReady();
+}
+
+function mvCheckScanReady() {
+  MV_STATE.destination = (document.getElementById('mvDestination')?.value || '').trim();
+  const validWallets = MV_STATE.wallets.filter(w => w.address.match(/^0x[0-9a-fA-F]{40}$/));
+  const hasKey = MV_STATE.alchemyKey.length > 10;
+  const hasDest = MV_STATE.destination.match(/^0x[0-9a-fA-F]{40}$/);
+  const btn = document.getElementById('mvScanBtn');
+  if (btn) btn.disabled = !(validWallets.length > 0 && hasKey && hasDest);
+}
+
+function mvCheckExecuteReady() {
+  const fundKey = (document.getElementById('mvFundingKey')?.value || '').trim();
+  const hasKeys = MV_STATE.wallets.some(w => {
+    const inp = document.getElementById('mvkey-' + w.address.toLowerCase());
+    return inp && inp.value.trim().length > 10;
+  });
+  const btn = document.getElementById('mvExecuteBtn');
+  if (btn) btn.disabled = !(fundKey.length > 10 && hasKeys);
+  const estBtn = document.getElementById('mvEstimateBtn');
+  if (estBtn) estBtn.disabled = !(fundKey.length > 10);
+}
+
+async function mvCheckAllBalances() {
+  const fundAddr = (document.getElementById('mvFundingCheckAddr')?.value || '').trim();
+  const result = document.getElementById('mvBalanceCheckResult');
+  result.style.display = 'block';
+  result.innerHTML = '<div style="font-size:0.6rem;color:var(--text3);padding:8px;">Checking balances...</div>';
+
+  const chainColors = { eth: '#627eea', polygon: '#8247e5', base: '#0052ff', optimism: '#ff0420', avalanche: '#e84142' };
+  const chainNames = { eth: 'ETH', polygon: 'POL', base: 'ETH (Base)', optimism: 'ETH (OP)', avalanche: 'AVAX' };
+
+  let html = '<div style="display:flex;flex-direction:column;gap:8px;">';
+
+  // Check funding wallet
+  if (fundAddr.match(/^0x[0-9a-fA-F]{40}$/)) {
+    try {
+      const res = await fetch(API + '/api/balances-all', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ address: fundAddr, alchemyKey: MV_STATE.alchemyKey })
+      });
+      const r = await res.json();
+      if (r.success) {
+        html += `<div style="padding:10px 12px;background:rgba(200,150,15,0.06);border:1px solid rgba(200,150,15,0.25);border-left:3px solid var(--accent-mv2);">
+          <div style="font-size:0.58rem;color:var(--accent-mv);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px;">Funding Wallet — ${fundAddr.slice(0,6)}...${fundAddr.slice(-4)}</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">`;
+        for (const b of r.data.balances) {
+          const color = chainColors[b.chain] || '#888';
+          const isZero = parseFloat(b.balance) === 0;
+          html += `<span style="font-size:0.65rem;color:${isZero ? 'var(--text3)' : 'var(--text)'};display:flex;align-items:center;gap:4px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:${color};display:inline-block;"></span>
+            ${parseFloat(b.balance).toFixed(5)} ${b.symbol}
+          </span>`;
+        }
+        html += '</div></div>';
+      }
+    } catch(e) {}
+  } else if (fundAddr) {
+    html += '<div style="font-size:0.6rem;color:var(--danger);padding:4px 0;">Invalid funding wallet address.</div>';
+  }
+
+  // Check each fleet wallet
+  const validWallets = MV_STATE.wallets.filter(w => w.address.match(/^0x[0-9a-fA-F]{40}$/));
+  for (const w of validWallets) {
+    // Use cached balances from scan if available
+    const cached = MV_STATE.walletBalances?.[w.address.toLowerCase()];
+    const balances = cached || [];
+    const nonZero = balances.filter(b => parseFloat(b.balance) > 0);
+
+    html += `<div style="padding:8px 12px;background:var(--s1);border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:0.65rem;color:var(--accent-mv2);min-width:90px;">${esc(w.nick)}</span>
+        <span style="font-size:0.55rem;color:var(--text3);">${w.address.slice(0,6)}...${w.address.slice(-4)}</span>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-left:auto;">`;
+    if (nonZero.length === 0) {
+      html += '<span style="font-size:0.6rem;color:var(--text3);">no balance — needs full funding</span>';
+    } else {
+      for (const b of nonZero) {
+        const color = chainColors[b.chain] || '#888';
+        html += `<span style="font-size:0.6rem;color:var(--text);display:flex;align-items:center;gap:3px;">
+          <span style="width:5px;height:5px;border-radius:50%;background:${color};display:inline-block;"></span>
+          ${parseFloat(b.balance).toFixed(5)} ${b.symbol}
+        </span>`;
+      }
+    }
+    html += '</div></div></div>';
+  }
+
+  html += '</div>';
+  result.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARK V — FLEET SCAN
+// ═══════════════════════════════════════════════════════════════════════════════
+async function mvStartFleetScan() {
+  const validWallets = MV_STATE.wallets.filter(w => w.address.match(/^0x[0-9a-fA-F]{40}$/));
+  if (validWallets.length === 0) return;
+
+  const btn = document.getElementById('mvScanBtn');
+  const status = document.getElementById('mvScanStatus');
+  btn.disabled = true;
+  btn.textContent = '⬡ Scanning Fleet...';
+  status.style.display = 'block';
+  status.textContent = `Scanning ${validWallets.length} wallet${validWallets.length > 1 ? 's' : ''} across all chains simultaneously...`;
+
+  // Set all wallets to scanning status
+  validWallets.forEach(w => { MV_STATE.walletStatuses[w.address] = 'scanning'; });
+  MV_STATE.scanResults = {};
+
+  try {
+    const res = await fetch(API + '/api/markv-scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        wallets: validWallets.map(w => ({ address: w.address, nick: w.nick })),
+        destination: MV_STATE.destination,
+        alchemyKey: MV_STATE.alchemyKey,
+      })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error || 'Fleet scan failed');
+
+    MV_STATE.scanResults = result.data.results;
+    MV_STATE.fleetStats = result.data.stats;
+
+    // Update statuses
+    validWallets.forEach(w => { MV_STATE.walletStatuses[w.address] = 'ready'; });
+
+    mvRenderScanResults();
+    mvRenderFleetSummary();
+    mvBuildKeyRows();
+
+  } catch(e) {
+    status.textContent = '✗ Scan failed: ' + e.message;
+    status.style.color = 'var(--danger)';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⬡ Scan All Wallets — All Chains';
+}
+
+function mvRenderFleetSummary() {
+  const s = MV_STATE.fleetStats;
+  document.getElementById('mvStatWallets').textContent = s.wallets;
+  document.getElementById('mvStatNFTs').textContent = s.nfts;
+  // Count unique collections across all wallet scan results
+  let totalCollections = 0;
+  for (const wr of Object.values(MV_STATE.scanResults)) {
+    for (const colls of Object.values(wr.chains || {})) {
+      totalCollections += (colls || []).length;
+    }
+  }
+  document.getElementById('mvStatCollections').textContent = totalCollections;
+  document.getElementById('mvStatChains').textContent = s.chains;
+  document.getElementById('mvFleetSummary').style.display = 'block';
+  document.getElementById('mvScanStatus').textContent = `Scan complete — ${s.nfts} NFTs across ${s.wallets} wallets`;
+}
+
+function mvRenderScanResults() {
+  const container = document.getElementById('mvScanResults');
+  container.style.display = 'block';
+  let html = '';
+
+  for (const w of MV_STATE.wallets) {
+    if (!w.address.match(/^0x[0-9a-fA-F]{40}$/)) continue;
+    const result = MV_STATE.scanResults[w.address.toLowerCase()] || {};
+    const chains = result.chains || {};
+    const totalNFTs = Object.values(chains).reduce((s, colls) => s + colls.reduce((cs, c) => cs + c.tokens.length, 0), 0);
+
+    html += `<div class="mv-wallet-block" id="mvwb-${w.address.toLowerCase()}">
+      <div class="mv-wallet-header" onclick="mvToggleWalletBlock('${w.address.toLowerCase()}')">
+        <div class="mv-wallet-nick">${esc(w.nick)}</div>
+        <div class="mv-wallet-addr">${w.address.slice(0,6)}...${w.address.slice(-4)}</div>
+        <div class="mv-wallet-count">${totalNFTs} NFT${totalNFTs !== 1 ? 's' : ''}</div>
+        <div class="mv-wallet-status ready" id="mvstatus-${w.address.toLowerCase()}">READY</div>
+      </div>
+      <div class="mv-wallet-body">
+        <div id="mvbal-${w.address.toLowerCase()}" style="margin-bottom:10px;padding:8px 0;border-bottom:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap;">
+          <span style="font-size:0.55rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;align-self:center;">Current Balances:</span>
+          <span style="font-size:0.6rem;color:var(--text3);">checking...</span>
+        </div>`;
+
+    if (totalNFTs === 0) {
+      html += '<div style="font-size:0.65rem;color:var(--text3);padding:4px 0;">No NFTs found on any chain.</div>';
+    } else {
+      for (const [chainKey, colls] of Object.entries(chains)) {
+        if (!colls || colls.length === 0) continue;
+        const chainNFTs = colls.reduce((s, c) => s + c.tokens.length, 0);
+        html += `<div style="margin-bottom:10px;">
+          <div style="font-size:0.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px;">${esc(chainKey.replace('-mainnet',''))} — ${chainNFTs} NFTs</div>`;
+        for (const coll of colls) {
+          html += `<div style="font-size:0.65rem;color:var(--text2);padding:4px 0 4px 10px;border-left:2px solid var(--border2);">
+            ${esc(coll.collection)} <span style="color:var(--text3);">(${coll.tokens.length})</span>
+          </div>`;
+        }
+        html += '</div>';
+      }
+    }
+
+    html += '</div></div>';
+  }
+
+  container.innerHTML = html || '<div style="font-size:0.65rem;color:var(--text3);text-align:center;padding:16px;">No results to display.</div>';
+
+  // Fetch balances for each wallet asynchronously
+  for (const w of MV_STATE.wallets) {
+    if (!w.address.match(/^0x[0-9a-fA-F]{40}$/)) continue;
+    mvFetchWalletBalances(w.address);
+  }
+}
+
+async function mvFetchWalletBalances(address) {
+  const el = document.getElementById('mvbal-' + address.toLowerCase());
+  if (!el) return;
+  try {
+    const res = await fetch(API + '/api/balances-all', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ address, alchemyKey: MV_STATE.alchemyKey })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error);
+
+    const nonZero = result.data.balances.filter(b => parseFloat(b.balance) > 0);
+    if (nonZero.length === 0) {
+      el.innerHTML = '<span style="font-size:0.55rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;">Current Balances:</span><span style="font-size:0.6rem;color:var(--text3);">all zero</span>';
+      return;
+    }
+
+    const chainColors = { eth: '#627eea', polygon: '#8247e5', base: '#0052ff', optimism: '#ff0420', avalanche: '#e84142' };
+    let html = '<span style="font-size:0.55rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;align-self:center;">Current Balances:</span>';
+    for (const b of nonZero) {
+      const color = chainColors[b.chain] || '#888';
+      html += `<span style="font-size:0.6rem;display:flex;align-items:center;gap:4px;">
+        <span style="width:6px;height:6px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0;"></span>
+        <strong style="color:var(--text);">${parseFloat(b.balance).toFixed(5)}</strong>
+        <span style="color:var(--text3);">${b.symbol}</span>
+      </span>`;
+    }
+    el.innerHTML = html;
+    // Store balances for gas estimate reference
+    if (!MV_STATE.walletBalances) MV_STATE.walletBalances = {};
+    MV_STATE.walletBalances[address.toLowerCase()] = result.data.balances;
+  } catch(e) {
+    el.innerHTML = '<span style="font-size:0.55rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;">Current Balances:</span><span style="font-size:0.6rem;color:var(--text3);">unavailable</span>';
+  }
+}
+
+function mvToggleWalletBlock(addr) {
+  const block = document.getElementById('mvwb-' + addr);
+  if (block) block.classList.toggle('open');
+}
+
+function mvBuildKeyRows() {
+  const keyContainer = document.getElementById('mvKeyRows');
+  if (!keyContainer) return;
+  const validWallets = MV_STATE.wallets.filter(w => w.address.match(/^0x[0-9a-fA-F]{40}$/));
+  if (validWallets.length === 0) {
+    keyContainer.innerHTML = '<div style="font-size:0.65rem;color:var(--text3);text-align:center;padding:16px;">Complete Fleet Scan first.</div>';
+    return;
+  }
+  keyContainer.innerHTML = validWallets.map(w => `
+    <div class="mv-key-row">
+      <div class="mv-key-nick">${esc(w.nick)}<br><span style="font-size:0.52rem;color:var(--text3);">${w.address.slice(0,6)}...${w.address.slice(-4)}</span></div>
+      <input type="password" class="mv-key-input" id="mvkey-${w.address.toLowerCase()}"
+        placeholder="0x... private key for ${esc(w.nick)}"
+        oninput="mvCheckExecuteReady()" />
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARK V — GAS ESTIMATE
+// ═══════════════════════════════════════════════════════════════════════════════
+async function mvRunEstimate() {
+  const fundKey = document.getElementById('mvFundingKey')?.value.trim();
+  if (!fundKey || Object.keys(MV_STATE.scanResults).length === 0) return;
+
+  const btn = document.getElementById('mvEstimateBtn');
+  btn.disabled = true;
+  btn.textContent = '⬡ Calculating...';
+
+  try {
+    const walletKeys = {};
+    MV_STATE.wallets.forEach(w => {
+      const inp = document.getElementById('mvkey-' + w.address.toLowerCase());
+      if (inp && inp.value.trim()) walletKeys[w.address] = inp.value.trim();
+    });
+
+    const res = await fetch(API + '/api/markv-estimate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scanResults: MV_STATE.scanResults,
+        destination: MV_STATE.destination,
+        alchemyKey: MV_STATE.alchemyKey,
+        gasTier: MV_STATE.gasTier,
+      })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error || 'Estimate failed');
+
+    const estimates = result.data.estimates;
+    let barsHtml = '';
+    let totalLines = [];
+
+    for (const [chain, est] of Object.entries(estimates)) {
+      if (parseFloat(est.totalCostNative) > 0) {
+        barsHtml += `<div class="mv-gas-chain"><strong>${esc(chain)}</strong>: ${parseFloat(est.totalCostNative).toFixed(6)} ${esc(est.nativeSymbol)} (${est.tokenCount} tokens)</div>`;
+        totalLines.push(`${parseFloat(est.totalCostNative).toFixed(6)} ${est.nativeSymbol}`);
+      }
+    }
+
+    document.getElementById('mvGasBars').innerHTML = barsHtml || '<div style="color:var(--text3);">No gas required.</div>';
+    document.getElementById('mvGasTotal').textContent = totalLines.join(' + ') || '0';
+    document.getElementById('mvGasEstimate').style.display = 'block';
+    document.getElementById('mvExecuteBtn').disabled = false;
+
+  } catch(e) {
+    document.getElementById('mvGasBars').innerHTML = `<div style="color:var(--danger);">Estimate failed: ${esc(e.message)}</div>`;
+    document.getElementById('mvGasEstimate').style.display = 'block';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⬡ Calculate Fleet Gas Requirements';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARK V — EXECUTE
+// ═══════════════════════════════════════════════════════════════════════════════
+function mvConfirmExecute() {
+  const validWallets = MV_STATE.wallets.filter(w => w.address.match(/^0x[0-9a-fA-F]{40}$/));
+  showModal(
+    '⬡',
+    'Confirm Fleet Operation',
+    `You are about to execute a fleet operation across <strong>${validWallets.length} wallet${validWallets.length !== 1 ? 's' : ''}</strong>, moving all assets to <strong>${MV_STATE.destination.slice(0,6)}...${MV_STATE.destination.slice(-4)}</strong>.<br><br>
+    This will fund and transfer simultaneously. Confirm you have reviewed the gas estimate and all wallets are clean.`,
+    [
+      { label: 'Cancel', cls: 'btn-ghost', fn: closeModal },
+      { label: '▶ Execute', cls: 'btn-primary', fn: () => { closeModal(); mvExecuteFleet(); } }
+    ]
+  );
+}
+
+async function mvExecuteFleet() {
+  const fundKey = document.getElementById('mvFundingKey')?.value.trim();
+  const validWallets = MV_STATE.wallets.filter(w => w.address.match(/^0x[0-9a-fA-F]{40}$/));
+
+  // Build wallet key map
+  const walletKeys = {};
+  let keysProvided = 0;
+  validWallets.forEach(w => {
+    const inp = document.getElementById('mvkey-' + w.address.toLowerCase());
+    if (inp && inp.value.trim().length > 10) {
+      walletKeys[w.address] = inp.value.trim();
+      keysProvided++;
+    }
+  });
+
+  if (!fundKey || keysProvided === 0) {
+    showModal('⚠', 'Keys Missing', 'Enter the funding wallet key and at least one fleet wallet key before executing.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  // Switch to status tab and start extraction video
+  showMvTab('status', document.getElementById('mv-tab-status'));
+  showMvVideo();
+
+  // Initialize wallet status panel
+  mvInitStatusPanel(validWallets);
+  mvLogOp('—', `Fleet operation initiated — ${keysProvided} wallets, destination ${MV_STATE.destination.slice(0,6)}...`, 'dim');
+
+  document.getElementById('mvExecuteBtn').disabled = true;
+  document.getElementById('mvExecuteStatus').style.display = 'block';
+  document.getElementById('mvExecuteStatus').textContent = 'Operation in progress — see Fleet Status tab';
+
+  try {
+    // ── STEP 1: POST payload to get a jobId ──────────────────────────────────
+    // The server stores the payload and returns a jobId immediately.
+    // This keeps private keys out of the SSE GET URL.
+    const startRes = await fetch(API + '/api/markv-execute-start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        wallets: validWallets.map(w => ({
+          address: w.address,
+          nick: w.nick,
+          privateKey: walletKeys[w.address] || null,
+        })),
+        destination: MV_STATE.destination,
+        fundingKey: fundKey,
+        scanResults: MV_STATE.scanResults,
+        alchemyKey: MV_STATE.alchemyKey,
+        gasTier: MV_STATE.gasTier,
+      })
+    });
+
+    const startData = await startRes.json();
+    if (!startData.success) throw new Error(startData.error || 'Failed to start fleet operation');
+
+    const { jobId } = startData;
+    mvLogOp('—', `Job queued — opening SSE stream...`, 'dim');
+
+    // ── STEP 2: Open SSE stream for live progress ────────────────────────────
+    await new Promise((resolve, reject) => {
+      const evtSource = new EventSource(`${API}/api/markv-execute-sse?jobId=${encodeURIComponent(jobId)}`);
+      MV_STATE.activeEventSource = evtSource;
+
+      evtSource.addEventListener('progress', (e) => {
+        const p = JSON.parse(e.data);
+        if (!p.message) return;
+        const nick = p.walletAddr
+          ? (MV_STATE.wallets.find(w => w.address.toLowerCase() === p.walletAddr.toLowerCase())?.nick || p.walletAddr.slice(0,6))
+          : '—';
+        // Update wallet status badge if step indicates a state change
+        if (p.walletAddr && p.step) {
+          const statusMap = {
+            funding: 'funding', transferring: 'transferring',
+            confirming: 'transferring', complete: 'complete', error: 'error',
+          };
+          if (statusMap[p.step]) mvUpdateWalletStatus(p.walletAddr, statusMap[p.step]);
+        }
+        const logType = p.step === 'error' ? 'err' : (p.step === 'complete' || p.step === 'done') ? 'ok' : 'dim';
+        mvLogOp(nick, p.message, logType, p.txHash || null, p.chain || null);
+      });
+
+      evtSource.addEventListener('complete', (e) => {
+        const d = JSON.parse(e.data);
+        MV_STATE.lastExecutionResults = d.walletResults || [];
+        // Final status updates from complete payload
+        (d.walletResults || []).forEach(wr => {
+          mvUpdateWalletStatus(wr.address, wr.success ? 'complete' : 'error');
+        });
+        MV_STATE.completeStats = {
+          wallets: d.walletsCleared,
+          assets: d.totalConfirmed,
+          gas: d.totalGasSpent || '—',
+        };
+        evtSource.close();
+        MV_STATE.activeEventSource = null;
+        resolve();
+      });
+
+      evtSource.addEventListener('error', (e) => {
+        let msg = 'SSE connection error';
+        try { msg = JSON.parse(e.data).message || msg; } catch {}
+        evtSource.close();
+        MV_STATE.activeEventSource = null;
+        reject(new Error(msg));
+      });
+
+      // Heartbeat — do nothing, just keeps the connection alive
+      evtSource.addEventListener('heartbeat', () => {});
+
+      // Fallback: if EventSource fires onerror without a data event
+      evtSource.onerror = (e) => {
+        if (evtSource.readyState === EventSource.CLOSED) {
+          evtSource.close();
+          MV_STATE.activeEventSource = null;
+          reject(new Error('SSE stream closed unexpectedly'));
+        }
+      };
+    });
+
+    mvShowComplete();
+
+  } catch(e) {
+    mvLogOp('FLEET', '✗ Operation error: ' + e.message, 'err');
+    document.getElementById('mvExecuteStatus').textContent = '✗ Error: ' + e.message;
+    document.getElementById('mvExecuteStatus').style.color = 'var(--danger)';
+    document.getElementById('mvExecuteBtn').disabled = false;
+    // Close any open SSE stream on error
+    if (MV_STATE.activeEventSource) {
+      MV_STATE.activeEventSource.close();
+      MV_STATE.activeEventSource = null;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARK V — STATUS HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
+function mvInitStatusPanel(wallets) {
+  const panel = document.getElementById('mvWalletStatusPanel');
+  const rows = document.getElementById('mvWalletStatusRows');
+  panel.style.display = 'block';
+
+  rows.innerHTML = wallets.map(w => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="font-size:0.65rem;color:var(--accent-mv2);min-width:100px;font-family:var(--mono);">${esc(w.nick)}</div>
+      <div style="font-size:0.6rem;color:var(--text3);font-family:var(--mono);">${w.address.slice(0,6)}...${w.address.slice(-4)}</div>
+      <div class="mv-wallet-status scanning" id="mvpanelstatus-${w.address.toLowerCase()}" style="margin-left:auto;">QUEUED</div>
+    </div>
+  `).join('');
+}
+
+function mvUpdateWalletStatus(address, status) {
+  MV_STATE.walletStatuses[address.toLowerCase()] = status;
+  const el = document.getElementById('mvpanelstatus-' + address.toLowerCase());
+  if (el) {
+    el.className = 'mv-wallet-status ' + status;
+    el.textContent = status.toUpperCase();
+  }
+  // Also update scan results block status badge
+  const badge = document.getElementById('mvstatus-' + address.toLowerCase());
+  if (badge) {
+    badge.className = 'mv-wallet-status ' + status;
+    badge.textContent = status.toUpperCase();
+  }
+}
+
+function mvLogOp(wallet, msg, type = 'dim', txHash = null, chain = null) {
+  const log = document.getElementById('mvOpLog');
+  if (!log) return;
+  const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+  const entry = { ts: time, wallet, msg, type };
+  MV_STATE.opLog.push(entry);
+  let link = '';
+  if (txHash && chain) {
+    const explorers = { eth: 'https://etherscan.io/tx/', polygon: 'https://polygonscan.com/tx/', base: 'https://basescan.org/tx/' };
+    if (explorers[chain]) link = ` <a href="${explorers[chain]}${txHash}" target="_blank">[view]</a>`;
+  }
+  const line = document.createElement('div');
+  line.className = 'mv-log-line';
+  line.innerHTML = `<span class="mv-log-ts">${time}</span><span class="mv-log-wallet">${esc(wallet)}</span><span class="mv-log-${type}">${esc(msg)}${link}</span>`;
+  // Remove placeholder if present
+  if (log.children.length === 1 && log.children[0].textContent.includes('Awaiting')) log.innerHTML = '';
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+function mvShowComplete() {
+  hideMvVideo();
+  const s = MV_STATE.completeStats;
+  document.getElementById('mvCompleteWallets').textContent = s.wallets;
+  document.getElementById('mvCompleteAssets').textContent = s.assets;
+  document.getElementById('mvCompleteGas').textContent = s.gas;
+  document.getElementById('mvCompleteTimestamp').textContent = new Date().toLocaleString();
+  document.getElementById('mvCompleteScreen').classList.add('visible');
+  mvLogOp('FLEET', '★ NO ONE LEFT BEHIND — Operation complete', 'ok');
+  mvBuildExecutionSummary();
+}
+
+function mvBuildExecutionSummary() {
+  const results = MV_STATE.lastExecutionResults;
+  if (!results || results.length === 0) return;
+
+  const container = document.getElementById('mvExecutionSummary');
+  const rows = document.getElementById('mvSummaryRows');
+  container.style.display = 'block';
+
+  // Header row
+  let html = `<div style="display:grid;grid-template-columns:140px 1fr 80px 80px 80px 1fr;gap:0;border-bottom:1px solid var(--border2);padding:8px 14px;background:var(--s2);">
+    <div style="color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-size:0.55rem;">Wallet</div>
+    <div style="color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-size:0.55rem;">Address</div>
+    <div style="color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-size:0.55rem;text-align:center;">Status</div>
+    <div style="color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-size:0.55rem;text-align:center;">Confirmed</div>
+    <div style="color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-size:0.55rem;text-align:center;">Failed</div>
+    <div style="color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-size:0.55rem;">Notes</div>
+  </div>`;
+
+  for (const r of results) {
+    const nick = MV_STATE.wallets.find(w => w.address.toLowerCase() === r.address?.toLowerCase())?.nick || r.address?.slice(0,8) || '—';
+    const addr = r.address ? r.address.slice(0,6)+'...'+r.address.slice(-4) : '—';
+
+    let statusColor, statusText;
+    if (r.success && r.confirmed > 0 && r.failed === 0) {
+      statusColor = 'var(--safe)'; statusText = '✓ COMPLETE';
+    } else if (r.success && r.confirmed > 0 && r.failed > 0) {
+      statusColor = 'var(--warn)'; statusText = '⚠ PARTIAL';
+    } else if (!r.success || r.confirmed === 0) {
+      statusColor = 'var(--danger)'; statusText = '✗ FAILED';
+    } else {
+      statusColor = 'var(--text3)'; statusText = '— SKIPPED';
+    }
+
+    const notes = r.error
+      ? `<span style="color:var(--danger);">${esc(r.error.slice(0, 60))}</span>`
+      : (r.skipped > 0 ? `<span style="color:var(--text3);">${r.skipped} token${r.skipped !== 1 ? 's' : ''} skipped (already moved or restricted)</span>` : '<span style="color:var(--text3);">—</span>');
+
+    html += `<div style="display:grid;grid-template-columns:140px 1fr 80px 80px 80px 1fr;gap:0;padding:9px 14px;border-bottom:1px solid var(--border);transition:background 0.1s;" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background='transparent'">
+      <div style="color:var(--accent-mv2);font-size:0.62rem;">${esc(nick)}</div>
+      <div style="color:var(--text3);font-size:0.58rem;">${addr}</div>
+      <div style="text-align:center;"><span style="color:${statusColor};font-size:0.58rem;letter-spacing:0.06em;">${statusText}</span></div>
+      <div style="text-align:center;color:var(--safe);font-size:0.62rem;">${r.confirmed ?? 0}</div>
+      <div style="text-align:center;color:${(r.failed ?? 0) > 0 ? 'var(--danger)' : 'var(--text3)'};font-size:0.62rem;">${r.failed ?? 0}</div>
+      <div style="font-size:0.58rem;">${notes}</div>
+    </div>`;
+  }
+
+  rows.innerHTML = html;
+}
+
+function mvExportLog() {
+  if (MV_STATE.opLog.length === 0) return;
+  const csv = 'Time,Wallet,Message,Type\n' + MV_STATE.opLog.map(l =>
+    `"${l.ts}","${l.wallet.replace(/"/g,'""')}","${l.msg.replace(/"/g,'""')}","${l.type}"`
+  ).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'markv-operation-' + Date.now() + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARK V — EMBLEM VAULT FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+function mvEmblemSyncKey() {
+  const mvKey = document.getElementById('mvAlchemyKey')?.value.trim();
+  const emblemInput = document.getElementById('mvEmblemAlchemyKey');
+  if (emblemInput && !emblemInput.value && mvKey) emblemInput.value = mvKey;
+}
+
+async function mvEmblemScanFleet() {
+  const alchemyKey = document.getElementById('mvEmblemAlchemyKey')?.value.trim() || MV_STATE.alchemyKey;
+  const validWallets = MV_STATE.wallets.filter(w => w.address.match(/^0x[0-9a-fA-F]{40}$/));
+
+  if (validWallets.length === 0) {
+    showModal('⚠', 'No Wallets', 'Add wallets in Fleet Scan first.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  const status = document.getElementById('mvEmblemScanStatus');
+  status.style.color = 'var(--text3)';
+  status.textContent = `Scanning ${validWallets.length} wallet${validWallets.length > 1 ? 's' : ''} for Emblem Vaults...`;
+
+  try {
+    const res = await fetch(API + '/api/markv-emblem-scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        wallets: validWallets.map(w => ({ address: w.address, nick: w.nick })),
+        alchemyKey,
+      })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error || 'Vault scan failed');
+
+    MV_STATE.emblemVaults = result.data.vaults;
+    mvRenderEmblemVaultResults(result.data.vaults);
+    status.textContent = `Found ${result.data.vaults.length} vault${result.data.vaults.length !== 1 ? 's' : ''} across fleet`;
+    status.style.color = 'var(--safe)';
+    // Also populate unvault list
+    mvBuildUnvaultList(result.data.vaults);
+
+  } catch(e) {
+    status.textContent = '✗ ' + e.message;
+    status.style.color = 'var(--danger)';
+  }
+}
+
+function mvRenderEmblemVaultResults(vaults) {
+  const container = document.getElementById('mvEmblemVaultResults');
+  const rows = document.getElementById('mvEmblemVaultRows');
+  container.style.display = 'block';
+
+  if (vaults.length === 0) {
+    rows.innerHTML = '<div style="font-size:0.65rem;color:var(--text3);text-align:center;padding:16px;">No Emblem Vaults found across fleet.</div>';
+    return;
+  }
+
+  rows.innerHTML = vaults.map((v, i) => `
+    <div class="mv-fleet-row" style="align-items:flex-start;gap:10px;">
+      <input type="checkbox" id="mvev-${i}" checked style="margin-top:3px;flex-shrink:0;" />
+      <div style="flex:1;">
+        <div style="font-size:0.68rem;color:var(--text);margin-bottom:2px;">${esc(v.name)}</div>
+        <div style="font-size:0.55rem;color:var(--text3);">Token #${esc(v.tokenId)} · ${esc(v.contractName)} · ${esc(v.walletNick || v.walletAddress?.slice(0,8) || '—')}</div>
+        ${v.containedAssets ? `<div style="font-size:0.55rem;color:var(--accent-mv);margin-top:2px;">${esc(v.containedAssets)}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  // Build key rows for transfer
+  const keyRows = document.getElementById('mvEmblemKeyRows');
+  const uniqueWallets = [...new Set(vaults.map(v => v.walletAddress).filter(Boolean))];
+  keyRows.innerHTML = uniqueWallets.map(addr => {
+    const nick = MV_STATE.wallets.find(w => w.address.toLowerCase() === addr.toLowerCase())?.nick || addr.slice(0,8);
+    return `<div class="mv-key-row">
+      <div class="mv-key-nick">${esc(nick)}</div>
+      <input type="password" class="mv-key-input" id="mvembkey-${addr.toLowerCase()}"
+        placeholder="0x... private key for ${esc(nick)}" />
+    </div>`;
+  }).join('');
+
+  document.getElementById('mvEmblemTransferBtn').disabled = false;
+}
+
+function mvBuildUnvaultList(vaults) {
+  const list = document.getElementById('mvUnvaultVaultList');
+  const keyRows = document.getElementById('mvUnvaultKeyRows');
+  if (!list || vaults.length === 0) return;
+
+  list.innerHTML = vaults.map((v, i) => `
+    <div class="mv-fleet-row">
+      <input type="checkbox" id="mvuv-${i}" checked />
+      <div style="flex:1;">
+        <div style="font-size:0.68rem;color:var(--text);">${esc(v.name)} — #${esc(v.tokenId)}</div>
+        <div style="font-size:0.55rem;color:var(--text3);">${esc(v.contractName)} · ${esc(v.walletNick || v.walletAddress?.slice(0,8) || '—')}</div>
+        ${v.containedAssets ? `<div style="font-size:0.55rem;color:var(--accent-mv);">${esc(v.containedAssets)}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  const uniqueWallets = [...new Set(vaults.map(v => v.walletAddress).filter(Boolean))];
+  keyRows.innerHTML = uniqueWallets.map(addr => {
+    const nick = MV_STATE.wallets.find(w => w.address.toLowerCase() === addr.toLowerCase())?.nick || addr.slice(0,8);
+    return `<div class="mv-key-row">
+      <div class="mv-key-nick">${esc(nick)}</div>
+      <input type="password" class="mv-key-input" id="mvuvkey-${addr.toLowerCase()}"
+        placeholder="0x... owner private key for ${esc(nick)}" />
+    </div>`;
+  }).join('');
+
+  document.getElementById('mvUnvaultBtn').disabled = false;
+}
+
+async function mvEmblemExecuteTransfer() {
+  const fundKey = document.getElementById('mvEmblemFundKey')?.value.trim();
+  if (!fundKey) {
+    showModal('⚠', 'Key Required', 'Enter funding wallet private key.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  const selectedVaults = MV_STATE.emblemVaults.filter((v, i) => {
+    const cb = document.getElementById('mvev-' + i);
+    return cb && cb.checked;
+  });
+  if (selectedVaults.length === 0) {
+    showModal('⚠', 'None Selected', 'Select at least one vault to transfer.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  const walletKeys = {};
+  const uniqueWallets = [...new Set(selectedVaults.map(v => v.walletAddress).filter(Boolean))];
+  uniqueWallets.forEach(addr => {
+    const inp = document.getElementById('mvembkey-' + addr.toLowerCase());
+    if (inp && inp.value.trim()) walletKeys[addr] = inp.value.trim();
+  });
+
+  const status = document.getElementById('mvEmblemTransferStatus');
+  status.style.color = 'var(--text3)';
+  status.textContent = `Transferring ${selectedVaults.length} vault${selectedVaults.length > 1 ? 's' : ''}...`;
+  document.getElementById('mvEmblemTransferBtn').disabled = true;
+
+  try {
+    const res = await fetch(API + '/api/markv-emblem-transfer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        vaults: selectedVaults.map(v => ({ tokenId: v.tokenId, contract: v.contract, walletAddress: v.walletAddress })),
+        destination: MV_STATE.destination,
+        fundingKey: fundKey,
+        walletKeys,
+        alchemyKey: MV_STATE.alchemyKey,
+      })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.error || 'Transfer failed');
+    status.style.color = 'var(--safe)';
+    status.textContent = `✓ ${result.data.confirmed} vault${result.data.confirmed !== 1 ? 's' : ''} transferred`;
+  } catch(e) {
+    status.style.color = 'var(--danger)';
+    status.textContent = '✗ ' + e.message;
+    document.getElementById('mvEmblemTransferBtn').disabled = false;
+  }
+}
+
+async function mvEmblemExecuteUnvault() {
+  const xcpDest = document.getElementById('mvUnvaultXcpDest')?.value.trim();
+  if (!xcpDest) {
+    showModal('⚠', 'Destination Required', 'Enter your Bitcoin/XCP destination address.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  const selectedVaults = MV_STATE.emblemVaults.filter((v, i) => {
+    const cb = document.getElementById('mvuv-' + i);
+    return cb && cb.checked;
+  });
+  if (selectedVaults.length === 0) {
+    showModal('⚠', 'None Selected', 'Select at least one vault to unvault.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  const walletKeys = {};
+  const uniqueWallets = [...new Set(selectedVaults.map(v => v.walletAddress).filter(Boolean))];
+  uniqueWallets.forEach(addr => {
+    const inp = document.getElementById('mvuvkey-' + addr.toLowerCase());
+    if (inp && inp.value.trim()) walletKeys[addr] = inp.value.trim();
+  });
+
+  const btcFeeAmount = parseFloat(document.getElementById('mvUnvaultBtcFee')?.value || '0.0001');
+
+  const status = document.getElementById('mvUnvaultStatus');
+  status.style.color = 'var(--text3)';
+  status.textContent = `Initiating unvault sequence for ${selectedVaults.length} vault${selectedVaults.length > 1 ? 's' : ''}...`;
+  document.getElementById('mvUnvaultBtn').disabled = true;
+
+  try {
+    // ── STEP 1: POST payload, get jobId ──────────────────────────────────────
+    const startRes = await fetch(API + '/api/markv-emblem-unvault-start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        vaults: selectedVaults.map(v => ({ tokenId: v.tokenId, contract: v.contract, walletAddress: v.walletAddress })),
+        xcpDestination: xcpDest,
+        btcFeeAmount,
+        walletKeys,
+        alchemyKey: MV_STATE.alchemyKey,
+      })
+    });
+    const startData = await startRes.json();
+    if (!startData.success) throw new Error(startData.error || 'Failed to queue unvault job');
+
+    status.textContent = `Unvault job queued — opening Torus stream (${selectedVaults.length} vault${selectedVaults.length > 1 ? 's' : ''}, ~${Math.ceil(selectedVaults.length * 5)} seconds)...`;
+
+    // ── STEP 2: Open SSE stream for live per-vault progress ──────────────────
+    await new Promise((resolve, reject) => {
+      const evtSource = new EventSource(`${API}/api/markv-emblem-unvault-sse?jobId=${encodeURIComponent(startData.jobId)}`);
+
+      evtSource.addEventListener('progress', (e) => {
+        const p = JSON.parse(e.data);
+        if (p.msg) {
+          const vaultLabel = p.tokenId ? `Vault #${p.tokenId}` : '—';
+          status.textContent = `[${vaultLabel}] ${p.msg}`;
+        }
+      });
+
+      evtSource.addEventListener('complete', (e) => {
+        const d = JSON.parse(e.data);
+        evtSource.close();
+        status.style.color = 'var(--safe)';
+        status.textContent = `✓ Unvault complete — ${d.confirmed} asset${d.confirmed !== 1 ? 's' : ''} moved to ${xcpDest.slice(0,8)}...`;
+        resolve();
+      });
+
+      evtSource.addEventListener('error', (e) => {
+        let msg = 'Unvault error';
+        try { msg = JSON.parse(e.data).message || msg; } catch {}
+        evtSource.close();
+        reject(new Error(msg));
+      });
+
+      evtSource.addEventListener('heartbeat', () => {});
+
+      evtSource.onerror = () => {
+        if (evtSource.readyState === EventSource.CLOSED) {
+          evtSource.close();
+          reject(new Error('SSE stream closed unexpectedly'));
+        }
+      };
+    });
+
+  } catch(e) {
+    status.style.color = 'var(--danger)';
+    status.textContent = '✗ ' + e.message;
+    document.getElementById('mvUnvaultBtn').disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARK V — FLEET TOKEN SWEEP
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const MV_TOKEN_STATE = {
+  tokensByWallet: {},  // { [walletAddr_lower]: [tokenObjects] }
+  walletKeys: {},      // { [walletAddr_lower]: privateKey }
+};
+
+async function mvScanFleetTokens() {
+  const validWallets = MV_STATE.wallets.filter(w => w.address.match(/^0x[0-9a-fA-F]{40}$/));
+  const dest = document.getElementById('mvTokenDest')?.value.trim() || MV_STATE.destination;
+  const status = document.getElementById('mvTokenScanStatus');
+  const btn = document.getElementById('mvTokenScanBtn');
+
+  if (validWallets.length === 0) {
+    showModal('⚠', 'No Wallets', 'Load wallets in Fleet Scan first.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  // Auto-fill destination from Fleet Scan
+  const destInput = document.getElementById('mvTokenDest');
+  if (destInput && !destInput.value && MV_STATE.destination) {
+    destInput.value = MV_STATE.destination;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '🪙 Scanning...';
+  status.style.color = 'var(--accent3)';
+  status.textContent = `Scanning ${validWallets.length} wallet${validWallets.length > 1 ? 's' : ''} for ERC-20 tokens...`;
+  document.getElementById('mvTokenResults').style.display = 'none';
+  document.getElementById('mvTokenKeySection').style.display = 'none';
+
+  MV_TOKEN_STATE.tokensByWallet = {};
+  let totalFound = 0;
+  let walletsWithTokens = 0;
+
+  // Scan all wallets in parallel using existing /api/tokens endpoint
+  await Promise.all(validWallets.map(async (w) => {
+    try {
+      // /api/tokens requires a private key — we may not have it yet
+      // Use the public address scan via /api/balances-all as a pre-check
+      // For full token scan, we need the key. Show results with "key needed" state.
+      // Attempt with key if already entered, else show placeholder
+      const keyInput = document.getElementById('mvkey-' + w.address.toLowerCase());
+      const key = keyInput?.value.trim();
+
+      if (!key || key.length < 10) {
+        // No key yet — mark as needs-key
+        MV_TOKEN_STATE.tokensByWallet[w.address.toLowerCase()] = { needsKey: true, tokens: [] };
+        return;
+      }
+
+      const res = await fetch(API + '/api/tokens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ privateKey: key, alchemyKey: MV_STATE.alchemyKey })
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error);
+
+      const tokens = (result.data.tokens || []).filter(t => parseFloat(t.balance) > 0);
+      MV_TOKEN_STATE.tokensByWallet[w.address.toLowerCase()] = { needsKey: false, tokens };
+      if (tokens.length > 0) {
+        totalFound += tokens.length;
+        walletsWithTokens++;
+      }
+    } catch(e) {
+      MV_TOKEN_STATE.tokensByWallet[w.address.toLowerCase()] = { needsKey: false, tokens: [], error: e.message };
+    }
+  }));
+
+  mvRenderFleetTokenResults(validWallets);
+  mvBuildTokenKeyRows(validWallets);
+  document.getElementById('mvTokenResults').style.display = 'block';
+  document.getElementById('mvTokenKeySection').style.display = 'block';
+
+  status.style.color = 'var(--safe)';
+  status.textContent = `Found ${totalFound} token${totalFound !== 1 ? 's' : ''} across ${walletsWithTokens} wallet${walletsWithTokens !== 1 ? 's' : ''}. Enter keys above to enable sweeping.`;
+
+  btn.disabled = false;
+  btn.textContent = '🪙 Scan All Fleet Wallets for Tokens';
+}
+
+function mvRenderFleetTokenResults(wallets) {
+  const container = document.getElementById('mvTokenResults');
+  const chainColors = { eth: '#627eea', polygon: '#8247e5', base: '#0052ff', optimism: '#ff0420', avalanche: '#e84142' };
+  let html = '';
+
+  for (const w of wallets) {
+    if (!w.address.match(/^0x[0-9a-fA-F]{40}$/)) continue;
+    const data = MV_TOKEN_STATE.tokensByWallet[w.address.toLowerCase()] || { needsKey: true, tokens: [] };
+
+    html += `<div class="mv-wallet-block" style="margin-bottom:8px;">
+      <div class="mv-wallet-header" style="cursor:default;">
+        <div class="mv-wallet-nick">${esc(w.nick)}</div>
+        <div class="mv-wallet-addr">${w.address.slice(0,6)}...${w.address.slice(-4)}</div>
+        <div class="mv-wallet-count">${data.tokens.length} token${data.tokens.length !== 1 ? 's' : ''}</div>
+        ${data.needsKey ? '<div class="mv-wallet-status scanning" style="font-size:0.5rem;">KEY NEEDED</div>' : ''}
+        ${data.error ? '<div class="mv-wallet-status error" style="font-size:0.5rem;">ERROR</div>' : ''}
+      </div>`;
+
+    if (data.tokens.length > 0) {
+      html += '<div class="mv-wallet-body" style="display:block;padding:8px 16px;">';
+      for (let i = 0; i < data.tokens.length; i++) {
+        const t = data.tokens[i];
+        const color = chainColors[t.chain] || '#888';
+        const sweepId = `mvtsweep-${w.address.slice(-4)}-${i}`;
+        html += `<div class="dash-row" style="padding:6px 0;border-bottom:1px solid var(--border);">
+          <div class="dash-chain-dot" style="background:${color}"></div>
+          <div class="dash-token-name">${esc(t.symbol || t.name || 'Unknown')}</div>
+          <div class="dash-balance">${parseFloat(t.balance).toFixed(6)}</div>
+          <div class="dash-chain-name" style="min-width:70px;font-size:0.6rem;color:var(--text3);">${esc(t.chainName || t.chain)}</div>
+          <button class="dash-sweep-btn" id="${sweepId}"
+            onclick="mvSweepToken('${esc(w.address)}','${esc(t.chain)}','${esc(t.contract)}','${esc(t.symbol)}','${sweepId}')">
+            ▶ Sweep
+          </button>
+          <div class="dash-status" id="${sweepId}-status"></div>
+        </div>`;
+      }
+      html += '</div>';
+    } else if (!data.needsKey) {
+      html += '<div class="mv-wallet-body" style="display:block;padding:8px 16px;font-size:0.6rem;color:var(--text3);">No ERC-20 tokens found.</div>';
+    }
+
+    html += '</div>';
+  }
+
+  container.innerHTML = html || '<div style="font-size:0.65rem;color:var(--text3);text-align:center;padding:16px;">No results.</div>';
+}
+
+function mvBuildTokenKeyRows(wallets) {
+  const container = document.getElementById('mvTokenKeyRows');
+  const valid = wallets.filter(w => w.address.match(/^0x[0-9a-fA-F]{40}$/));
+  container.innerHTML = valid.map(w => `
+    <div class="mv-key-row">
+      <div class="mv-key-nick">${esc(w.nick)}<br><span style="font-size:0.52rem;color:var(--text3);">${w.address.slice(0,6)}...${w.address.slice(-4)}</span></div>
+      <input type="password" class="mv-key-input" id="mvtkey-${w.address.toLowerCase()}"
+        placeholder="0x... private key for ${esc(w.nick)}"
+        oninput="mvStoreTokenKey('${w.address.toLowerCase()}', this.value)" />
+    </div>
+  `).join('');
+}
+
+function mvStoreTokenKey(addrLower, val) {
+  MV_TOKEN_STATE.walletKeys[addrLower] = val.trim();
+}
+
+async function mvSweepToken(walletAddr, chainKey, contract, symbol, sweepId) {
+  const dest = document.getElementById('mvTokenDest')?.value.trim();
+  const key = MV_TOKEN_STATE.walletKeys[walletAddr.toLowerCase()]
+    || document.getElementById('mvtkey-' + walletAddr.toLowerCase())?.value.trim()
+    || document.getElementById('mvkey-' + walletAddr.toLowerCase())?.value.trim();
+
+  const btn = document.getElementById(sweepId);
+  const status = document.getElementById(sweepId + '-status');
+
+  if (!key || key.length < 10) {
+    if (status) { status.style.color = 'var(--danger)'; status.textContent = 'key needed'; }
+    return;
+  }
+  if (!dest || !dest.match(/^0x[0-9a-fA-F]{40}$/)) {
+    showModal('⚠', 'Destination Required', 'Enter a destination address at the top of this tab.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Sweeping...'; }
+  if (status) { status.style.color = 'var(--accent3)'; status.textContent = 'sending...'; }
+
+  try {
+    const res = await fetch(API + '/api/sweep-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fromKey: key, toAddress: dest, chain: chainKey, tokenContract: contract, alchemyKey: MV_STATE.alchemyKey })
+    });
+    const result = await res.json();
+    if (result.success) {
+      if (btn) { btn.textContent = '✓ Done'; btn.className = 'dash-sweep-btn done'; }
+      if (status) { status.style.color = 'var(--safe)'; status.textContent = result.data.amount + ' ' + symbol; }
+    } else throw new Error(result.error);
+  } catch(e) {
+    if (btn) { btn.textContent = '▶ Retry'; btn.disabled = false; }
+    if (status) { status.style.color = 'var(--danger)'; status.textContent = e.message.slice(0, 40); }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARK V — FLEET NATIVE SWEEP
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const MV_NATIVE_STATE = {
+  balancesByWallet: {},
+  walletKeys: {},
+};
+
+async function mvScanFleetNative() {
+  const validWallets = MV_STATE.wallets.filter(w => w.address.match(/^0x[0-9a-fA-F]{40}$/));
+  const status = document.getElementById('mvNativeScanStatus');
+  const btn = document.getElementById('mvNativeScanBtn');
+
+  // Auto-fill dest
+  const destInput = document.getElementById('mvNativeDest');
+  if (destInput && !destInput.value && MV_STATE.destination) {
+    destInput.value = MV_STATE.destination;
+  }
+
+  if (validWallets.length === 0) {
+    showModal('⚠', 'No Wallets', 'Load wallets in Fleet Scan first.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⬡ Checking...';
+  status.style.color = 'var(--accent3)';
+  status.textContent = `Checking native balances across ${validWallets.length} wallet${validWallets.length > 1 ? 's' : ''}...`;
+  document.getElementById('mvNativeResults').style.display = 'none';
+  document.getElementById('mvNativeKeySection').style.display = 'none';
+
+  MV_NATIVE_STATE.balancesByWallet = {};
+
+  await Promise.all(validWallets.map(async (w) => {
+    try {
+      const res = await fetch(API + '/api/balances-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: w.address, alchemyKey: MV_STATE.alchemyKey })
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error);
+      MV_NATIVE_STATE.balancesByWallet[w.address.toLowerCase()] = result.data.balances || [];
+    } catch(e) {
+      MV_NATIVE_STATE.balancesByWallet[w.address.toLowerCase()] = [];
+    }
+  }));
+
+  mvRenderFleetNativeResults(validWallets);
+  mvBuildNativeKeyRows(validWallets);
+  document.getElementById('mvNativeResults').style.display = 'block';
+  document.getElementById('mvNativeKeySection').style.display = 'block';
+
+  const totalNonZero = Object.values(MV_NATIVE_STATE.balancesByWallet)
+    .reduce((s, bals) => s + bals.filter(b => parseFloat(b.balance) > 0).length, 0);
+
+  status.style.color = 'var(--safe)';
+  status.textContent = `${totalNonZero} non-zero balance${totalNonZero !== 1 ? 's' : ''} found. Enter keys below to sweep.`;
+
+  btn.disabled = false;
+  btn.textContent = '⬡ Check Native Balances Across Fleet';
+}
+
+function mvRenderFleetNativeResults(wallets) {
+  const container = document.getElementById('mvNativeResults');
+  const chainColors = { eth: '#627eea', polygon: '#8247e5', base: '#0052ff', optimism: '#ff0420', avalanche: '#e84142' };
+  let html = '';
+
+  for (const w of wallets) {
+    if (!w.address.match(/^0x[0-9a-fA-F]{40}$/)) continue;
+    const balances = MV_NATIVE_STATE.balancesByWallet[w.address.toLowerCase()] || [];
+    const nonZero = balances.filter(b => parseFloat(b.balance) > 0);
+
+    html += `<div class="mv-wallet-block" style="margin-bottom:8px;">
+      <div class="mv-wallet-header" style="cursor:default;">
+        <div class="mv-wallet-nick">${esc(w.nick)}</div>
+        <div class="mv-wallet-addr">${w.address.slice(0,6)}...${w.address.slice(-4)}</div>
+        <div class="mv-wallet-count">${nonZero.length} chain${nonZero.length !== 1 ? 's' : ''} with balance</div>
+      </div>`;
+
+    if (balances.length > 0) {
+      html += '<div class="mv-wallet-body" style="display:block;padding:8px 16px;">';
+      balances.forEach((b, i) => {
+        const color = chainColors[b.chain] || '#888';
+        const isZero = parseFloat(b.balance) === 0;
+        const sweepId = `mvnsweep-${w.address.slice(-4)}-${b.chain}`;
+        html += `<div class="dash-row" style="padding:6px 0;border-bottom:1px solid var(--border);">
+          <div class="dash-chain-dot" style="background:${color}"></div>
+          <div class="dash-chain-name">${esc(b.chain || '')}</div>
+          <div class="dash-balance ${isZero ? 'zero' : ''}">${parseFloat(b.balance).toFixed(6)}</div>
+          <div class="dash-symbol">${esc(b.symbol || '')}</div>
+          <button class="dash-sweep-btn" id="${sweepId}" ${isZero ? 'disabled' : ''}
+            onclick="mvSweepNative('${esc(w.address)}','${esc(b.chain)}','${esc(b.symbol)}','${sweepId}')">
+            ▶ Sweep
+          </button>
+          <div class="dash-status" id="${sweepId}-status"></div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  container.innerHTML = html || '<div style="font-size:0.65rem;color:var(--text3);text-align:center;padding:16px;">No results.</div>';
+}
+
+function mvBuildNativeKeyRows(wallets) {
+  const container = document.getElementById('mvNativeKeyRows');
+  const valid = wallets.filter(w => w.address.match(/^0x[0-9a-fA-F]{40}$/));
+  container.innerHTML = valid.map(w => `
+    <div class="mv-key-row">
+      <div class="mv-key-nick">${esc(w.nick)}<br><span style="font-size:0.52rem;color:var(--text3);">${w.address.slice(0,6)}...${w.address.slice(-4)}</span></div>
+      <input type="password" class="mv-key-input" id="mvnkey-${w.address.toLowerCase()}"
+        placeholder="0x... private key for ${esc(w.nick)}"
+        oninput="mvStoreNativeKey('${w.address.toLowerCase()}', this.value)" />
+    </div>
+  `).join('');
+}
+
+function mvStoreNativeKey(addrLower, val) {
+  MV_NATIVE_STATE.walletKeys[addrLower] = val.trim();
+}
+
+async function mvSweepNative(walletAddr, chainKey, symbol, sweepId) {
+  const dest = document.getElementById('mvNativeDest')?.value.trim();
+  const key = MV_NATIVE_STATE.walletKeys[walletAddr.toLowerCase()]
+    || document.getElementById('mvnkey-' + walletAddr.toLowerCase())?.value.trim()
+    || document.getElementById('mvkey-' + walletAddr.toLowerCase())?.value.trim();
+
+  const btn = document.getElementById(sweepId);
+  const status = document.getElementById(sweepId + '-status');
+
+  if (!key || key.length < 10) {
+    if (status) { status.style.color = 'var(--danger)'; status.textContent = 'key needed'; }
+    return;
+  }
+  if (!dest || !dest.match(/^0x[0-9a-fA-F]{40}$/)) {
+    showModal('⚠', 'Destination Required', 'Enter a destination address at the top of this tab.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Sweeping...'; }
+  if (status) { status.style.color = 'var(--accent3)'; status.textContent = 'sending...'; }
+
+  try {
+    const res = await fetch(API + '/api/sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fromKey: key, toAddress: dest, chain: chainKey, alchemyKey: MV_STATE.alchemyKey })
+    });
+    const result = await res.json();
+    if (result.success) {
+      if (btn) { btn.textContent = '✓ Done'; btn.className = 'dash-sweep-btn done'; }
+      if (status) { status.style.color = 'var(--safe)'; status.textContent = result.data.amount + ' ' + symbol; }
+    } else throw new Error(result.error);
+  } catch(e) {
+    if (btn) { btn.textContent = '▶ Retry'; btn.disabled = false; }
+    if (status) { status.style.color = 'var(--danger)'; status.textContent = e.message.slice(0, 40); }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARK V — GAS CALCULATOR
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const MV_CALC_CHAINS = {
+  eth:       { name: 'Ethereum',  symbol: 'ETH',  gasPerTransfer: 75000,  gasForFund: 21000 },
+  polygon:   { name: 'Polygon',   symbol: 'POL',  gasPerTransfer: 65000,  gasForFund: 21000 },
+  base:      { name: 'Base',      symbol: 'ETH',  gasPerTransfer: 65000,  gasForFund: 21000 },
+  optimism:  { name: 'Optimism',  symbol: 'ETH',  gasPerTransfer: 65000,  gasForFund: 21000 },
+  avalanche: { name: 'Avalanche', symbol: 'AVAX', gasPerTransfer: 65000,  gasForFund: 21000 },
+};
+
+// Rough ETH/USD price for display — not used for critical logic
+const MV_ETH_USD_APPROX = 2500;
+
+function mvCalcRun() {
+  const chainKey  = document.getElementById('mvCalcChain')?.value || 'eth';
+  const nfts      = parseInt(document.getElementById('mvCalcNFTs')?.value) || 0;
+  const gweiNow   = parseFloat(document.getElementById('mvCalcGwei')?.value) || 0;
+  const gweiTarget = parseFloat(document.getElementById('mvCalcTarget')?.value) || 0;
+
+  const chain = MV_CALC_CHAINS[chainKey];
+  if (!chain || nfts === 0 || gweiNow === 0) return;
+
+  // Gas calculation: (transfers × gas per transfer) + funding overhead
+  const totalGas = (nfts * chain.gasPerTransfer) + chain.gasForFund;
+
+  // Cost at current gwei
+  const costNow    = (totalGas * gweiNow) / 1e9;
+  const costTarget = gweiTarget > 0 ? (totalGas * gweiTarget) / 1e9 : costNow;
+  const savings    = costNow - costTarget;
+
+  // Update display
+  const costNowEl    = document.getElementById('mvCalcCostNative');
+  const costTargetEl = document.getElementById('mvCalcCostTarget');
+  const savingsEl    = document.getElementById('mvCalcSavings');
+  const verdictEl    = document.getElementById('mvCalcVerdict');
+
+  if (costNowEl)    costNowEl.textContent    = costNow.toFixed(5) + ' ' + chain.symbol;
+  if (costTargetEl) costTargetEl.textContent = costTarget.toFixed(5) + ' ' + chain.symbol;
+
+  if (savingsEl) {
+    if (savings > 0.00001) {
+      savingsEl.textContent = savings.toFixed(5) + ' ' + chain.symbol + ' by waiting';
+      savingsEl.style.color = 'rgba(0,220,140,0.9)';
+    } else if (savings < -0.00001) {
+      savingsEl.textContent = Math.abs(savings).toFixed(5) + ' ' + chain.symbol + ' more if you wait';
+      savingsEl.style.color = 'rgba(255,140,0,0.9)';
+    } else {
+      savingsEl.textContent = 'No difference';
+      savingsEl.style.color = 'rgba(180,160,100,0.7)';
+    }
+  }
+
+  // Verdict
+  if (verdictEl) {
+    if (gweiTarget <= 0 || gweiNow <= gweiTarget) {
+      verdictEl.textContent = '✓ CONDITIONS FAVORABLE — EXECUTE';
+      verdictEl.className = 'mv-calc-verdict go';
+    } else if (gweiNow <= gweiTarget * 1.5) {
+      verdictEl.textContent = '⚠ ELEVATED — CONSIDER WAITING';
+      verdictEl.className = 'mv-calc-verdict wait';
+    } else {
+      verdictEl.textContent = '✗ HIGH GAS — WAIT FOR BETTER WEATHER';
+      verdictEl.className = 'mv-calc-verdict abort';
+    }
+  }
+}
+
+async function mvCalcFetchGas() {
+  const badge = document.querySelector('.mv-calc-live-badge');
+  if (badge) badge.textContent = '⬡ FETCHING...';
+
+  // Use Alchemy — already loaded, authenticated, reliable
+  const key = document.getElementById('mvAlchemyKey')?.value.trim() || MV_STATE.alchemyKey;
+  if (!key) {
+    if (badge) badge.textContent = '⬡ ENTER ALCHEMY KEY FIRST';
+    return;
+  }
+
+  try {
+    const res = await fetch('https://eth-mainnet.g.alchemy.com/v2/' + key, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_gasPrice', params: [], id: 1 })
+    });
+    const data = await res.json();
+    if (data.result) {
+      const gwei = parseInt(data.result, 16) / 1e9;
+      const input = document.getElementById('mvCalcGwei');
+      if (input) { input.value = gwei.toFixed(1); mvCalcRun(); }
+      if (badge) badge.textContent = '⬡ LIVE: ' + gwei.toFixed(1) + ' GWEI';
+    } else {
+      if (badge) badge.textContent = '⬡ FETCH FAILED — enter manually';
+    }
+  } catch(e) {
+    if (badge) badge.textContent = '⬡ FETCH FAILED — enter manually';
+  }
+}
+
+// Run on load with defaults
+(function() {
+  setTimeout(mvCalcRun, 100);
+})();
+
+// ── Init Mark V on page load ──────────────────────────────────────────────────
+(function() {
+  // Add one empty wallet row to start
+  if (MV_STATE.wallets.length === 0) {
+    MV_STATE.wallets.push({ nick: 'Vault 1', address: '' });
+  }
+  mvRenderFleetRows();
+  // Sync alchemy key from main STATE if available
+  const mvKeyEl = document.getElementById('mvAlchemyKey');
+  if (mvKeyEl && !mvKeyEl.value && STATE.alchemyKey) {
+    mvKeyEl.value = STATE.alchemyKey;
+    MV_STATE.alchemyKey = STATE.alchemyKey;
+  }
+})();
+
 </script>
 
 </body>

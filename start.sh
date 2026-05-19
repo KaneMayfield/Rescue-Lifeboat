@@ -17,7 +17,6 @@ if ! command -v node &> /dev/null; then
   echo "  Download the version marked 'LTS' and run the installer."
   echo "  When it's done, come back and run start.sh again."
   echo ""
-  # Try to open browser on Mac or Linux
   if command -v open &> /dev/null; then
     open "https://nodejs.org/en/download"
   elif command -v xdg-open &> /dev/null; then
@@ -28,8 +27,21 @@ if ! command -v node &> /dev/null; then
   exit 1
 fi
 
-echo "  Installing dependencies (first run only)..."
+# Move to the folder this script lives in
+cd "$(dirname "$0")"
+
+echo "  Installing dependencies..."
 npm install --silent 2>/dev/null
+
+# Pin critical packages to exact versions.
+# npm audit fix --force can downgrade ethers from v6 to v5, which breaks
+# everything (ethers.getAddress, JsonRpcProvider, BigInt handling are all
+# v6-only). Torus packages must stay at v6.x — v7+ changed the unvault
+# call signature. These lines ensure correct versions regardless of what
+# npm audit may have done.
+echo "  Verifying critical package versions..."
+npm install ethers@6.7.1 @toruslabs/torus.js@6.4.1 @toruslabs/fetch-node-details@6.0.1 --silent 2>/dev/null
+
 echo ""
 echo "  Starting local server..."
 echo "  Browser will open automatically to localhost:3000"

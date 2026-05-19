@@ -1321,3 +1321,8 @@ export default {
   validateAddress,
   validatePrivateKey,
 };
+
+// Named exports for markv-engine.js
+// CHAINS is already exported as: export const CHAINS = { ... } at the top
+// Only validateAddress and validatePrivateKey need to be added here
+export { validateAddress, validatePrivateKey };
