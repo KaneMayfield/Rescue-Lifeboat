@@ -76,6 +76,9 @@ Compromised wallet drained to zero. Bot has nothing left to watch.
   via native Blockscout integrations — chains conventional scanners don't reach
 - **Transfers Fractal Visions collection ownership** from a compromised creator
   wallet across all seven Fractal Visions chains via the Launchpad registry
+- **Consolidates large multi-wallet portfolios** with Mark V — a fleet-scale
+  extraction tool for operators managing 5 to 50 clean wallets simultaneously.
+  One operation. Every chain. No one left behind.
 - **Cleans up** with a burn button that wipes your keys from memory the
   moment you're done
 
@@ -132,6 +135,11 @@ If you skip this step, Rescue Lifeboat will only find your Ethereum NFTs.
 > Unichain are found through a separate Blockscout scan in the Fractal Visions
 > tab — no Alchemy key required for those chains.
 
+> **Note for Mark V users:** Mark V requires an Alchemy Growth plan or higher.
+> The free tier's 25 requests/second limit is hit instantly when scanning a
+> fleet of wallets. Upgrade at dashboard.alchemy.com — Pay As You Go requires
+> no upfront commitment.
+
 ### Step 3: Download Rescue Lifeboat
 
 [![Download ZIP](https://img.shields.io/badge/⬇_Download_ZIP-Click_Here-blue?style=for-the-badge)](https://github.com/KaneMayfield/Rescue-Lifeboat/archive/refs/heads/main.zip)
@@ -185,8 +193,9 @@ npm install
 
 ## How to Use It
 
-The tool has two main sections: **RESCUE** (the scanner) and **LIFEBOAT** (the executor).
-Start in RESCUE. Move to LIFEBOAT when you're ready to act.
+The tool has three top-level sections: **RESCUE** (the scanner), **LIFEBOAT** (the executor), and **MARK V** (fleet consolidation).
+
+If your wallet is compromised, start with RESCUE and LIFEBOAT. Use MARK V after everything is secure and you want to consolidate multiple clean wallets into one.
 
 ---
 
@@ -362,6 +371,42 @@ by calling `transferOwnership()` on each contract directly.
 
 ---
 
+### MARK V — Massive Tactical Extraction
+
+![Mark V](markvlogo.png)
+
+**Mark V is for clean wallet consolidation — not emergency rescue.**
+
+If any of your wallets is compromised, use RESCUE and LIFEBOAT first. Come to Mark V when everything is clear.
+
+The typical Mark V operator has 5 to 50 wallets accumulated over years of collecting. They're not in crisis — they're reorganizing. Moving everything into one secure wallet after getting a hardware wallet. Consolidating a portfolio that has grown across dozens of addresses on a dozen chains. The standard rescue tools work one wallet at a time. Mark V works on the entire fleet simultaneously.
+
+> *"The Mark V Special Operations Craft is the U.S. Navy SEALs' primary high-speed insertion and extraction vessel. 82 feet long. Twin MTU diesel engines. 35-knot top speed. Designed for one mission: moving a large team of operators into and out of hostile territory simultaneously, at maximum speed. The name is not aesthetic. It is a description."*
+
+![Mark V in action](MarkVbackground.png)
+
+**⚠ CLEAN WALLETS ONLY.** Mark V sends gas to multiple wallets simultaneously. If any wallet in your fleet is compromised, a sweeper bot will drain that gas the moment it arrives — before the transfer queue reaches it. Run standard Rescue Lifeboat on any compromised wallet first, then return to Mark V for consolidation.
+
+**Alchemy Growth plan required.** Mark V fires up to 250 simultaneous API calls for a full 50-wallet fleet scan. The free Alchemy tier (25 req/sec) rate-limits instantly. Upgrade at [dashboard.alchemy.com](https://dashboard.alchemy.com) — Pay As You Go charges only what you use, requires no upfront commitment, and the actual API cost per fleet operation is typically under $0.15.
+
+---
+
+**Fleet Scan** — Load up to 50 wallet addresses with nicknames. One Alchemy key covers the entire fleet. All wallets scan simultaneously across ETH, Polygon, Base, Optimism, and Avalanche. The built-in Gas Calculator pulls live gwei from Alchemy and estimates your total operation cost so you can decide whether today is the right day to execute.
+
+**Fleet Execute** — Enter private keys for each wallet. One funding wallet covers gas for the entire fleet across every chain. Check balances, review the per-chain gas estimate, confirm, and fire. All wallets execute in parallel — Wallet 1 and Wallet 47 are moving at the same time. Progress streams live to the Fleet Status tab via real-time connection so nothing times out regardless of how long the operation takes.
+
+**Fleet Status** — Live operation log with per-wallet status indicators (SCANNING / FUNDING / TRANSFERRING / COMPLETE / ERROR). Post-operation summary table shows every wallet, its final status, confirmed count, and any error reason in plain English. When the fleet is clear, the mission complete screen shows total wallets cleared, assets moved, and gas spent. Full CSV export. The 🔥 Clear Session button wipes every key from memory.
+
+**Fleet Tokens** — After NFT extraction, scan all fleet wallets simultaneously for ERC-20 tokens — USDC, WETH, community coins, airdrops, everything. Per-wallet, per-token sweep buttons. Keys entered in Fleet Execute carry over automatically.
+
+**Fleet Native** — After tokens are swept, check remaining native balances across the entire fleet and sweep the dust back to your funding wallet. Run this last — sweeping native balance before transfers complete leaves wallets without gas.
+
+**Emblem Vaults** — Two operations available. Bulk Transfer moves Emblem Vault NFTs (the EVM wrapper token) from multiple wallets to a destination in one fleet operation. Unvault opens each vault and extracts the contained XCP/Bitcoin assets directly to a native Counterparty wallet — the full Torus key derivation flow runs locally with no browser, no OAuth, and no third-party dependency beyond your Alchemy key.
+
+![Mark V Operations](markvalt.png)
+
+---
+
 https://github.com/user-attachments/assets/aa12d7f5-e2cd-4769-8a71-a478da1b3b35
 
 ---
@@ -479,6 +524,10 @@ tab to get gas into your compromised wallet privately, then complete the transfe
 manually before the bot can react. See the **Other Assets** tab for the full
 step-by-step.
 
+**Mark V scan returns empty / rate limit errors**
+Your Alchemy key is on the free tier (25 req/sec). Mark V requires a Growth plan
+or higher. Upgrade at [dashboard.alchemy.com](https://dashboard.alchemy.com).
+
 ---
 
 ## Supported Chains
@@ -510,20 +559,22 @@ key required for those chains.
 
 ```
 Rescue-Lifeboat/
-├── start.bat         # Windows launcher (double-click this)
-├── start.sh          # Mac/Linux launcher
-├── server.js         # Local Express server
-├── engine.js         # Blockchain operations (the real engine)
-├── emblem-engine.js  # Emblem Vault rescue engine
-├── emblem-server.js  # Emblem Vault API routes
-├── index.html        # The interface
-├── package.json      # Dependencies
-├── test-emblem.js    # Automated test suite
-├── README.md         # You're reading it
-├── LICENSE           # MIT License
-├── DISCLAIMER.md     # Legal stuff, human-readable
-├── SECURITY.md       # How keys are handled
-└── CONTRIBUTING.md   # For developers who want to help
+├── start.bat             # Windows launcher (double-click this)
+├── start.sh              # Mac/Linux launcher
+├── server.js             # Local Express server
+├── engine.js             # Blockchain operations (the real engine)
+├── markv-engine.js       # Mark V fleet execution engine
+├── markv-server.js       # Mark V API routes
+├── emblem-engine.js      # Emblem Vault rescue engine
+├── emblem-server.js      # Emblem Vault API routes
+├── index.html            # The interface
+├── package.json          # Dependencies
+├── test-emblem.js        # Automated test suite
+├── README.md             # You're reading it
+├── LICENSE               # MIT License
+├── DISCLAIMER.md         # Legal stuff, human-readable
+├── SECURITY.md           # How keys are handled
+└── CONTRIBUTING.md       # For developers who want to help
 ```
 
 ---
