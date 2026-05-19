@@ -33,6 +33,10 @@ This is the table. These are the things that did not work. Do not revisit them w
 | Single shared ABI for ERC721 and ERC1155 `totalSupply` | ERC721 uses `totalSupply()` (selector `0x18160ddd`, no args). ERC1155 uses `totalSupply(uint256 id)` (selector `0xbd85b039`, requires a tokenId). One ABI for both causes the ERC1155 call to silently fail, and because it's in a `Promise.all`, it takes `name()`, `symbol()`, and `owner()` down with it. Everything returns the fallback value. You see "Unknown (???)" and have no idea why. | Two separate ABIs. `FRACTAL_ERC721_ABI` with `totalSupply()`. `FRACTAL_ERC1155_ABI` with `totalSupply(uint256 id)`. Select by token type before instantiating the contract. |
 | `calldata` keyword in ABI strings | Same... ethers v6 rejects it | Use `bytes` instead |
 | CommonJS `require()` in engine.js | ESM/CJS conflict with `type: module` in package.json | ESM `import` throughout. Use `.cjs` extension if you absolutely need CommonJS. |
+| `npm audit fix --force` | Silently downgrades `ethers` from v6 to v5 and overwrites pinned Torus versions. `ethers.getAddress()` does not exist in v5 — it's `ethers.utils.getAddress()`. Every scan fails with "Invalid wallet address" and the error looks like a code bug, not a version issue. Extremely hard to diagnose. | Never run `npm audit fix --force` on this project. The vulnerabilities it "fixes" are in deep sub-dependencies that never touch user keys or transactions. They are not a real risk for a locally-run tool. | 
+| `@toruslabs/fetch-node-details@6.1.0` | Version does not exist on npm. Blocks all installs that depend on it. | Use `6.0.1` — the last available v6.x version. |
+| `import` statement mid-file in ESM module | Node.js ESM requires all `import` statements at the top of the file. A mid-file `import` (e.g., `import { createHash } from 'crypto'` placed after 1000 lines of function definitions) causes the module to fail loading entirely. The error cascades silently up through every importing module. The server starts but behaves as if core modules are missing — with no clear error message pointing to the actual cause. | Always put all `import` statements at the very top of ESM files, before any other code. |
+| Long-running `POST` for fleet operations | A fleet execute across 50 wallets can take 10-20 minutes. A regular HTTP POST holds the connection open silently. OS-level socket idle timeouts can close the connection during confirmation waits — no bytes flowing means some systems treat the socket as dead. The client gets a connection error with no indication of how much work completed. | Server-Sent Events (SSE). Two-step: `POST` payload to get a `jobId`, then `GET /api/...-sse?jobId=xxx` to open a streaming connection. Server sends `progress` events as they fire, `heartbeat` every 15 seconds to keep the socket alive, `complete` when done. |
 | Arweave-hosted HTML with browser execution | CORS + key security + MEV Blocker conflict. Triple failure. | Downloadable folder with local server. Settled. |
 | Standalone HTML+JS split (pre-V10) | Two separate files. User has to understand which one does what. Clunky UX for someone in crisis. | Unified local web server. One window, one experience. |
 | Large index.html chunked writes | File corruption during multi-part creation. CSS renders as raw text because the `<!DOCTYPE html>` got chopped off. | Build from known-good base. Verify DOCTYPE exists. Check file integrity before shipping. |
@@ -148,6 +152,21 @@ A: Not in V10. Completely different architecture. Future consideration, probably
 
 **Q: Dark mode / light mode toggle?**
 A: No. Keep it dark. Emergency tool, not a settings playground.
+
+**Q: Can `npm audit fix --force` ever be run?**
+A: No. See failure registry. It breaks ethers v6 and the Torus version pins.
+   The launchers (`start.bat` / `start.sh`) pin critical packages on every
+   run specifically to recover from this if someone runs it anyway.
+
+**Q: Where should `import` statements go in ESM files?**
+A: Top of the file. Always. All of them. Before any function definitions,
+   constants, or other code. A mid-file import is a silent module load
+   failure that cascades through the entire server.
+
+**Q: Should long-running operations use regular POST or SSE?**
+A: SSE for anything that takes more than ~30 seconds. Two-step pattern:
+   POST payload → jobId, GET SSE stream → live events. Heartbeat every
+   15 seconds keeps the socket alive during confirmation waits.
 
 **Q: Should we use a single ABI for both ERC721 and ERC1155?**
 A: No. Their `totalSupply` signatures are different selectors. Use `FRACTAL_ERC721_ABI` and `FRACTAL_ERC1155_ABI` separately, selected by token type.
