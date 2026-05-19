@@ -140,6 +140,20 @@ If you skip this step, Rescue Lifeboat will only find your Ethereum NFTs.
 > fleet of wallets. Upgrade at dashboard.alchemy.com — Pay As You Go requires
 > no upfront commitment.
 
+### Step 2.5: First Time on a Mac? Run the System Check First
+
+Before you try `./start.sh` for the first time, run the system checker. It takes 30 seconds, fixes common problems automatically, and tells you exactly what to do if anything needs attention.
+
+```
+bash check.sh
+```
+
+The most common Mac problem — the wrong Node.js version for your macOS — is invisible until something breaks. The checker knows which version is right for your specific Mac and links you directly to it.
+
+**Windows users:** Same deal — `check.bat` in the same folder. Double-click it before `start.bat` if you're having any trouble.
+
+---
+
 ### Step 3: Download Rescue Lifeboat
 
 [![Download ZIP](https://img.shields.io/badge/⬇_Download_ZIP-Click_Here-blue?style=for-the-badge)](https://github.com/KaneMayfield/Rescue-Lifeboat/archive/refs/heads/main.zip)
