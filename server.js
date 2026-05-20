@@ -325,7 +325,11 @@ app.post('/api/fractal-scan', async (req, res) => {
     const { wallet, chains, alchemyKey } = req.body;
     if (!wallet) return res.status(400).json({ success: false, error: 'Wallet address required' });
 
-    const chainKeys = chains || ['eth', 'optimism', 'base', 'shape', 'superseed', 'soneium', 'unichain'];
+    // scanFractalCollections reads the Fractal Launchpad contract on Ethereum mainnet.
+    // Soneium, Shape, Superseed, and Unichain are Blockscout chains scanned by
+    // scanFractalNFTs (/api/fractal-nft-scan) — not the Launchpad contract.
+    // Do not add those four chains here — the Launchpad contract does not exist on them.
+    const chainKeys = chains || ['eth', 'optimism', 'base'];
     console.log(`  Fractal scan: ${wallet.slice(0, 10)}... on ${chainKeys.length} chains`);
 
     const result = await engine.scanFractalCollections(wallet, chainKeys, alchemyKey);

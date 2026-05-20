@@ -7,6 +7,7 @@
  */
 
 import { ethers } from 'ethers';
+import { validateAddress, validatePrivateKey } from './engine.js';
 
 // ── EMBLEM VAULT CONTRACTS ────────────────────────────────────────────────────
 export const EMBLEM_V2_ADDRESS = '0x82C7a8f707110f5FBb16184A5933E9F78a34c6ab';
@@ -41,26 +42,13 @@ function getEthProvider() {
 
 function getAlchemyProvider(alchemyKey) {
   return new ethers.JsonRpcProvider(
-    `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`
+    `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`,
+    { chainId: 1, name: 'mainnet' },
+    { staticNetwork: true }
   );
 }
 
-function validateAddress(addr) {
-  try {
-    return ethers.getAddress(addr);
-  } catch {
-    return null;
-  }
-}
-
-function validatePrivateKey(key) {
-  try {
-    new ethers.Wallet(key);
-    return true;
-  } catch {
-    return false;
-  }
-}
+// validateAddress and validatePrivateKey imported from engine.js
 
 /**
  * Decode tokenURI — Emblem returns data:application/json;base64,...

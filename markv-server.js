@@ -194,6 +194,9 @@ export function registerMarkVRoutes(app) {
 
     // Generate a simple job ID — random hex, not a secret, just a lookup key
     const jobId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    if (executeJobs.size >= 10) {
+      return res.status(429).json({ success: false, error: 'Too many pending jobs. Wait for an existing job to complete.' });
+    }
     executeJobs.set(jobId, { wallets, destination, fundingKey, scanResults, alchemyKey, gasTier });
 
     // Auto-expire job after 5 minutes if SSE never connects
@@ -394,6 +397,9 @@ export function registerMarkVRoutes(app) {
     }
 
     const jobId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    if (unvaultJobs.size >= 10) {
+      return res.status(429).json({ success: false, error: 'Too many pending jobs. Wait for an existing job to complete.' });
+    }
     unvaultJobs.set(jobId, { vaults, xcpDestination, btcFeeAmount, walletKeys, alchemyKey });
     setTimeout(() => unvaultJobs.delete(jobId), 5 * 60 * 1000);
 
