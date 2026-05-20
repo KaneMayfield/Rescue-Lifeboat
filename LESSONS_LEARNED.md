@@ -37,6 +37,8 @@ This is the table. These are the things that did not work. Do not revisit them w
 | `@toruslabs/fetch-node-details@6.1.0` | Version does not exist on npm. Blocks all installs that depend on it. | Use `6.0.1` — the last available v6.x version. |
 | `import` statement mid-file in ESM module | Node.js ESM requires all `import` statements at the top of the file. A mid-file `import` (e.g., `import { createHash } from 'crypto'` placed after 1000 lines of function definitions) causes the module to fail loading entirely. The error cascades silently up through every importing module. The server starts but behaves as if core modules are missing — with no clear error message pointing to the actual cause. | Always put all `import` statements at the very top of ESM files, before any other code. |
 | Long-running `POST` for fleet operations | A fleet execute across 50 wallets can take 10-20 minutes. A regular HTTP POST holds the connection open silently. OS-level socket idle timeouts can close the connection during confirmation waits — no bytes flowing means some systems treat the socket as dead. The client gets a connection error with no indication of how much work completed. | Server-Sent Events (SSE). Two-step: `POST` payload to get a `jobId`, then `GET /api/...-sse?jobId=xxx` to open a streaming connection. Server sends `progress` events as they fire, `heartbeat` every 15 seconds to keep the socket alive, `complete` when done. |
+| `staticNetwork: true` (boolean) in ethers 6.7.1 | Passing `{ staticNetwork: true }` throws `staticNetwork.matches is not a function`. Passing a plain object `{ chainId, name }` as the network argument causes the same error. Both fail because `staticNetwork` expects a proper `Network` instance with a `.matches()` method — a boolean and a plain object don't have it. Confirmed broken in ethers 6.7.1 even though this pattern was correct in earlier versions. | `{ staticNetwork: ethers.Network.from(chainId) }` — pass a proper Network instance as the value of staticNetwork, and pass `null` as the network argument. Tested format: `new ethers.JsonRpcProvider(rpc, null, { staticNetwork: ethers.Network.from(1) })` |
+| ERC-1155 `safeTransferFrom` called with ERC-721 ABI | ERC-1155's `safeTransferFrom` signature is `(address from, address to, uint256 id, uint256 amount, bytes data)` — different from ERC-721's `(address from, address to, uint256 tokenId)`. Using the ERC-721 ABI on an ERC-1155 contract causes `estimateGas` to revert, which marks the vault as non-transferable and silently skips it. Rare Pepe vaults and other curated Counterparty ERC-1155 Emblem Vaults were affected. | Two separate ABI constants: `EMBLEM_ABI` for ERC-721, `EMBLEM_ABI_1155` for ERC-1155. Branch on `vault.standard` before encoding the transfer data. |
 | Arweave-hosted HTML with browser execution | CORS + key security + MEV Blocker conflict. Triple failure. | Downloadable folder with local server. Settled. |
 | Standalone HTML+JS split (pre-V10) | Two separate files. User has to understand which one does what. Clunky UX for someone in crisis. | Unified local web server. One window, one experience. |
 | Large index.html chunked writes | File corruption during multi-part creation. CSS renders as raw text because the `<!DOCTYPE html>` got chopped off. | Build from known-good base. Verify DOCTYPE exists. Check file integrity before shipping. |
@@ -77,15 +79,24 @@ The fix... applied globally:
 // Wrong - causes retry loops on MEV Blocker, bad call results on proxy contracts
 new ethers.JsonRpcProvider('https://rpc.mevblocker.io')
 
-// Right - works correctly everywhere
+// Wrong - staticNetwork: true with a plain object also fails in ethers 6.7.1
+// (.matches is not a function)
 new ethers.JsonRpcProvider(
   rpc,
   { chainId: chain.chainId, name: chain.name },
   { staticNetwork: true }
 )
+
+// Right - confirmed working in ethers 6.7.1
+// Pass Network instance as staticNetwork value, null as network arg
+new ethers.JsonRpcProvider(
+  rpc,
+  null,
+  { staticNetwork: ethers.Network.from(chainId) }
+)
 ```
 
-`getProvider()` now uses `staticNetwork: true` for every chain without exception. Don't remove it to "clean things up."
+`getProvider()` now uses `staticNetwork: ethers.Network.from(chainId)` for every chain without exception. Don't remove it to "clean things up."
 
 ### Empty wallet gas estimation
 
@@ -171,8 +182,8 @@ A: SSE for anything that takes more than ~30 seconds. Two-step pattern:
 **Q: Should we use a single ABI for both ERC721 and ERC1155?**
 A: No. Their `totalSupply` signatures are different selectors. Use `FRACTAL_ERC721_ABI` and `FRACTAL_ERC1155_ABI` separately, selected by token type.
 
-**Q: Should `staticNetwork: true` only apply to MEV Blocker?**
-A: No. It applies to all providers. See chain-specific learnings.
+**Q: Should `staticNetwork` only apply to MEV Blocker?**
+A: No. It applies to all providers. But in ethers 6.7.1, `staticNetwork: true` (boolean) is broken — it throws `.matches is not a function`. Use `staticNetwork: ethers.Network.from(chainId)` instead. Pass `null` as the network argument. See chain-specific learnings and failure registry.
 
 **Q: Can we add console.log to engine.js for debugging?**
 A: Temporarily, yes. Remove before committing. Engine has zero console statements in production.
@@ -226,15 +237,13 @@ In a rescue scenario, this information is noise. You're not deciding what to res
 
 Different architecture entirely. Different wallet format, different RPC, different transaction model, no ethers.js. It would essentially be a second tool wearing the same name. If someone wants to build LIFEBOAT-SOL, please do. Keep it separate.
 
-### Unit Tests
+### Mocking blockchain calls
 
-LIFEBOAT doesn't have a traditional test suite. This is deliberate.
+We do not mock blockchain calls in tests. Almost every function in `engine.js` touches live infrastructure — Alchemy APIs, MEV Blocker RPC, chain providers. Mocks lie. They return whatever you told them to return, which means they encode your assumptions about how external systems behave. The bugs that actually bit us — Polygon's 30 gwei floor, MEV Blocker ignoring `eth_chainId`, per-token gas variance, `staticNetwork` format changes between ethers versions — none of those would have been caught by mocks.
 
-Almost every function in `engine.js` touches live blockchain infrastructure — Alchemy APIs, MEV Blocker RPC, chain providers. To unit test these, you'd need to mock all of it. And mocks lie. They return whatever you told them to return, which means they encode your assumptions about how external systems behave. The bugs that actually bit us — Polygon's 30 gwei floor, MEV Blocker ignoring `eth_chainId`, per-token gas variance — none of those would have been caught by mocks, because we didn't know to mock them until they failed live.
+The test suite (`test-suite.js`) uses live Alchemy API calls for read-only operations and validates real response shapes. Write operations (transfers, sweeps) are tested manually via the UI. Run `npm test` before any push. Run `npm run test:fast` for quick structural checks with no network calls.
 
-The test suite that matters already exists: 413 NFTs rescued under hostile conditions, with active sweeper bots and unpredictable RPC behavior. That's not a metaphor. That's the validation.
-
-If someone wants to build integration tests against a public testnet, that conversation is welcome. But a unit test suite that gives green checkmarks while lying about reality is worse than no tests at all.
+The rescue that matters: 413 NFTs rescued under hostile conditions, with active sweeper bots and unpredictable RPC behavior. That's not a metaphor. That's the validation that built the foundation for everything else.
 
 ---
 
@@ -253,4 +262,5 @@ Everything else is negotiable.
 — Kane Mayfield
 kanemayfield.com
 February 2026
+
 
