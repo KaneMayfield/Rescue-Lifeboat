@@ -158,8 +158,8 @@ function getProvider(chainKey, alchemyKey) {
   // OP-stack chains where eth_chainId probes can interfere with call results.
   return new ethers.JsonRpcProvider(
     rpc,
-    { chainId: chain.chainId, name: chain.name },
-    { staticNetwork: true }
+    null,
+    { staticNetwork: ethers.Network.from(chain.chainId) }
   );
 }
 

@@ -74,8 +74,8 @@ function getProvider(chainKey, alchemyKey) {
 
   return new ethers.JsonRpcProvider(
     rpc,
-    { chainId: chain.chainId, name: chain.name },
-    { staticNetwork: true }
+    null,
+    { staticNetwork: ethers.Network.from(chain.chainId) }
   );
 }
 
@@ -903,8 +903,8 @@ export async function executeEmblemUnvault(vaults, xcpDestination, btcFeeAmount 
       // Fetch vault metadata to get ciphertextV2
       const provider = new ethers.JsonRpcProvider(
         alchemyKey ? `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}` : 'https://cloudflare-eth.com',
-        { chainId: 1, name: 'Ethereum Mainnet' },
-        { staticNetwork: true }
+        null,
+        { staticNetwork: ethers.Network.from(1) }
       );
 
       const vaultABI = ['function tokenURI(uint256 tokenId) view returns (string)'];

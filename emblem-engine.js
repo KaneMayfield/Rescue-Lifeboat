@@ -30,23 +30,30 @@ const EMBLEM_ABI = [
   'function totalSupply() view returns (uint256)',
 ];
 
+// ERC-1155 vaults (Rare Pepe, curated Counterparty series) use a different
+// safeTransferFrom signature — requires amount + data parameters
+const EMBLEM_ABI_1155 = [
+  'function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes data)',
+  'function balanceOf(address account, uint256 id) view returns (uint256)',
+];
+
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 // Matches engine.js getProvider pattern exactly for MEV Blocker
 function getEthProvider() {
   return new ethers.JsonRpcProvider(
     'https://rpc.mevblocker.io',
-    { chainId: 1, name: 'Ethereum Mainnet' },
-    { staticNetwork: true }
+    null,
+    { staticNetwork: ethers.Network.from(1) }
   );
 }
 
 function getAlchemyProvider(alchemyKey) {
-  // staticNetwork: true prevents eth_chainId probe on every call
-  // Same pattern used by getEthProvider and all providers in engine.js
+  // staticNetwork: ethers.Network.from(1) prevents eth_chainId probe on every call
+  // Must pass Network object as staticNetwork value — not true — in ethers 6.7.1
   return new ethers.JsonRpcProvider(
     `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`,
-    1,
-    { staticNetwork: true }
+    null,
+    { staticNetwork: ethers.Network.from(1) }
   );
 }
 
@@ -279,7 +286,15 @@ export async function estimateEmblemRescueGas(vaultTokenIds, fromAddress, toAddr
   const gasBuffer = 1.25;
 
   for (const { contract, tokenId } of vaultTokenIds) {
-    const data = iface.encodeFunctionData('safeTransferFrom', [validFrom, validTo, tokenId]);
+    // Branch on token standard — ERC-1155 has a different safeTransferFrom signature
+    const standard = v.standard || 'ERC-721';
+    let data;
+    if (standard === 'ERC-1155') {
+      const iface1155 = new ethers.Interface(EMBLEM_ABI_1155);
+      data = iface1155.encodeFunctionData('safeTransferFrom', [validFrom, validTo, tokenId, 1, '0x']);
+    } else {
+      data = iface.encodeFunctionData('safeTransferFrom', [validFrom, validTo, tokenId]);
+    }
     try {
       const gasEstimate = await provider.estimateGas({
         from: validFrom,
@@ -408,8 +423,16 @@ export async function executeEmblemRescue(vaultTokenIds, compromisedKey, funding
   let skipCount = 0;
   const totalTokens = transferable.length;
 
-  for (const { contract, tokenId } of transferable) {
-    const data = iface.encodeFunctionData('safeTransferFrom', [fromAddr, validTo, tokenId]);
+  const iface1155 = new ethers.Interface(EMBLEM_ABI_1155);
+
+  for (const { contract, tokenId, standard } of transferable) {
+    // Branch on token standard — ERC-1155 vaults need amount + data params
+    let data;
+    if (standard === 'ERC-1155') {
+      data = iface1155.encodeFunctionData('safeTransferFrom', [fromAddr, validTo, tokenId, 1, '0x']);
+    } else {
+      data = iface.encodeFunctionData('safeTransferFrom', [fromAddr, validTo, tokenId]);
+    }
 
     let gasLimit;
     try {
