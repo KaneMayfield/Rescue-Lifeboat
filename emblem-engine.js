@@ -41,9 +41,11 @@ function getEthProvider() {
 }
 
 function getAlchemyProvider(alchemyKey) {
+  // staticNetwork: true prevents eth_chainId probe on every call
+  // Same pattern used by getEthProvider and all providers in engine.js
   return new ethers.JsonRpcProvider(
     `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`,
-    { chainId: 1, name: 'mainnet' },
+    1,
     { staticNetwork: true }
   );
 }
