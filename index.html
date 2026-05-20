@@ -2560,29 +2560,33 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
             Two separate costs apply to a Mark V operation: <strong style="color:var(--accent-mv2);">Alchemy API fees</strong> (small, pennies) and <strong style="color:var(--accent-mv2);">blockchain gas</strong> (potentially significant, depending on your fleet size and current network conditions). Both are broken down honestly below.
           </div>
           <div style="background:rgba(255,60,60,0.06);border:1px solid rgba(255,60,60,0.2);padding:14px 18px;margin-bottom:14px;">
-            <div style="font-size:0.6rem;color:var(--danger);text-transform:uppercase;letter-spacing:0.14em;margin-bottom:8px;">Blockchain Gas — The Big Number</div>
+            <div style="font-size:0.6rem;color:var(--danger);text-transform:uppercase;letter-spacing:0.14em;margin-bottom:8px;">Blockchain Gas — Ethereum Mainnet Only</div>
             <div style="font-size:0.68rem;color:var(--text2);line-height:1.9;margin-bottom:8px;">
-              Gas is paid to the network — not to us. It varies with network congestion and your NFT count. A <code style="color:var(--accent);">safeTransferFrom</code> on Ethereum costs approximately 65,000 gas per token. At 20 gwei (normal): <strong style="color:var(--text);">~0.0013 ETH per NFT.</strong>
+              Gas is paid to the network — not to us. A <code style="color:var(--accent);">safeTransferFrom</code> costs approximately 65,000 gas per token. The estimates below use <strong style="color:var(--text);">3 gwei</strong> — current typical Ethereum mainnet conditions as of mid-2026.
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:0.62rem;">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:0.62rem;margin-bottom:10px;">
               <div style="padding:8px 10px;background:rgba(6,8,9,0.5);border:1px solid var(--border);">
                 <div style="color:var(--text3);margin-bottom:4px;">Small fleet</div>
                 <div style="color:var(--text);">5 wallets · 50 NFTs each</div>
-                <div style="color:var(--accent-mv2);font-weight:600;margin-top:4px;">~0.3–0.8 ETH</div>
+                <div style="color:var(--accent-mv2);font-weight:600;margin-top:4px;">~0.05 ETH</div>
               </div>
               <div style="padding:8px 10px;background:rgba(6,8,9,0.5);border:1px solid var(--border);">
                 <div style="color:var(--text3);margin-bottom:4px;">Medium fleet</div>
                 <div style="color:var(--text);">15 wallets · 100 NFTs each</div>
-                <div style="color:var(--accent-mv2);font-weight:600;margin-top:4px;">~1.0–3.0 ETH</div>
+                <div style="color:var(--accent-mv2);font-weight:600;margin-top:4px;">~0.29 ETH</div>
               </div>
               <div style="padding:8px 10px;background:rgba(6,8,9,0.5);border:1px solid var(--border);">
                 <div style="color:var(--text3);margin-bottom:4px;">Large fleet</div>
                 <div style="color:var(--text);">50 wallets · 200 NFTs each</div>
-                <div style="color:var(--accent-mv2);font-weight:600;margin-top:4px;">~5.0–15.0 ETH</div>
+                <div style="color:var(--accent-mv2);font-weight:600;margin-top:4px;">~0.98 ETH</div>
               </div>
             </div>
-            <div style="font-size:0.62rem;color:var(--text3);margin-top:8px;line-height:1.7;">
-              Polygon, Base, Optimism, and Avalanche gas is orders of magnitude cheaper — typically under $1 total regardless of NFT count. The numbers above are Ethereum mainnet estimates. The Fleet Execute tab runs a live gas estimate before any keys are entered so you know the exact number before committing.
+            <div style="background:rgba(255,60,60,0.1);border:1px solid rgba(255,60,60,0.35);padding:10px 14px;margin-bottom:8px;">
+              <span style="color:var(--danger);font-weight:700;font-size:0.65rem;">⚠ THESE NUMBERS CHANGE WITH NETWORK CONDITIONS.</span>
+              <span style="font-size:0.62rem;color:var(--text2);"> At 10 gwei the large fleet estimate triples. At 25 gwei it approaches 8 ETH. Always use the Gas Calculator in Fleet Scan to get the live number before committing — it pulls current gwei directly from Alchemy and calculates your exact cost.</span>
+            </div>
+            <div style="font-size:0.62rem;color:var(--text3);line-height:1.7;">
+              Polygon, Base, Optimism, and Avalanche gas is orders of magnitude cheaper — typically under $1 total regardless of NFT count. The numbers above are Ethereum mainnet only. The Fleet Execute tab runs a live per-token gas estimate before any keys are entered.
             </div>
           </div>
           <div style="font-size:0.7rem;color:var(--text2);line-height:2;margin-bottom:14px;">
