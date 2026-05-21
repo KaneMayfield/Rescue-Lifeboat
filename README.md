@@ -112,14 +112,11 @@ is being given away because I couldn't find it when I needed it.**
 
 ## What Rescue Lifeboat Does NOT Do
 
-- It does not take a percentage of your assets
-- It does not custody your funds at any point
-- It does not send your private key anywhere — keys are processed locally
+- It does not take a percentage of your assets. Not even for doordash to tip ourselves.
+- It cannot recover lost funds from whoever stole from you, we are not a vigilante service. This is not John Wick. None of us have that kind of cardio.
+- It does not custody your funds at any point, because then we'd start going "one for you, two for me"
+- It does not send your private key anywhere — keys are processed locally. We also dont touch your house or car keys. No piano keys. Stricly guitar strings and privacy.
   and never leave your machine
-- It does not require trusting a website, a smart contract, or a stranger
-- It does not work on Solana (EVM chains only: ETH, Polygon, Base, etc.)
-- It does not guarantee recovery of every token (ENS names require a
-  separate manual step; some contracts have transfer restrictions)
 
 ---
 
@@ -223,7 +220,7 @@ bash check.sh
 
 That's it. The tool launches when the check completes.
 
-> *Linux users are statistically the least likely to need this section. You already know what you're doing. You're first in our hearts — Windows and Mac just have bigger egos and we'd never hear the end of it.*
+> *Linux users are statistically the least likely to need this section. You already know what you're doing. You are smarter and far better looking then the other two and if we could make this just for you we would... because you're first in our hearts — Windows and Mac just have bigger egos, and if we didn't bury this compliment where they couldn't see it, we'd never hear the end of it. Let us know if you want anything from the gas station.*
 
 [![Download ZIP](https://img.shields.io/badge/⬇_Download_ZIP-Click_Here-blue?style=for-the-badge)](https://github.com/KaneMayfield/Rescue-Lifeboat/archive/refs/heads/main.zip)
 
@@ -233,7 +230,7 @@ That's it. The tool launches when the check completes.
 
 ## Alchemy Setup
 
-Rescue Lifeboat uses Alchemy to scan wallets. You need a free API key.
+Rescue Lifeboat uses Alchemy to scan wallets. Its a website. We cannot actually turn lead into gold or we would be way richer and wouldn't need this app. So yeah... Alchemy... you need a free API key.
 
 1. Go to [dashboard.alchemy.com](https://dashboard.alchemy.com)
 2. Create a free account (no credit card required)
@@ -373,7 +370,7 @@ in privately first.
 **DeFi Stakes (Lido, Aave, Compound, NFT staking)**
 
 The unstake transaction has to happen from the compromised wallet, which means that
-wallet needs gas. Same choreography as ENS: open the unstake page, get it ready to
+wallet needs gas, grass, or ass. Since this is not a ride home from a creep, we recommend you stick with gas. Same choreography as ENS: open the unstake page, get it ready to
 sign, use Quiet Fund to send gas privately, then immediately sign the unstake. Once
 assets are back in the wallet, rescue them with the normal NFT Rescue or Coin Sweep
 flow. Watch for cooldown periods — Lido is roughly 1–5 days. Plan accordingly.
@@ -627,7 +624,7 @@ If you found a bug, fixed something, or want to add support for a new chain,
 pull requests are welcome.
 
 If you're a developer who wants to understand the architecture before
-diving in, read the constitution.
+diving in, read the constitution. I mean i wrote one too but its never too late for civics.
 
 If you used this to recover your NFTs, drop a note. It helps.
 
