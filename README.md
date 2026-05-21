@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Rescue%20Lifeboat.png" alt="Rescue Lifeboat" width="260" />
+  <img src="Rescue%20Lifeboat.png" alt="Rescue Lifeboat" width="660" />
 </p>
 
 <h3 align="center">NFT Rescue Tool for Compromised EVM Wallets</h3>
