@@ -1,8 +1,10 @@
-![RESCUE LIFEBOAT](Rescue%20Lifeboat.png)
+<p align="center">
+  <img src="Rescue_Lifeboat.png" width="400" />
+</p>
 
-### NFT Rescue Tool for Compromised EVM Wallets
+<h3 align="center">NFT Rescue Tool for Compromised EVM Wallets</h3>
 
-**Free. Open source. No percentage. No catch.**
+<p align="center"><strong>Free. Open source. No percentage. No catch.</strong></p>
 
 ---
 
@@ -16,9 +18,48 @@
 
 ---
 
-![lighthouse](lighthouse.png)
+<p align="center">
+  <img src="roughwater.png" width="900" />
+</p>
+
+---
+
+## Table of Contents
+
+- [What This Is](#what-this-is)
+- [What Rescue Lifeboat Does](#what-rescue-lifeboat-does)
+- [What Rescue Lifeboat Does NOT Do](#what-rescue-lifeboat-does-not-do)
+- [Quick Start](#quick-start)
+  - [⊞ Windows](#windows-installation)
+  - [⌘ Mac](#mac-installation)
+  - [🐧 Linux](#linux-installation)
+  - [Alchemy Setup](#alchemy-setup)
+- [How to Use It](#how-to-use-it)
+- [Mark V — Massive Tactical Extraction](#mark-v--massive-tactical-extraction)
+- [Supported Chains](#supported-chains)
+- [Files in This Repository](#files-in-this-repository)
+- [Testing](#testing)
+- [Proof of Work](#proof-of-work)
+- [Who Made This](#who-made-this)
+- [License](#license)
+- [Contributing](#contributing)
+- [Troubleshooting](#troubleshooting)
+  - [Windows Troubleshooting](#windows-troubleshooting)
+  - [Mac Troubleshooting](#mac-troubleshooting)
+  - [Linux Troubleshooting](#linux-troubleshooting)
+  - [General Troubleshooting](#general-troubleshooting)
+
+---
+
+<p align="center">
+  <img src="closedoor.png" width="680" />
+</p>
 
 ## What This Is
+
+<p align="center">
+  <img src="lighthouse.png" width="600" />
+</p>
 
 Rescue Lifeboat is a free, downloadable tool that rescues NFTs from compromised EVM
 wallets before sweeper bots can block you forever.
@@ -36,20 +77,6 @@ the bot ever knows they happened.
 
 **This tool was built in a real emergency, tested under real conditions, and
 is being given away because I couldn't find it when I needed it.**
-
----
-
-## Proof of Work
-
-| Chain        | NFTs Rescued |
-|--------------|-------------|
-| ETH Mainnet  | 115         |
-| Polygon      | 261         |
-| Base         | 37          |
-| **Total**    | **413**     |
-
-Also transferred: Manifold creator contract ownership, kanemayfield.eth ENS name.
-Compromised wallet drained to zero. Bot has nothing left to watch.
 
 ---
 
@@ -87,6 +114,7 @@ Compromised wallet drained to zero. Bot has nothing left to watch.
 ## What Rescue Lifeboat Does NOT Do
 
 - It does not take a percentage of your assets
+- It cannot recover lost funds from whoever stole from you, we are not a vigilante service. This is not John Wick. None of us have that kind of cardio.
 - It does not custody your funds at any point
 - It does not send your private key anywhere — keys are processed locally
   and never leave your machine
@@ -101,21 +129,109 @@ Compromised wallet drained to zero. Bot has nothing left to watch.
 
 ### Requirements
 - A computer (Windows, Mac, or Linux)
-- Node.js installed (free, see Step 1)
-- A free Alchemy API key (free, see Step 2)
+- Node.js installed (free — instructions per platform below)
+- A free Alchemy API key (see [Alchemy Setup](#alchemy-setup))
 - A clean wallet address to receive rescued NFTs
 - The private key of your compromised wallet
 
-### Step 1: Install Node.js
-Go to **nodejs.org** and download the LTS version. Install it like any
-normal program. That's it.
+### Download
 
-If you're on Windows and have never done this before: download the .msi
-installer, double-click it, click Next until it's done. Node is now installed.
+[![Download ZIP](https://img.shields.io/badge/⬇_Download_ZIP-Click_Here-blue?style=for-the-badge)](https://github.com/KaneMayfield/Rescue-Lifeboat/archive/refs/heads/main.zip)
 
-### Step 2: Get a Free Alchemy API Key
+Click the button above — or click the green **Code** button at the top of this page → **Download ZIP**.
 
-1. Go to **dashboard.alchemy.com**
+Unzip the folder somewhere easy to find. **Desktop is fine.**
+
+> **Never used GitHub before?** That's okay. You don't need an account. Click Download ZIP, unzip it like any other file, and keep reading.
+
+### Pick your platform
+
+<p align="center">
+  <a href="#windows-installation"><img src="https://img.shields.io/badge/⊞%20Windows-0078D4?style=for-the-badge&logoColor=white" alt="Windows" /></a>
+  &nbsp;&nbsp;
+  <a href="#mac-installation"><img src="https://img.shields.io/badge/⌘%20Mac-000000?style=for-the-badge&logoColor=white" alt="Mac" /></a>
+  &nbsp;&nbsp;
+  <a href="#linux-installation"><img src="https://img.shields.io/badge/🐧%20Linux-E95420?style=for-the-badge&logoColor=white" alt="Linux" /></a>
+</p>
+
+---
+
+## Windows Installation
+
+**Step 1 — Install Node.js**
+
+Go to [nodejs.org](https://nodejs.org) and download the **LTS** version. Double-click the `.msi` installer, click Next until it's done. Node is now installed.
+
+**Step 2 — Run the system check**
+
+Double-click `check.bat` inside the unzipped folder. It checks your setup, fixes what it can automatically, and tells you exactly what to do if anything needs attention. Run this before `start.bat` any time something isn't working.
+
+**Step 3 — Launch**
+
+Double-click `start.bat`. Your browser opens automatically to `http://localhost:3000`.
+
+> **SmartScreen warning ("Windows protected your PC"):** Rescue Lifeboat isn't malicious — it just doesn't have a paid code-signing certificate. Click **More info** → **Run anyway**. If it keeps blocking: right-click `start.bat` → Properties → check the **Unblock** box → Apply.
+
+[→ Windows Troubleshooting](#windows-troubleshooting)
+
+---
+
+## Mac Installation
+
+**Step 1 — Install Node.js**
+
+Go to [nodejs.org](https://nodejs.org) and download the **LTS** version. Run the installer. The right version for your specific macOS is handled automatically in Step 2.
+
+**Step 2 — Run the system check**
+
+Open Terminal. Type `cd ` (the letters c-d and a space), then drag the Rescue Lifeboat folder from Finder into the Terminal window — the path pastes automatically. Press Enter. Then run:
+
+```
+bash check.sh
+```
+
+The checker detects your exact macOS version, confirms you have the right Node.js version for it, fixes permissions automatically, and launches the tool when everything is ready. This is the whole setup. One command.
+
+> **If you've never used Terminal:** Press ⌘ Space, type "Terminal", press Enter. That opens it. Then follow the steps above.
+
+[→ Mac Troubleshooting](#mac-troubleshooting)
+
+---
+
+## Linux Installation
+
+**Step 1 — Install Node.js**
+
+```
+# Ubuntu/Debian
+sudo apt install nodejs npm
+
+# Arch
+sudo pacman -S nodejs npm
+
+# Or download from nodejs.org
+```
+
+**Step 2 — Run**
+
+```bash
+cd /path/to/Rescue-Lifeboat
+bash check.sh
+```
+
+That's it. The tool launches when the check completes.
+
+> *Linux users are statistically the least likely to need this section. You already know what you're doing. You're first in our hearts and smarter than the other two — Windows and Mac just have bigger egos and if we made a show of how much better looking and brilliant you are, we'd never hear the end of it.*
+
+[→ Linux Troubleshooting](#linux-troubleshooting)
+
+---
+
+## Alchemy Setup
+
+Rescue Lifeboat uses Alchemy to scan wallets. You need a free API key.
+
+1. Go to [dashboard.alchemy.com](https://dashboard.alchemy.com)
 2. Create a free account (no credit card required)
 3. Click **"Create new app"** and name it anything
 4. Copy the API key from your app dashboard
@@ -137,73 +253,20 @@ If you skip this step, Rescue Lifeboat will only find your Ethereum NFTs.
 
 > **Note for Mark V users:** Mark V requires an Alchemy Growth plan or higher.
 > The free tier's 25 requests/second limit is hit instantly when scanning a
-> fleet of wallets. Upgrade at dashboard.alchemy.com — Pay As You Go requires
+> fleet of wallets. Upgrade at [dashboard.alchemy.com](https://dashboard.alchemy.com) — Pay As You Go requires
 > no upfront commitment.
 
-### Step 2.5: First Time on a Mac? Run the System Check First
+---
 
-Before you try `./start.sh` for the first time, run the system checker. It takes 30 seconds, fixes common problems automatically, and tells you exactly what to do if anything needs attention.
-
-```
-bash check.sh
-```
-
-The most common Mac problem — the wrong Node.js version for your macOS — is invisible until something breaks. The checker knows which version is right for your specific Mac and links you directly to it.
-
-**Windows users:** Same deal — `check.bat` in the same folder. Double-click it before `start.bat` if you're having any trouble.
+<p align="center">
+  <img src="background.png" width="900" />
+</p>
 
 ---
 
-### Step 3: Download Rescue Lifeboat
-
-[![Download ZIP](https://img.shields.io/badge/⬇_Download_ZIP-Click_Here-blue?style=for-the-badge)](https://github.com/KaneMayfield/Rescue-Lifeboat/archive/refs/heads/main.zip)
-
-Click the button above — or click the green **Code** button at the top of this page → **Download ZIP**.
-
-Unzip the folder somewhere easy to find. **Desktop is fine.**
-
-> **Never used GitHub before?** That's okay. You don't need an account. Click Download ZIP, unzip it like any other file, and keep reading.
-
-### Step 4: Run It
-
-- **Windows:** Double-click `start.bat` inside the unzipped folder
-- **Mac/Linux:** Open Terminal, navigate to the folder, run `./start.sh`
-
-Your browser will open automatically to `localhost:3000`. If it doesn't, go there manually: **http://localhost:3000**
-
----
-
-**Windows — "Windows protected your PC" (SmartScreen warning):**
-Rescue Lifeboat isn't malicious — it just doesn't have a paid code-signing certificate. Click **More info** → **Run anyway**. If it keeps blocking: right-click `start.bat` → Properties → check the **Unblock** box → Apply.
-
-**Windows — the window opens and immediately closes:**
-Something errored but the window closed before you could read it. Open Command Prompt manually (search "cmd" in Start menu), navigate to the folder, and run `start.bat` from there. The error will stay visible. To navigate: type `cd ` (with a space), drag the folder into the Command Prompt window, press Enter.
-
-**Windows — "'npm' is not recognized as an internal or external command":**
-Node installed but didn't get added to your PATH. Close all windows, reinstall Node.js from nodejs.org (leave "Add to PATH" checked), **restart your computer** — the restart is not optional, PATH changes don't take effect until you do — then try again.
-
-**Mac — "permission denied" when running ./start.sh:**
-The launcher needs to be marked executable first. In Terminal, run:
-```
-chmod +x start.sh
-```
-Then run `./start.sh` again.
-
-**Mac — "Abort trap: 6" or "dyld: Symbol not found":**
-The Node version you installed is too new for your macOS. See the full macOS troubleshooting section below.
-
-**Mac — never used Terminal before:**
-Open Terminal (press ⌘ Space, type "Terminal", press Enter). Type `cd ` (the letters c and d, then a space), then drag the Rescue Lifeboat folder from Finder into the Terminal window — the path pastes automatically. Press Enter. Then type `./start.sh` and press Enter.
-
-**Any platform — "Module not found" or "Cannot find package":**
-Run this in the Rescue Lifeboat folder, then try the launcher again:
-```
-npm install
-```
-
----
-
-![LIFEBOAT Logo](logo.png)
+<p align="center">
+  <img src="footlocker.png" width="700" />
+</p>
 
 ## How to Use It
 
@@ -385,9 +448,15 @@ by calling `transferOwnership()` on each contract directly.
 
 ---
 
-### MARK V — Massive Tactical Extraction
+https://github.com/user-attachments/assets/aa12d7f5-e2cd-4769-8a71-a478da1b3b35
 
-![Mark V](markvlogo.png)
+---
+
+## Mark V — Massive Tactical Extraction
+
+<p align="center">
+  <img src="markvlogo.png" width="500" />
+</p>
 
 **Mark V is for clean wallet consolidation — not emergency rescue.**
 
@@ -395,9 +464,11 @@ If any of your wallets is compromised, use RESCUE and LIFEBOAT first. Come to Ma
 
 The typical Mark V operator has 5 to 50 wallets accumulated over years of collecting. They're not in crisis — they're reorganizing. Moving everything into one secure wallet after getting a hardware wallet. Consolidating a portfolio that has grown across dozens of addresses on a dozen chains. The standard rescue tools work one wallet at a time. Mark V works on the entire fleet simultaneously.
 
-> *"The Mark V Special Operations Craft is the U.S. Navy SEALs' primary high-speed insertion and extraction vessel. 82 feet long. Twin MTU diesel engines. 35-knot top speed. Designed for one mission: moving a large team of operators into and out of hostile territory simultaneously, at maximum speed. The name is not aesthetic. It is a description."*
+<p align="center">
+  <img src="MarkVbackground.png" width="800" />
+</p>
 
-![Mark V in action](MarkVbackground.png)
+> *"The Mark V Special Operations Craft is the U.S. Navy SEALs' primary high-speed insertion and extraction vessel. 82 feet long. Twin MTU diesel engines. 35-knot top speed. Designed for one mission: moving a large team of operators into and out of hostile territory simultaneously, at maximum speed. The name is not aesthetic. It is a description."*
 
 **⚠ CLEAN WALLETS ONLY.** Mark V sends gas to multiple wallets simultaneously. If any wallet in your fleet is compromised, a sweeper bot will drain that gas the moment it arrives — before the transfer queue reaches it. Run standard Rescue Lifeboat on any compromised wallet first, then return to Mark V for consolidation.
 
@@ -417,130 +488,9 @@ The typical Mark V operator has 5 to 50 wallets accumulated over years of collec
 
 **Emblem Vaults** — Two operations available. Bulk Transfer moves Emblem Vault NFTs (the EVM wrapper token) from multiple wallets to a destination in one fleet operation. Unvault opens each vault and extracts the contained XCP/Bitcoin assets directly to a native Counterparty wallet — the full Torus key derivation flow runs locally with no browser, no OAuth, and no third-party dependency beyond your Alchemy key.
 
-![Mark V Operations](markvalt.png)
-
----
-
-https://github.com/user-attachments/assets/aa12d7f5-e2cd-4769-8a71-a478da1b3b35
-
----
-
-## Troubleshooting
-
-### Can't Launch the Tool? (Install Errors)
-
-These errors stop you before the tool even opens. Find your error message below.
-
-#### MAC: "Abort trap: 6" or "dyld: Symbol not found" or "built for Mac OS X 13.5"
-
-The Node.js you installed is too new for your version of macOS. The current Node LTS requires macOS Ventura 13.5 or newer. Older Macs need an older version of Node.
-
-**Fix:**
-
-1. Find out your macOS version: Apple logo → "About This Mac" → look at the version (Big Sur, Monterey, Ventura, etc.)
-
-2. Uninstall the broken Node. In Terminal:
-   ```
-   sudo rm /usr/local/bin/node /usr/local/bin/npm
-   ```
-   Enter your Mac password. You won't see anything happen — that's normal.
-
-3. Download the right Node version:
-
-   | Your macOS | Use this Node version | Direct download |
-   |------------|----------------------|-----------------|
-   | Sonoma 14 / Sequoia 15 / Ventura 13.5+ | Latest LTS | [nodejs.org](https://nodejs.org) |
-   | Ventura 13.0–13.4 / Monterey 12 | Node 20 LTS | [nodejs.org/en/blog/release/v20.18.1](https://nodejs.org/en/blog/release/v20.18.1) |
-   | Big Sur 11 / Catalina 10.15 | Node 18 (EOL but works) | [v18.20.8.pkg](https://nodejs.org/dist/v18.20.8/node-v18.20.8.pkg) |
-   | Mojave 10.14 or older | Node 16 or older | [Previous Releases](https://nodejs.org/en/download/releases) |
-
-4. Run Rescue Lifeboat again with `./start.sh`.
-
-> Note: Node 18 is "end-of-life" (no more security patches) but works fine for Rescue Lifeboat because the tool runs locally for a brief rescue session — it's not a production server.
-
-#### MAC: "permission denied" when running ./start.sh
-
-The launcher isn't marked executable yet (common quirk of Mac-unzipped files). Fix:
-```
-chmod +x start.sh
-```
-Then run `./start.sh` again.
-
-#### MAC: "no such file or directory" when running ./start.sh
-
-You're not in the Rescue Lifeboat folder. Type `cd ` in Terminal (the letters c-d followed by a SPACE — the space matters), then drag the folder from Finder into the Terminal window. Press Enter. Try `./start.sh` again.
-
-#### WINDOWS: "Windows protected your PC" / SmartScreen blocks start.bat
-
-Windows blocks unsigned scripts from the internet by default. Rescue Lifeboat isn't malicious — it just doesn't have a paid code-signing certificate.
-
-**Quick fix:** Click **More info** on the SmartScreen warning, then **Run anyway**.
-
-**Permanent fix** (if it keeps blocking):
-1. Right-click `start.bat` → Properties
-2. Check the **Unblock** box at the bottom of the General tab
-3. Click Apply, OK
-4. Double-click `start.bat` again
-
-#### WINDOWS: "'npm' is not recognized as an internal or external command"
-
-Node installed but didn't get added to your PATH.
-
-**Fix:**
-1. Close all Command Prompt / PowerShell windows
-2. Reinstall Node.js from [nodejs.org](https://nodejs.org) — leave the "Add to PATH" option checked
-3. **Restart your computer** (this step is often skipped — PATH changes only take effect for new sessions)
-4. Try `start.bat` again
-
-#### WINDOWS: start.bat opens and immediately closes
-
-Something errored, but the window closed before you could read it.
-
-**Fix:** Open Command Prompt manually (search "cmd" in Start), navigate to the Rescue Lifeboat folder, and run `start.bat` from there. Errors will stay visible.
-
-To navigate: type `cd ` (with a space), drag the folder into the Command Prompt window, press Enter.
-
-#### BOTH: "node: command not found" / Node doesn't seem installed
-
-In Terminal/Command Prompt, type `node --version`. If you see a version number, Node IS installed and your problem is elsewhere. If you see "command not found," install from [nodejs.org](https://nodejs.org), then **close and reopen** your terminal before trying again.
-
----
-
-### Tool-Running Errors
-
-**"Module not found" or "Cannot find package"**
-Run `npm install` in the Rescue Lifeboat folder. This downloads the required packages.
-
-**Browser doesn't open**
-Go to http://localhost:3000 manually.
-
-**Scan finds no NFTs**
-- Check that the wallet address is correct
-- Make sure your Alchemy API key is valid
-- Verify you enabled all chains in your Alchemy dashboard (not just Ethereum)
-
-**Only Ethereum NFTs appear**
-Your Alchemy key is only set up for Ethereum by default. Go to your Alchemy
-dashboard → your app → Networks → enable Polygon, Base, Optimism, Avalanche.
-
-**"Insufficient funds"**
-The funding wallet needs more ETH/POL/AVAX than the gas estimate shows.
-Add funds to the funding wallet and try again.
-
-**Transaction failed or stuck**
-- Check the explorer link for details
-- Some contracts have transfer restrictions Rescue Lifeboat can't override
-- The rescue data is preserved — you can retry individual tokens
-
-**ENS name didn't transfer**
-ENS names require a manual transfer via app.ens.domains. Use the **Quiet Fund**
-tab to get gas into your compromised wallet privately, then complete the transfer
-manually before the bot can react. See the **Other Assets** tab for the full
-step-by-step.
-
-**Mark V scan returns empty / rate limit errors**
-Your Alchemy key is on the free tier (25 req/sec). Mark V requires a Growth plan
-or higher. Upgrade at [dashboard.alchemy.com](https://dashboard.alchemy.com).
+<p align="center">
+  <img src="markvalt.png" width="800" />
+</p>
 
 ---
 
@@ -575,6 +525,8 @@ key required for those chains.
 Rescue-Lifeboat/
 ├── start.bat             # Windows launcher (double-click this)
 ├── start.sh              # Mac/Linux launcher
+├── check.bat             # Windows system checker (run this first)
+├── check.sh              # Mac/Linux system checker (run this first)
 ├── server.js             # Local Express server
 ├── engine.js             # Blockchain operations (the real engine)
 ├── markv-engine.js       # Mark V fleet execution engine
@@ -583,7 +535,11 @@ Rescue-Lifeboat/
 ├── emblem-server.js      # Emblem Vault API routes
 ├── index.html            # The interface
 ├── package.json          # Dependencies
-├── test-emblem.js        # Automated test suite
+├── test-suite.js         # Full automated test suite
+├── test-engine.js        # Engine tests
+├── test-markv.js         # Mark V tests
+├── test-server.js        # Server route tests
+├── test-emblem.js        # Emblem Vault tests
 ├── README.md             # You're reading it
 ├── LICENSE               # MIT License
 ├── DISCLAIMER.md         # Legal stuff, human-readable
@@ -593,30 +549,60 @@ Rescue-Lifeboat/
 
 ---
 
-![LIFEBOAT in action](radar.jpg)
+<p align="center">
+  <img src="radar.jpg" width="900" />
+</p>
 
 ## Testing
 
 Run the automated test suite from the Rescue Lifeboat folder:
 
 ```
-node test-emblem.js
+npm test
 ```
 
-Tests run against the live Alchemy API and verify scanning, ownership proof
-signing, error handling, and return shapes. No private keys needed.
+For a fast structural check with no network calls:
+
+```
+npm run test:fast
+```
+
+Tests verify scanning, ownership proof signing, all API routes, error handling, and return shapes. The full suite runs against the live Alchemy API. No private keys needed.
 
 Tests also run automatically on every push via GitHub Actions.
 
 ---
 
+## Proof of Work
+
+These numbers are from the first day — when this tool was tested on me personally, in a real emergency, with a real sweeper bot watching the wallet.
+
+| Chain        | NFTs Rescued |
+|--------------|-------------|
+| ETH Mainnet  | 115         |
+| Polygon      | 261         |
+| Base         | 37          |
+| **Total**    | **413**     |
+
+Also transferred on day one: Manifold creator contract ownership, kanemayfield.eth ENS name. Compromised wallet drained to zero. Bot has nothing left to watch.
+
+Since then, thousands more NFTs have been rescued by people in the same situation. ENS domains. Emblem Vaults. Metaverse parcels. Thousands of dollars in ERC-20 tokens. Community coins that had no floor price but mattered to the people who held them.
+
+This is what it was built for.
+
+---
+
 ## Who Made This
+
+<p align="center">
+  <img src="logo.png" width="400" />
+</p>
 
 **Kane Mayfield** — artist, builder, the guy who got hacked. I'm your neighbor.
 
-- Website: kanemayfield.com
-- Twitter: @kanemayfield
-- If this saved your stuff and you feel like it: there is a whole "buy me a coffee" thing in there. But no pressure.
+- Website: [kanemayfield.com](https://kanemayfield.com)
+- Twitter: [@kanemayfield](https://twitter.com/kanemayfield)
+- If this saved your stuff and you feel like it: there is a whole "buy me a coffee" thing in the tool. But no pressure.
 
 ---
 
@@ -641,7 +627,179 @@ diving in, read the constitution.
 
 If you used this to recover your NFTs, drop a note. It helps.
 
+---
 
+## Troubleshooting
+
+---
+
+### Windows Troubleshooting
+
+**"Windows protected your PC" / SmartScreen blocks start.bat**
+
+Windows blocks unsigned scripts from the internet by default. Rescue Lifeboat isn't malicious — it just doesn't have a paid code-signing certificate.
+
+**Quick fix:** Click **More info** on the SmartScreen warning, then **Run anyway**.
+
+**Permanent fix** (if it keeps blocking):
+1. Right-click `start.bat` → Properties
+2. Check the **Unblock** box at the bottom of the General tab
+3. Click Apply, OK
+4. Double-click `start.bat` again
+
+---
+
+**"'npm' is not recognized as an internal or external command"**
+
+Node installed but didn't get added to your PATH.
+
+1. Close all Command Prompt / PowerShell windows
+2. Reinstall Node.js from [nodejs.org](https://nodejs.org) — leave the "Add to PATH" option checked
+3. **Restart your computer** (this step is often skipped — PATH changes only take effect for new sessions)
+4. Try `start.bat` again
+
+---
+
+**start.bat opens and immediately closes**
+
+Something errored, but the window closed before you could read it.
+
+Open Command Prompt manually (search "cmd" in Start), navigate to the Rescue Lifeboat folder, and run `start.bat` from there. Errors will stay visible.
+
+To navigate: type `cd ` (with a space), drag the folder into the Command Prompt window, press Enter.
+
+---
+
+### Mac Troubleshooting
+
+**"Abort trap: 6" or "dyld: Symbol not found" or "built for Mac OS X 13.5"**
+
+The Node.js you installed is too new and pretty for your version of macOS. If you don’t want to “get with the times”, the current Node LTS requires macOS Ventura 13.5 or newer. Older Macs need an older version of Node.
+
+1. Find your macOS version: Apple logo → "About This Mac"
+2. Uninstall the broken Node. In Terminal:
+   ```
+   sudo rm /usr/local/bin/node /usr/local/bin/npm
+   ```
+3. Download the right version:
+
+   | Your macOS | Node version | Download |
+   |------------|-------------|----------|
+   | Sonoma 14 / Sequoia 15 / Ventura 13.5+ | Latest LTS | [nodejs.org](https://nodejs.org) |
+   | Ventura 13.0–13.4 / Monterey 12 | Node 20 LTS | [v20.18.1](https://nodejs.org/en/blog/release/v20.18.1) |
+   | Big Sur 11 / Catalina 10.15 | Node 18 | [v18.20.8.pkg](https://nodejs.org/dist/v18.20.8/node-v18.20.8.pkg) |
+   | Mojave 10.14 or older | Node 16 or older | [Previous Releases](https://nodejs.org/en/download/releases) |
+
+4. Run `bash check.sh` again — it will verify the right version is installed.
+
+> Note: Node 18 is "end-of-life" but works fine for Rescue Lifeboat because the tool runs locally for a brief rescue session — it's not a production server.
+
+---
+
+**"permission denied" when running ./start.sh**
+
+```
+chmod +x start.sh
+./start.sh
+```
+
+Or just use `bash check.sh` instead — it doesn't require the file to be executable first.
+
+---
+
+**"no such file or directory" when running ./start.sh**
+
+You're not in the Rescue Lifeboat folder. Type `cd ` in Terminal (with a space), then drag the folder from Finder into the Terminal window. Press Enter. Try again.
+
+---
+
+### Linux Troubleshooting
+
+**"bash: node: command not found"**
+
+```
+# Ubuntu/Debian
+sudo apt install nodejs npm
+
+# Arch
+sudo pacman -S nodejs npm
+
+# Then verify:
+node --version
+```
+
+---
+
+**"permission denied" when running check.sh**
+
+```
+chmod +x check.sh
+bash check.sh
+```
+
+---
+
+### General Troubleshooting
+
+**"Module not found" or "Cannot find package"**
+
+```
+npm install
+```
+
+Run this in the Rescue Lifeboat folder. Then try the launcher again.
+
+---
+
+**Browser doesn't open**
+
+Go to [http://localhost:3000](http://localhost:3000) manually.
+
+---
+
+**Scan finds no NFTs**
+- Check that the wallet address is correct
+- Make sure your Alchemy API key is valid
+- Verify you enabled all chains in your Alchemy dashboard (not just Ethereum)
+
+---
+
+**Only Ethereum NFTs appear**
+
+Your Alchemy key is only set up for Ethereum by default. Go to your Alchemy dashboard → your app → Networks → enable Polygon, Base, Optimism, Avalanche.
+
+---
+
+**"Insufficient funds"**
+
+The funding wallet needs more ETH/POL/AVAX than the gas estimate shows. Add funds to the funding wallet and try again.
+
+---
+
+**Transaction failed or stuck**
+- Check the explorer link for details
+- Some contracts have transfer restrictions Rescue Lifeboat can't override
+- The rescue data is preserved — you can retry individual tokens
+
+---
+
+**ENS name didn't transfer**
+
+ENS names require a manual transfer via [app.ens.domains](https://app.ens.domains). Use the **Quiet Fund** tab to get gas into your compromised wallet privately, then complete the transfer manually before the bot can react. See the **Other Assets** tab for the full step-by-step.
+
+---
+
+**Mark V scan returns empty / rate limit errors**
+
+Your Alchemy key is on the free tier (25 req/sec). Mark V requires a Growth plan or higher. Upgrade at [dashboard.alchemy.com](https://dashboard.alchemy.com).
+
+---
+
+**"node: command not found" on any platform**
+
+In Terminal/Command Prompt, type `node --version`. If you see a version number, Node IS installed and your problem is elsewhere. If you see "command not found," install from [nodejs.org](https://nodejs.org), then **close and reopen** your terminal before trying again.
+
+---
 
 https://kanemayfield.com/llms.txt
 
