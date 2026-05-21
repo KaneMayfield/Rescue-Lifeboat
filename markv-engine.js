@@ -20,7 +20,6 @@ import { scanEmblemVaults, executeEmblemRescue } from './emblem-engine.js';
 
 // ── RE-EXPORT CHAINS FROM ENGINE ───────────────────────────────────────────────
 // Mark V uses the same chain config as engine.js. Import what we need.
-import { createHash } from 'crypto';
 import { CHAINS, validateAddress, validatePrivateKey } from './engine.js';
 
 // ── CONSTANTS ──────────────────────────────────────────────────────────────────
@@ -74,8 +73,8 @@ function getProvider(chainKey, alchemyKey) {
 
   return new ethers.JsonRpcProvider(
     rpc,
-    null,
-    { staticNetwork: ethers.Network.from(chain.chainId) }
+    { chainId: chain.chainId, name: chain.name },
+    { staticNetwork: true }
   );
 }
 
@@ -765,11 +764,11 @@ export async function executeEmblemFleetTransfer(vaults, destination, fundingKey
 
       const result = await executeEmblemRescue(
         vaultTokenIds,
-        walletAddr,
-        validDest,
-        privateKey,
-        fundingKey,
+        privateKey,    // compromisedKey — the wallet's private key
+        fundingKey,    // fundingKey — pays for gas
+        validDest,     // toAddress — destination
         alchemyKey,
+        null,          // onProgress — not used in fleet context
       );
 
       const confirmed = result.data?.confirmed || 0;
@@ -903,8 +902,8 @@ export async function executeEmblemUnvault(vaults, xcpDestination, btcFeeAmount 
       // Fetch vault metadata to get ciphertextV2
       const provider = new ethers.JsonRpcProvider(
         alchemyKey ? `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}` : 'https://cloudflare-eth.com',
-        null,
-        { staticNetwork: ethers.Network.from(1) }
+        { chainId: 1, name: 'Ethereum Mainnet' },
+        { staticNetwork: true }
       );
 
       const vaultABI = ['function tokenURI(uint256 tokenId) view returns (string)'];
@@ -1035,6 +1034,7 @@ export async function executeEmblemUnvault(vaults, xcpDestination, btcFeeAmount 
 // Pure Node.js implementation — no external Bitcoin library required.
 // These are well-established cryptographic operations, not novel code.
 
+import { createHash } from 'crypto';
 
 function hash256(buffer) {
   return createHash('sha256').update(

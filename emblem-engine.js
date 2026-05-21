@@ -285,9 +285,9 @@ export async function estimateEmblemRescueGas(vaultTokenIds, fromAddress, toAddr
   const tokenDetails = [];
   const gasBuffer = 1.25;
 
-  for (const { contract, tokenId } of vaultTokenIds) {
+  for (const { contract, tokenId, standard: tokenStandard } of vaultTokenIds) {
     // Branch on token standard — ERC-1155 has a different safeTransferFrom signature
-    const standard = v.standard || 'ERC-721';
+    const standard = tokenStandard || 'ERC-721';
     let data;
     if (standard === 'ERC-1155') {
       const iface1155 = new ethers.Interface(EMBLEM_ABI_1155);
