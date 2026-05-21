@@ -52,10 +52,10 @@
 ---
 
 <p align="center">
-  <img src="closedoor.png" width="420" />
+  <img src="lighthouse.png" width="420" />
 
 <p align="center">
-  <img src="lighthouse.png" width="420" />
+  <img src="closedoor.png" width="420" />
 </p>
 
 ## What This Is
