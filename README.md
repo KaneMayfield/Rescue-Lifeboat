@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Rescue%20Lifeboat.png" alt="Rescue Lifeboat" width="660" />
+  <img src="Rescue%20Lifeboat.png" alt="Rescue Lifeboat" width="860" />
 </p>
 
 <h3 align="center">NFT Rescue Tool for Compromised EVM Wallets</h3>
@@ -53,13 +53,12 @@
 
 <p align="center">
   <img src="closedoor.png" width="420" />
-</p>
-
-## What This Is
 
 <p align="center">
   <img src="lighthouse.png" width="420" />
 </p>
+
+## What This Is
 
 Rescue Lifeboat is a free, downloadable tool that rescues NFTs from compromised EVM
 wallets before sweeper bots can block you forever.
