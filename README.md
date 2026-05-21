@@ -115,8 +115,7 @@ is being given away because I couldn't find it when I needed it.**
 - It does not take a percentage of your assets. Not even for doordash to tip ourselves.
 - It cannot recover lost funds from whoever stole from you, we are not a vigilante service. This is not John Wick. None of us have that kind of cardio.
 - It does not custody your funds at any point, because then we'd start going "one for you, two for me"
-- It does not send your private key anywhere — keys are processed locally. We also dont touch your house or car keys. No piano keys. Stricly guitar strings and privacy.
-  and never leave your machine
+- It does not send your private key anywhere — keys are processed locally. We also dont touch your house or car keys. No piano keys. Strictly guitar strings and privacy... like a weekend at Santana's house. Your private key and cat pictures never leave your machine. 
 
 ---
 
