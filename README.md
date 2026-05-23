@@ -81,8 +81,9 @@ is being given away because I couldn't find it when I needed it.**
 
 ## What Rescue Lifeboat Does
 
-- **Scans** your compromised wallet for NFTs across ETH, Polygon, Base,
-  Optimism, and Avalanche simultaneously
+- **Scans** your compromised wallet for NFTs across ETH, ApeChain, Base,
+  Arbitrum, Optimism, Avalanche, and Polygon — sequentially, one chain at a
+  time, with live SSE progress so you see each chain light up as it completes
 - **Groups** NFTs by collection so you can review and select what to rescue
 - **Estimates gas** per-token, per-chain so you know exactly what to fund
 - **Routes transactions** through MEV Blocker (ETH mainnet) or standard
@@ -242,7 +243,7 @@ Base, Optimism, or Avalanche, you need to turn those on:
 
 1. In your Alchemy dashboard, click into your app
 2. Click **"Networks"** (or Configuration)
-3. Toggle on: Polygon, Base, Optimism, Avalanche
+3. Toggle on: Polygon, Base, Optimism, Avalanche, ApeChain, Arbitrum
 4. Save. Your same API key now covers all chains
 
 If you skip this step, Rescue Lifeboat will only find your Ethereum NFTs.
@@ -429,7 +430,7 @@ tools don't reach. This tab was built specifically for that ecosystem — with n
 integrations for each chain, sourced directly from the explorers that index them.
 
 **Why it exists separately:** The standard NFT scanner uses Alchemy, which covers
-Ethereum, Polygon, Base, Optimism, and Avalanche. Fractal Visions' Superchain
+Ethereum, ApeChain, Base, Arbitrum, Optimism, Polygon, and Avalanche. Fractal Visions' Superchain
 deployments live on Soneium, Shape, Superseed, and Unichain — networks Alchemy
 doesn't index. To reach them, Rescue Lifeboat uses each chain's native Blockscout
 explorer API directly. Different source. Same result. Nothing falls through the floor.
@@ -476,7 +477,7 @@ The typical Mark V operator has 5 to 50 wallets accumulated over years of collec
 
 ---
 
-**Fleet Scan** — Load up to 50 wallet addresses with nicknames. One Alchemy key covers the entire fleet. All wallets scan simultaneously across ETH, Polygon, Base, Optimism, and Avalanche. The built-in Gas Calculator pulls live gwei from Alchemy and estimates your total operation cost so you can decide whether today is the right day to execute.
+**Fleet Scan** — Load up to 50 wallet addresses with nicknames. One Alchemy key covers the entire fleet. All wallets scan simultaneously across ETH, ApeChain, Base, Arbitrum, Optimism, Avalanche, and Polygon. The built-in Gas Calculator pulls live gwei from Alchemy and estimates your total operation cost so you can decide whether today is the right day to execute.
 
 **Fleet Execute** — Enter private keys for each wallet. One funding wallet covers gas for the entire fleet across every chain. Check balances, review the per-chain gas estimate, confirm, and fire. All wallets execute in parallel — Wallet 1 and Wallet 47 are moving at the same time. Progress streams live to the Fleet Status tab via real-time connection so nothing times out regardless of how long the operation takes.
 
@@ -499,10 +500,12 @@ The typical Mark V operator has 5 to 50 wallets accumulated over years of collec
 | Chain       | MEV Protected | Native Token | Status       | Scanner      |
 |-------------|---------------|--------------|--------------|--------------|
 | Ethereum    | ✅ Yes        | ETH          | Tested       | Alchemy      |
-| Polygon     | No            | POL          | Tested       | Alchemy      |
+| ApeChain    | No            | APE          | Tested       | Alchemy      |
 | Base        | No            | ETH          | Tested       | Alchemy      |
+| Arbitrum    | No            | ETH          | Tested       | Alchemy      |
 | Optimism    | No            | ETH          | Configured   | Alchemy      |
 | Avalanche   | No            | AVAX         | Configured   | Alchemy      |
+| Polygon     | No            | POL          | Tested       | Alchemy      |
 | Soneium     | No            | ETH          | Configured   | Blockscout   |
 | Shape       | No            | ETH          | Configured   | Blockscout   |
 | Superseed   | No            | ETH          | Configured   | Blockscout   |
@@ -766,7 +769,7 @@ Go to [http://localhost:3000](http://localhost:3000) manually.
 
 **Only Ethereum NFTs appear**
 
-Your Alchemy key is only set up for Ethereum by default. Go to your Alchemy dashboard → your app → Networks → enable Polygon, Base, Optimism, Avalanche.
+Your Alchemy key is only set up for Ethereum by default. Go to your Alchemy dashboard → your app → Networks → enable Polygon, Base, Optimism, Avalanche, ApeChain, Arbitrum.
 
 ---
 
