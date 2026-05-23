@@ -42,6 +42,7 @@ This is the table. These are the things that did not work. Do not revisit them w
 | Arweave-hosted HTML with browser execution | CORS + key security + MEV Blocker conflict. Triple failure. | Downloadable folder with local server. Settled. |
 | Standalone HTML+JS split (pre-V10) | Two separate files. User has to understand which one does what. Clunky UX for someone in crisis. | Unified local web server. One window, one experience. |
 | Large index.html chunked writes | File corruption during multi-part creation. CSS renders as raw text because the `<!DOCTYPE html>` got chopped off. | Build from known-good base. Verify DOCTYPE exists. Check file integrity before shipping. |
+| `Promise.all` for multi-chain NFT scan | All chains paginating simultaneously against a shared Alchemy rate limit (330 CU/s on free tier). Whichever chain loses the race gets 429'd. In whale wallet testing (5000+ NFTs), ETH returned zero — it was the chain that got rate-limited while Base and Polygon chewed through 30+ pages combined. No error surfaced to the user. Just missing data. | Sequential chain scanning — one chain at a time. `alchemyFetch()` wrapper retries 3x with exponential backoff (1s/2s/4s) on 429/5xx. `paginatedNFTFetch()` follows pageKey with 200ms page gaps and 50-page safety cap. SSE progress stream so the user sees each chain light up instead of staring at a spinner. |
 
 ---
 
@@ -262,5 +263,4 @@ Everything else is negotiable.
 — Kane Mayfield
 kanemayfield.com
 February 2026
-
 
