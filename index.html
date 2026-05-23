@@ -3384,10 +3384,12 @@ const EXPLORERS = {
 };
 const CHAIN_INFO = {
   'eth-mainnet': { key: 'eth', name: 'Ethereum', color: '#627eea', symbol: 'ETH' },
-  'polygon-mainnet': { key: 'polygon', name: 'Polygon', color: '#8247e5', symbol: 'POL' },
+  'apechain-mainnet': { key: 'apechain', name: 'ApeChain', color: '#0054fa', symbol: 'APE' },
   'base-mainnet': { key: 'base', name: 'Base', color: '#0052ff', symbol: 'ETH' },
+  'arb-mainnet': { key: 'arbitrum', name: 'Arbitrum', color: '#28a0f0', symbol: 'ETH' },
   'opt-mainnet': { key: 'optimism', name: 'Optimism', color: '#ff0420', symbol: 'ETH' },
-  'avax-mainnet': { key: 'avalanche', name: 'Avalanche', color: '#e84142', symbol: 'AVAX' }
+  'avax-mainnet': { key: 'avalanche', name: 'Avalanche', color: '#e84142', symbol: 'AVAX' },
+  'polygon-mainnet': { key: 'polygon', name: 'Polygon', color: '#8247e5', symbol: 'POL' }
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -3406,6 +3408,8 @@ document.addEventListener('DOMContentLoaded', () => {
       STATE.alchemyKey = data.alchemyKey || '';
       if (data.nfts) STATE.nfts = data.nfts;
       if (data.selected) STATE.selected = new Set(data.selected);
+      // Restore with all chains collapsed
+      STATE.closedChains = new Set(Object.keys(STATE.nfts));
       if (data.rescueData) STATE.rescueData = data.rescueData;
       onWalletInput();
       if (Object.keys(STATE.nfts).length > 0) {
@@ -3638,48 +3642,149 @@ async function startScan() {
   }
   document.getElementById('scanBtn').disabled = true;
   document.getElementById('scanBtn').textContent = '⬡ Scanning...';
-  document.getElementById('content').innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><div class="loading-msg">Scanning all chains...</div></div>';
-  
+
+  // ── Build per-chain status panel ──
+  const chainOrder = [
+    'eth-mainnet', 'apechain-mainnet', 'base-mainnet', 'arb-mainnet',
+    'opt-mainnet', 'avax-mainnet', 'polygon-mainnet'
+  ];
+  const statusStates = {}; // track state per chain
+  chainOrder.forEach(c => { statusStates[c] = { status: 'waiting', nfts: 0, collections: 0, page: 0, error: null, time: null }; });
+
+  function renderScanStatus() {
+    let totalSoFar = Object.values(statusStates).reduce((s, c) => s + c.nfts, 0);
+    let html = '<div style="max-width:560px;margin:32px auto;padding:24px 20px;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.08);border-radius:12px;">';
+    html += '<div style="font-size:0.8rem;font-weight:600;color:var(--text1);margin-bottom:16px;letter-spacing:0.5px;">SCANNING WALLET</div>';
+    for (const chainId of chainOrder) {
+      const info = CHAIN_INFO[chainId] || { name: chainId, color: '#888' };
+      const st = statusStates[chainId];
+      let icon = '○';
+      let detail = 'waiting';
+      let color = 'var(--text3)';
+      if (st.status === 'scanning') {
+        icon = '◉';
+        detail = `scanning page ${st.page}... ${st.nfts} so far`;
+        color = info.color;
+      } else if (st.status === 'complete') {
+        icon = '✓';
+        detail = `${st.nfts} NFTs · ${st.collections} collections`;
+        if (st.time) detail += `  [${st.time}]`;
+        color = '#4ade80';
+      } else if (st.status === 'error') {
+        icon = '✗';
+        detail = st.error || 'error';
+        color = 'var(--danger)';
+      }
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:0.65rem;">`;
+      html += `<span style="color:${color};font-size:0.75rem;width:16px;text-align:center;">${icon}</span>`;
+      html += `<span style="color:var(--text1);font-weight:500;width:90px;">${info.name}</span>`;
+      html += `<span style="color:${color};flex:1;">${detail}</span>`;
+      html += `</div>`;
+    }
+    html += `<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);font-size:0.6rem;color:var(--text2);">`;
+    html += `Total so far: ${totalSoFar} NFTs</div>`;
+    html += '</div>';
+    document.getElementById('content').innerHTML = html;
+  }
+
+  renderScanStatus();
+
   try {
-    const res = await fetch(API + '/api/scan', {
+    // Step 1: POST to start the scan job
+    const startRes = await fetch(API + '/api/scan-start', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ wallet: STATE.fromWallet, alchemyKey: STATE.alchemyKey })
     });
-    const result = await res.json();
-    if (!result.success) throw new Error(result.error || 'Scan failed');
-    
-    STATE.nfts = result.data.chains;
-    STATE.selected.clear();
-    STATE.openColls.clear();
-    
-    // Report any chain errors
-    if (result.errors && result.errors.length > 0) {
-      console.warn('Chain scan errors:', result.errors);
-      const failedChains = result.errors.map(e => `${e.chain}: ${e.error}`).join('\n');
-      log('⚠ Some chains had errors:\n' + failedChains, 'warn');
-    }
-    
-    // Auto-select all
-    for (const [chain, colls] of Object.entries(STATE.nfts)) {
-      for (const c of colls) for (const t of c.tokens) STATE.selected.add(`${chain}:${c.contract}:${t.tokenId}`);
-    }
-    
-    renderAll();
-    document.getElementById('toolbar').style.display = 'flex';
-    document.getElementById('exportRow').style.display = 'flex';
-    document.getElementById('headerStats').style.display = 'flex';
-    
-    // Log scan summary per chain
-    let summaryParts = [];
-    for (const [chainId, colls] of Object.entries(STATE.nfts)) {
-      const count = colls.reduce((s,c) => s + c.tokens.length, 0);
-      const info = CHAIN_INFO[chainId];
-      summaryParts.push(`${info?.name || chainId}: ${count}`);
-    }
-    console.log('Scan results:', summaryParts.join(', '));
-    
-    saveSession();
+    const startData = await startRes.json();
+    if (!startData.success) throw new Error(startData.error || 'Failed to start scan');
+
+    // Step 2: Open SSE stream
+    await new Promise((resolve, reject) => {
+      const chainStartTimes = {};
+      const evtSource = new EventSource(`${API}/api/scan-sse?jobId=${encodeURIComponent(startData.jobId)}`);
+
+      evtSource.addEventListener('chain-start', (e) => {
+        const d = JSON.parse(e.data);
+        statusStates[d.chain] = { ...statusStates[d.chain], status: 'scanning', page: 0, nfts: 0 };
+        chainStartTimes[d.chain] = Date.now();
+        renderScanStatus();
+      });
+
+      evtSource.addEventListener('chain-progress', (e) => {
+        const d = JSON.parse(e.data);
+        statusStates[d.chain] = { ...statusStates[d.chain], page: d.page, nfts: d.nftsSoFar };
+        renderScanStatus();
+      });
+
+      evtSource.addEventListener('chain-complete', (e) => {
+        const d = JSON.parse(e.data);
+        const elapsed = chainStartTimes[d.chain] ? ((Date.now() - chainStartTimes[d.chain]) / 1000).toFixed(1) + 's' : '';
+        statusStates[d.chain] = { status: 'complete', nfts: d.nfts, collections: d.collections, page: 0, error: null, time: elapsed };
+        renderScanStatus();
+      });
+
+      evtSource.addEventListener('chain-error', (e) => {
+        const d = JSON.parse(e.data);
+        statusStates[d.chain] = { status: 'error', nfts: 0, collections: 0, page: 0, error: d.error, time: null };
+        renderScanStatus();
+      });
+
+      evtSource.addEventListener('complete', (e) => {
+        evtSource.close();
+        const d = JSON.parse(e.data);
+        // d contains { rescue_from, chains, totalNfts, errors }
+        STATE.nfts = d.chains;
+        STATE.selected.clear();
+        STATE.openColls.clear();
+        STATE.closedChains = new Set(Object.keys(STATE.nfts));
+
+        // Report errors
+        if (d.errors && d.errors.length > 0) {
+          console.warn('Chain scan errors:', d.errors);
+          const failedChains = d.errors.map(err => `${err.chain}: ${err.error}`).join('\n');
+          log('⚠ Some chains had errors:\n' + failedChains, 'warn');
+        }
+
+        // Auto-select all
+        for (const [chain, colls] of Object.entries(STATE.nfts)) {
+          for (const c of colls) for (const t of c.tokens) STATE.selected.add(`${chain}:${c.contract}:${t.tokenId}`);
+        }
+
+        renderAll();
+        document.getElementById('toolbar').style.display = 'flex';
+        document.getElementById('exportRow').style.display = 'flex';
+        document.getElementById('headerStats').style.display = 'flex';
+
+        // Log scan summary
+        let summaryParts = [];
+        for (const [chainId, colls] of Object.entries(STATE.nfts)) {
+          const count = colls.reduce((s,c) => s + c.tokens.length, 0);
+          const info = CHAIN_INFO[chainId];
+          summaryParts.push(`${info?.name || chainId}: ${count}`);
+        }
+        console.log('Scan results:', summaryParts.join(', '));
+
+        saveSession();
+        resolve();
+      });
+
+      evtSource.addEventListener('error', (e) => {
+        const d = e.data ? JSON.parse(e.data) : {};
+        evtSource.close();
+        reject(new Error(d.error || 'Scan stream error'));
+      });
+
+      evtSource.onerror = () => {
+        if (evtSource.readyState === EventSource.CLOSED) {
+          // Normal close after complete — ignore
+        } else {
+          evtSource.close();
+          reject(new Error('Connection to scan stream lost'));
+        }
+      };
+    });
+
   } catch(e) {
     document.getElementById('content').innerHTML = `<div class="empty-state"><div class="empty-icon">✗</div><div class="empty-title" style="color:var(--danger)">Scan Failed</div><div class="empty-sub">${esc(e.message)}</div></div>`;
   }
@@ -3866,6 +3971,7 @@ function handleFileImport(e) {
       STATE.toWallet = data.rescue_to || '';
       STATE.nfts = data.chains || {};
       STATE.selected.clear();
+      STATE.closedChains = new Set(Object.keys(STATE.nfts));
       for (const [c,colls] of Object.entries(STATE.nfts)) for (const col of colls) for (const t of col.tokens) STATE.selected.add(`${c}:${col.contract}:${t.tokenId}`);
       STATE.rescueData = data;
       onWalletInput();
@@ -4199,7 +4305,7 @@ async function scanTokens() {
     const result = await res.json();
     if (!result.success) throw new Error(result.error || 'Token scan failed');
 
-    const chainColors = { eth: '#627eea', polygon: '#8247e5', base: '#0052ff', optimism: '#ff0420', avalanche: '#e84142' };
+    const chainColors = { eth: '#627eea', apechain: '#0054fa', base: '#0052ff', arbitrum: '#28a0f0', optimism: '#ff0420', avalanche: '#e84142', polygon: '#8247e5' };
     let html = '';
     let totalTokens = 0;
 
@@ -5273,8 +5379,8 @@ async function mvCheckAllBalances() {
   result.style.display = 'block';
   result.innerHTML = '<div style="font-size:0.6rem;color:var(--text3);padding:8px;">Checking balances...</div>';
 
-  const chainColors = { eth: '#627eea', polygon: '#8247e5', base: '#0052ff', optimism: '#ff0420', avalanche: '#e84142' };
-  const chainNames = { eth: 'ETH', polygon: 'POL', base: 'ETH (Base)', optimism: 'ETH (OP)', avalanche: 'AVAX' };
+  const chainColors = { eth: '#627eea', apechain: '#0054fa', base: '#0052ff', arbitrum: '#28a0f0', optimism: '#ff0420', avalanche: '#e84142', polygon: '#8247e5' };
+  const chainNames = { eth: 'ETH', apechain: 'APE', base: 'ETH (Base)', arbitrum: 'ETH (Arb)', optimism: 'ETH (OP)', avalanche: 'AVAX', polygon: 'POL' };
 
   let html = '<div style="display:flex;flex-direction:column;gap:8px;">';
 
@@ -5474,7 +5580,7 @@ async function mvFetchWalletBalances(address) {
       return;
     }
 
-    const chainColors = { eth: '#627eea', polygon: '#8247e5', base: '#0052ff', optimism: '#ff0420', avalanche: '#e84142' };
+    const chainColors = { eth: '#627eea', apechain: '#0054fa', base: '#0052ff', arbitrum: '#28a0f0', optimism: '#ff0420', avalanche: '#e84142', polygon: '#8247e5' };
     let html = '<span style="font-size:0.55rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;align-self:center;">Current Balances:</span>';
     for (const b of nonZero) {
       const color = chainColors[b.chain] || '#888';
@@ -6193,7 +6299,7 @@ async function mvScanFleetTokens() {
 
 function mvRenderFleetTokenResults(wallets) {
   const container = document.getElementById('mvTokenResults');
-  const chainColors = { eth: '#627eea', polygon: '#8247e5', base: '#0052ff', optimism: '#ff0420', avalanche: '#e84142' };
+  const chainColors = { eth: '#627eea', apechain: '#0054fa', base: '#0052ff', arbitrum: '#28a0f0', optimism: '#ff0420', avalanche: '#e84142', polygon: '#8247e5' };
   let html = '';
 
   for (const w of wallets) {
@@ -6359,7 +6465,7 @@ async function mvScanFleetNative() {
 
 function mvRenderFleetNativeResults(wallets) {
   const container = document.getElementById('mvNativeResults');
-  const chainColors = { eth: '#627eea', polygon: '#8247e5', base: '#0052ff', optimism: '#ff0420', avalanche: '#e84142' };
+  const chainColors = { eth: '#627eea', apechain: '#0054fa', base: '#0052ff', arbitrum: '#28a0f0', optimism: '#ff0420', avalanche: '#e84142', polygon: '#8247e5' };
   let html = '';
 
   for (const w of wallets) {

@@ -72,6 +72,30 @@ export const CHAINS = {
     priorityFeeGwei: 25,
     gasForFunding: 21000,
   },
+  'apechain': {
+    name: 'ApeChain',
+    chainId: 33139,
+    jsonKey: 'apechain-mainnet',
+    rpc: 'https://apechain-mainnet.g.alchemy.com/v2/', // Alchemy key appended at runtime
+    mevProtected: false,
+    nativeSymbol: 'APE',
+    explorer: 'https://apescan.io',
+    gasBuffer: 1.25,
+    priorityFeeGwei: 0.5,
+    gasForFunding: 21000,
+  },
+  'arbitrum': {
+    name: 'Arbitrum',
+    chainId: 42161,
+    jsonKey: 'arb-mainnet',
+    rpc: 'https://arb-mainnet.g.alchemy.com/v2/', // Alchemy key appended at runtime
+    mevProtected: false,
+    nativeSymbol: 'ETH',
+    explorer: 'https://arbiscan.io',
+    gasBuffer: 1.25,
+    priorityFeeGwei: 0.5,
+    gasForFunding: 21000,
+  },
   // ── FRACTAL VISIONS SUPERCHAIN CHAINS (Configured — not yet live-rescue tested) ──
   'shape': {
     name: 'Shape',
@@ -148,9 +172,13 @@ function getProvider(chainKey, alchemyKey) {
   if (!chain) throw new Error(`Unknown chain: ${chainKey}`);
 
   let rpc = chain.rpc;
-  // Polygon needs Alchemy key appended
+  // Chains that use Alchemy RPC need key appended
   if (chainKey === 'polygon' && alchemyKey) {
     rpc = `https://polygon-mainnet.g.alchemy.com/v2/${alchemyKey}`;
+  } else if (chainKey === 'apechain' && alchemyKey) {
+    rpc = `https://apechain-mainnet.g.alchemy.com/v2/${alchemyKey}`;
+  } else if (chainKey === 'arbitrum' && alchemyKey) {
+    rpc = `https://arb-mainnet.g.alchemy.com/v2/${alchemyKey}`;
   }
 
   // Always specify network statically — prevents "failed to detect network"
@@ -180,43 +208,170 @@ function validatePrivateKey(key) {
   }
 }
 
+// ── LAYER 1: alchemyFetch() — ARMORED HTTP CALL ──────────────────────────────
+// Every single Alchemy call in the engine goes through this ONE function.
+// Retry with exponential backoff on 429/5xx. 30-second timeout. Structured errors.
+// No function calls fetch() to Alchemy directly anymore. Ever.
+async function alchemyFetch(url, options = {}) {
+  const MAX_RETRIES = 3;
+  const TIMEOUT_MS = 30000;
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      // Success — return data
+      if (response.ok) {
+        return await response.json();
+      }
+
+      // Retryable: 429 (rate limit) or 5xx (server error)
+      if (response.status === 429 || response.status >= 500) {
+        const waitMs = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+        console.warn(`  ⚠ alchemyFetch: HTTP ${response.status} — retry ${attempt + 1}/${MAX_RETRIES} in ${waitMs}ms`);
+        lastError = { httpStatus: response.status, attempt, url: url.split('?')[0] };
+        if (attempt < MAX_RETRIES) {
+          await new Promise(r => setTimeout(r, waitMs));
+          continue;
+        }
+      }
+
+      // Non-retryable HTTP error (400, 401, 403, etc.)
+      throw {
+        alchemyError: true,
+        httpStatus: response.status,
+        message: `HTTP ${response.status}`,
+        retryCount: attempt,
+        url: url.split('?')[0],
+      };
+
+    } catch (e) {
+      // AbortController timeout
+      if (e.name === 'AbortError') {
+        console.warn(`  ⚠ alchemyFetch: timeout (${TIMEOUT_MS}ms) — retry ${attempt + 1}/${MAX_RETRIES}`);
+        lastError = { httpStatus: 0, message: 'Timeout', attempt, url: url.split('?')[0] };
+        if (attempt < MAX_RETRIES) {
+          const waitMs = Math.pow(2, attempt) * 1000;
+          await new Promise(r => setTimeout(r, waitMs));
+          continue;
+        }
+      }
+      // Already structured error from above
+      if (e.alchemyError) throw e;
+      // Network error or other
+      lastError = { httpStatus: 0, message: e.message, attempt, url: url.split('?')[0] };
+      if (attempt < MAX_RETRIES) {
+        const waitMs = Math.pow(2, attempt) * 1000;
+        await new Promise(r => setTimeout(r, waitMs));
+        continue;
+      }
+    }
+  }
+
+  // All retries exhausted
+  throw {
+    alchemyError: true,
+    httpStatus: lastError?.httpStatus || 0,
+    message: lastError?.message || 'All retries failed',
+    retryCount: MAX_RETRIES,
+    url: lastError?.url || url.split('?')[0],
+  };
+}
+
+// ── LAYER 2: paginatedNFTFetch() — FULL COLLECTION GETTER ───────────────────
+// Wraps alchemyFetch for getNFTsForOwner specifically.
+// Follows pageKey until done. 200ms pause between pages. Safety cap at 50 pages.
+// onPage callback reports progress back for SSE streaming.
+async function paginatedNFTFetch(chain, wallet, alchemyKey, onPage) {
+  const baseUrl = `https://${chain}.g.alchemy.com/nft/v3/${alchemyKey}/getNFTsForOwner?owner=${wallet}&withMetadata=true&pageSize=100`;
+  const MAX_PAGES = 50; // Safety cap: 5000 NFTs per chain
+  const PAGE_DELAY_MS = 200; // 200ms between pages — rate limit safe
+
+  let allNfts = [];
+  let pageKey = null;
+  let pages = 0;
+
+  do {
+    let url = baseUrl;
+    if (pageKey) url += `&pageKey=${encodeURIComponent(pageKey)}`;
+
+    const data = await alchemyFetch(url);
+    const nfts = data.ownedNfts || [];
+    allNfts = allNfts.concat(nfts);
+    pageKey = data.pageKey || null;
+    pages++;
+
+    // Report progress via callback
+    if (onPage) {
+      onPage({ page: pages, nftsSoFar: allNfts.length, hasMore: !!pageKey });
+    }
+
+    // Pause between pages to stay under rate limits
+    if (pageKey && pages < MAX_PAGES) {
+      await new Promise(r => setTimeout(r, PAGE_DELAY_MS));
+    }
+  } while (pageKey && pages < MAX_PAGES);
+
+  if (pages >= MAX_PAGES && pageKey) {
+    console.warn(`  ⚠ paginatedNFTFetch: hit ${MAX_PAGES}-page cap on ${chain} (${allNfts.length} NFTs retrieved, more exist)`);
+  }
+
+  return allNfts;
+}
+
 // ── SCANNING ───────────────────────────────────────────────────────────────────
 // Uses Alchemy NFT API to scan all chains simultaneously
-export async function scanAllChains(wallet, alchemyKey) {
+export async function scanAllChains(wallet, alchemyKey, onProgress) {
   const validWallet = validateAddress(wallet);
   if (!validWallet) throw new Error('Invalid wallet address');
   if (!alchemyKey) throw new Error('Alchemy API key required');
 
-  const chainConfigs = [
-    { key: 'eth-mainnet', url: `https://eth-mainnet.g.alchemy.com/nft/v3/${alchemyKey}/getNFTsForOwner?owner=${validWallet}&withMetadata=true&pageSize=100` },
-    { key: 'polygon-mainnet', url: `https://polygon-mainnet.g.alchemy.com/nft/v3/${alchemyKey}/getNFTsForOwner?owner=${validWallet}&withMetadata=true&pageSize=100` },
-    { key: 'base-mainnet', url: `https://base-mainnet.g.alchemy.com/nft/v3/${alchemyKey}/getNFTsForOwner?owner=${validWallet}&withMetadata=true&pageSize=100` },
-    { key: 'opt-mainnet', url: `https://opt-mainnet.g.alchemy.com/nft/v3/${alchemyKey}/getNFTsForOwner?owner=${validWallet}&withMetadata=true&pageSize=100` },
-    { key: 'avax-mainnet', url: `https://avax-mainnet.g.alchemy.com/nft/v3/${alchemyKey}/getNFTsForOwner?owner=${validWallet}&withMetadata=true&pageSize=100` },
+  // SCAN ORDER: ETH first (most valuable), Polygon last (most spam)
+  const chainKeys = [
+    'eth-mainnet',      // Ethereum — highest value NFTs
+    'apechain-mainnet', // ApeChain — Yuga/BAYC ecosystem
+    'base-mainnet',     // Base — high mint activity
+    'arb-mainnet',      // Arbitrum — growing NFT scene
+    'opt-mainnet',      // Optimism — standard L2
+    'avax-mainnet',     // Avalanche — standard L1
+    'polygon-mainnet',  // Polygon — last because most airdrop spam
   ];
 
   const results = { rescue_from: validWallet, chains: {} };
   const errors = [];
 
-  await Promise.all(chainConfigs.map(async ({ key, url }) => {
+  // SEQUENTIAL — one chain at a time to stay under Alchemy rate limits.
+  // With the SSE stream, "slower" doesn't feel slower — user sees per-chain
+  // results landing in real time while remaining chains scan.
+  for (const key of chainKeys) {
+    // Notify: chain starting
+    if (onProgress) onProgress({ type: 'chain-start', chain: key });
+
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        errors.push({ chain: key, error: `HTTP ${response.status}` });
-        return;
-      }
-      
-      const data = await response.json();
-      const nfts = data.ownedNfts || [];
-      
-      if (nfts.length === 0) {
+      // Layer 2: paginated fetch with per-page progress reporting
+      const allNfts = await paginatedNFTFetch(key, validWallet, alchemyKey, (pageData) => {
+        if (onProgress) {
+          onProgress({ type: 'chain-progress', chain: key, page: pageData.page, nftsSoFar: pageData.nftsSoFar });
+        }
+      });
+
+      if (allNfts.length === 0) {
         results.chains[key] = [];
-        return;
+        if (onProgress) onProgress({ type: 'chain-complete', chain: key, nfts: 0, collections: 0 });
+        continue;
       }
 
-      // Group by collection
+      // Group by collection — same proven logic
       const collections = {};
-      for (const nft of nfts) {
+      for (const nft of allNfts) {
         const contract = nft.contract?.address;
         if (!contract) continue;
 
@@ -238,10 +393,25 @@ export async function scanAllChains(wallet, alchemyKey) {
       }
 
       results.chains[key] = Object.values(collections);
+
+      // Notify: chain complete
+      if (onProgress) {
+        onProgress({
+          type: 'chain-complete',
+          chain: key,
+          nfts: allNfts.length,
+          collections: Object.keys(collections).length,
+        });
+      }
     } catch (e) {
-      errors.push({ chain: key, error: e.message });
+      const errorInfo = {
+        chain: key,
+        error: e.alchemyError ? `HTTP ${e.httpStatus} after ${e.retryCount} retries` : e.message,
+      };
+      errors.push(errorInfo);
+      if (onProgress) onProgress({ type: 'chain-error', chain: key, error: errorInfo.error });
     }
-  }));
+  }
 
   return { success: true, data: results, errors };
 }
@@ -933,10 +1103,12 @@ export async function scanAllTokens(privateKey, alchemyKey) {
 
   const chainConfigs = [
     { key: 'eth', jsonKey: 'eth-mainnet', name: 'Ethereum' },
-    { key: 'polygon', jsonKey: 'polygon-mainnet', name: 'Polygon' },
+    { key: 'apechain', jsonKey: 'apechain-mainnet', name: 'ApeChain' },
     { key: 'base', jsonKey: 'base-mainnet', name: 'Base' },
+    { key: 'arbitrum', jsonKey: 'arb-mainnet', name: 'Arbitrum' },
     { key: 'optimism', jsonKey: 'opt-mainnet', name: 'Optimism' },
     { key: 'avalanche', jsonKey: 'avax-mainnet', name: 'Avalanche' },
+    { key: 'polygon', jsonKey: 'polygon-mainnet', name: 'Polygon' },
   ];
 
   const tokens = [];
@@ -944,7 +1116,7 @@ export async function scanAllTokens(privateKey, alchemyKey) {
   await Promise.all(chainConfigs.map(async (cfg) => {
     try {
       const url = `https://${cfg.jsonKey}.g.alchemy.com/v2/${alchemyKey}`;
-      const response = await fetch(url, {
+      const data = await alchemyFetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -954,7 +1126,6 @@ export async function scanAllTokens(privateKey, alchemyKey) {
           params: [address, 'erc20']
         })
       });
-      const data = await response.json();
       const balances = data.result?.tokenBalances || [];
 
       for (const tb of balances) {
@@ -963,7 +1134,7 @@ export async function scanAllTokens(privateKey, alchemyKey) {
 
         // Get token metadata
         try {
-          const metaRes = await fetch(url, {
+          const metaData = await alchemyFetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -973,7 +1144,6 @@ export async function scanAllTokens(privateKey, alchemyKey) {
               params: [tb.contractAddress]
             })
           });
-          const metaData = await metaRes.json();
           const meta = metaData.result || {};
           const decimals = meta.decimals || 18;
           const rawBalance = BigInt(tb.tokenBalance);

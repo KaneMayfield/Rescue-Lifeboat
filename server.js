@@ -96,6 +96,94 @@ app.post('/api/scan', async (req, res) => {
 });
 
 /**
+ * POST /api/scan-start
+ * Stores scan payload server-side, returns a jobId.
+ * Client then opens GET /api/scan-sse?jobId=xxx to stream progress.
+ * Same two-step SSE pattern proven in Mark V fleet execute.
+ */
+const scanJobs = new Map();
+
+app.post('/api/scan-start', (req, res) => {
+  const { wallet, alchemyKey } = req.body;
+
+  if (!wallet) return res.status(400).json({ success: false, error: 'Wallet address required' });
+  if (!alchemyKey) return res.status(400).json({ success: false, error: 'Alchemy API key required' });
+
+  const jobId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  scanJobs.set(jobId, { wallet, alchemyKey });
+
+  // Auto-expire if SSE never connects
+  setTimeout(() => scanJobs.delete(jobId), 5 * 60 * 1000);
+
+  console.log(`  Scan job queued — ${wallet.slice(0, 10)}..., jobId: ${jobId.slice(0, 8)}...`);
+  res.json({ success: true, jobId });
+});
+
+/**
+ * GET /api/scan-sse?jobId=xxx
+ * SSE stream of per-chain scan progress.
+ * Events: chain-start, chain-progress, chain-complete, chain-error, complete
+ */
+app.get('/api/scan-sse', async (req, res) => {
+  const { jobId } = req.query;
+  const job = scanJobs.get(jobId);
+
+  if (!jobId || !job) {
+    res.status(400).json({ success: false, error: 'Invalid or expired jobId — start a new scan job' });
+    return;
+  }
+
+  // Claim and remove — can only be consumed once
+  scanJobs.delete(jobId);
+  const { wallet, alchemyKey } = job;
+
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  // Helper to send an SSE event
+  const send = (type, data) => {
+    if (res.writableEnded) return;
+    res.write(`event: ${type}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  // Heartbeat every 15s — prevents OS from closing idle socket
+  const heartbeat = setInterval(() => send('heartbeat', { ts: Date.now() }), 15000);
+  req.on('close', () => clearInterval(heartbeat));
+
+  console.log(`  [Scan SSE] Stream open — ${wallet.slice(0, 10)}...`);
+
+  try {
+    const onProgress = (progressData) => {
+      console.log(`  [Scan] [${progressData.type}] ${progressData.chain}${progressData.nfts !== undefined ? ' — ' + progressData.nfts + ' NFTs' : ''}`);
+      send(progressData.type, progressData);
+    };
+
+    const result = await engine.scanAllChains(wallet, alchemyKey, onProgress);
+
+    let totalNFTs = 0;
+    for (const chain of Object.values(result.data.chains)) {
+      for (const coll of chain) {
+        totalNFTs += coll.tokens.length;
+      }
+    }
+
+    console.log(`  [Scan SSE] Complete — ${totalNFTs} NFTs total`);
+    send('complete', { ...result.data, totalNfts: totalNFTs, errors: result.errors });
+
+  } catch (e) {
+    console.error(`  [Scan SSE] Error: ${e.message}`);
+    send('error', { error: e.message });
+  } finally {
+    clearInterval(heartbeat);
+    res.end();
+  }
+});
+
+/**
  * POST /api/estimate
  * Estimates gas costs for a chain rescue
  * Body: { chain: string, rescueData: object, alchemyKey: string }
