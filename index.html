@@ -4036,7 +4036,8 @@ function renderAll() {
         const k = `${chainId}:${coll.contract}:${token.tokenId}`;
         const sel = STATE.selected.has(k);
         const flag = STATE.flagged.has(k);
-        const osLink = `https://opensea.io/assets/${info.key === 'eth' ? 'ethereum' : info.key}/${coll.contract}/${token.tokenId}`;
+        const osChainSlug = { eth: 'ethereum', polygon: 'matic', apechain: 'ape_chain' }[info.key] || info.key;
+        const osLink = `https://opensea.io/assets/${osChainSlug}/${coll.contract}/${token.tokenId}`;
         
         html += `<div class="nft-card ${sel?'selected':''} ${flag?'flagged':''}" id="card-${esc(k)}">
           <div class="nft-img-wrap" onclick="toggleNFT('${esc(k)}')">
@@ -5905,7 +5906,7 @@ const SEL_CHAIN_NAMES = {
 const SEL_OS_SLUGS = {
   'eth-mainnet': 'ethereum', 'polygon-mainnet': 'matic', 'base-mainnet': 'base',
   'arb-mainnet': 'arbitrum', 'opt-mainnet': 'optimism', 'avax-mainnet': 'avalanche',
-  'apechain-mainnet': 'apechain'
+  'apechain-mainnet': 'ape_chain'
 };
 const SEL_EXPLORERS = {
   'eth-mainnet': 'https://etherscan.io/nft', 'polygon-mainnet': 'https://polygonscan.com/nft',
