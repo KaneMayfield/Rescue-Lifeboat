@@ -1,0 +1,1330 @@
+══════════════════════════════════════════════════════════════════════════════
+                           OPERATION LIFEBOAT
+                        V10 PROJECT CONSTITUTION
+     The single source of truth for building, extending, and deploying
+                         the NFT rescue system.
+══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ HOW TO USE THIS DOCUMENT                                                │
+│                                                                         │
+│ This document is written for any developer who picks up this project    │
+│ — including Claude in a fresh session. Read it top to bottom once       │
+│ before touching any code. When in doubt, return here. This is the       │
+│ answer, not a starting point for guessing.                              │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Built by Kane Mayfield • kanemayfield.com • February 2026
+Updated: May 2026 — Fractal Visions Integration, Superchain Support, Emblem Vault, Quiet Fund, Other Assets, Mark V (Massive Tactical Extraction), Scan Rebuild (Sequential SSE, ApeChain, Arbitrum)
+
+
+═══════════════════════════════════════════════════════════════════════════
+0. THE STORY — WHY THIS EXISTS
+═══════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Read this first. Architecture decisions make no sense without it.       │
+│                                                                         │
+│ This is not a product built in a vacuum. Every feature, every           │
+│ technical choice, every friction point in the UX exists because it      │
+│ was lived.                                                              │
+└─────────────────────────────────────────────────────────────────────────┘
+
+On February 16, 2026, Kane Mayfield's MetaMask wallet (kanemayfield.eth)
+was compromised. The seed phrase was exposed. A sweeper bot was deployed —
+monitoring the wallet address 24/7 and instantly draining any ETH the
+moment it arrived. The bot had no interest in NFTs. NFTs require gas to
+move. No ETH = no gas = NFTs trapped.
+
+Over approximately 18 hours — in real time, under real pressure, with
+real assets at stake — Kane and Claude built two tools from scratch,
+debugged them through live failures, and executed a successful rescue
+operation:
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ RESCUE COMPLETE                                                         │
+│                                                                         │
+│ • 115 ETH mainnet NFTs confirmed                                        │
+│ • 261 Polygon NFTs confirmed                                            │
+│ • 35 Base NFTs confirmed                                                │
+│ • 2 additional NFTs rescued during V10 live testing                      │
+│ • Manifold contract ownership transferred                               │
+│ • kanemayfield.eth ENS transferred                                      │
+│ • Total: 413 NFTs rescued                                               │
+│ • Compromised wallet drained to zero — bot has nothing left to sweep    │
+└─────────────────────────────────────────────────────────────────────────┘
+
+The tools that made this happen were originally called RESCUE (the scanner)
+and LIFEBOAT (the executor). V10 merges both into a single unified
+application with a local web server architecture. The scanner and executor
+are now tabs in one interface — same proven engine, better experience.
+
+Nobody should have to go through this without a tool designed for exactly
+this scenario. That is the mission.
+
+
+═══════════════════════════════════════════════════════════════════════════
+1. FEATURES, ABILITIES & ATTRIBUTES
+═══════════════════════════════════════════════════════════════════════════
+
+What V10 does — laid out with intention. This is the complete feature
+specification. Nothing gets cut without deliberate decision.
+
+
+── V10 ARCHITECTURE — LOCAL WEB SERVER ────────────────────────────────────
+
+V10 is a single unified application. The user downloads a folder,
+double-clicks a launcher, and their browser opens to localhost:3000.
+One window, one experience. All blockchain operations happen through a
+local Node.js server — private keys never leave the user's machine,
+and MEV Blocker works without CORS issues.
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ ARCHITECTURE OVERVIEW                                                   │
+│                                                                         │
+│ User runs start.bat (Windows) or start.sh (Mac/Linux)                   │
+│   → Node.js Express server starts on localhost:3000                     │
+│   → Browser opens automatically                                        │
+│   → V8 visual interface loads (single HTML file)                        │
+│   → All blockchain calls route through server.js → engine.js            │
+│   → MEV Blocker hides ETH transactions from sweeper bot                 │
+│   → Keys exist only in memory, never written to disk                    │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+── RESCUE TAB — The Scanner ───────────────────────────────────────────────
+
+A tab within the unified V10 interface. Scans compromised wallets for
+NFTs across all supported chains. No separate file — integrated into
+the single-page application.
+
+Core Scanning:
+  • Multi-chain sequential scan: Ethereum, ApeChain, Base, Arbitrum,
+    Optimism, Avalanche, Polygon — one chain at a time via Alchemy API.
+    SSE progress stream shows each chain lighting up in real time.
+    Scan order is fixed: ETH → ApeChain → Base → Arbitrum → Optimism →
+    Avalanche → Polygon (Polygon last because it has the most spam).
+  • Alchemy API key field: User provides their own key. Graceful error
+    if missing or invalid. FAQ and README include step-by-step for
+    enabling all chains (Alchemy defaults to ETH-only on new apps).
+  • FROM wallet field: The compromised wallet address to scan
+  • TO wallet field: The clean destination wallet address
+  • SCAN-ONLY MODE: Only the FROM wallet is required to scan. The TO
+    wallet is gated at export and "Launch Lifeboat" time. This lets
+    someone assess a compromised wallet without committing to anything —
+    no keys, no destination needed just to look.
+  • Address validation: Fields validated before their respective actions.
+    Header shows both addresses once entered.
+  • Global wallet inputs: FROM and TO are entered once at the top and
+    shared across all tabs. Less repetition, less chance of typos.
+
+NFT Display:
+  • Gallery view + List view toggle: Switch between visual grid and
+    compact list
+  • Lazy-load images: Warning/spam badge fires only on onerror — NOT on
+    slow IPFS load. This distinction matters. Slow load is normal; failed
+    load is suspicious.
+  • ERC-1155 quantity badge: Shows "x3" etc. for tokens held in quantity
+  • OpenSea link per card: Quick verification without leaving the tool
+  • Collection grouping: NFTs shown by collection within each chain
+    section, with collapsible accordions
+  • Chain sections: NFTs separated by chain (Ethereum, Polygon, Base,
+    etc.) with colored headers showing chain name, badge, and tally
+  • One-click collection select/deselect: Click the checkbox on a
+    collection header to select/deselect ALL NFTs in that collection
+    at once. Shows full/partial/empty selection states.
+  • Collapse/expand collections: Click the collection header to
+    show/hide the NFT grid. Prevents large collections from
+    monopolizing the screen.
+
+Selection & Filtering:
+  • Check/uncheck per NFT: User controls exactly what gets included
+    in the rescue JSON
+  • Spam/flag button per card: Orange border state. Marks token as
+    suspicious without removing it.
+  • Filter tabs: All / Selected / Skipped / Flagged — lets user work
+    through a large collection systematically
+  • Search field: Filter by collection name or token name
+  • Select All / Deselect All buttons: Bulk selection controls
+  • Header stats: Found / Rescue / Skip counters at top
+
+Export & Import:
+  • Export JSON: Produces rescue_data.json with rescue_from, rescue_to,
+    chain keys, collection data, token IDs, ERC-1155 balances.
+  • Export CSV: For record-keeping or cross-reference
+  • Import previous session JSON: Resume an interrupted scan. Critical
+    for large wallets — scanning 400+ NFTs takes time.
+  • Session auto-save to localStorage: If browser crashes mid-scan,
+    don't lose 10 minutes of work. Cleared on burn.
+
+
+── LIFEBOAT TABS — The Executor ───────────────────────────────────────────
+
+The execution side of V10. Multiple sub-tabs for different rescue
+operations, all powered by engine.js through the local Express server.
+
+NFT Rescue Tab:
+  The primary execution flow. Reads rescue data from the RESCUE tab
+  (or imported JSON), estimates gas, funds the compromised wallet,
+  executes transfers, and waits for confirmations.
+
+  • Private key entry: User enters compromised key and funding key.
+    Keys never leave localhost. Placeholder text catches unfilled
+    keys with a clear error.
+  • Per-token estimateGas with buffer: CRITICAL. Every token gets its
+    own gas estimate via eth_estimateGas before the transaction is
+    built. This is what makes non-standard contracts (BlazedCats,
+    Kindred Hearts, Manifold custom deployments) work. Flat gas limits
+    cause out-of-gas failures on ~20% of contracts.
+  • Tokens that would revert are skipped cleanly: estimateGas failure =
+    token already moved, burned, or restricted. Logged as warning,
+    not counted as failure. No wasted gas.
+  • Balance check button: Before any chain execution, shows live
+    balances for BOTH wallets. FROM (compromised — red) and TO
+    (clean — green). Color-coded: red if funding wallet is below
+    required gas, green if covered.
+  • Explorer links in execution log: Each submitted transaction gets
+    a clickable Etherscan/Polygonscan link so user can verify on-chain.
+  • Pre-execute summary modal: "You are about to move X NFTs from
+    0x123... to 0x456... This will cost ~0.03 ETH." One last
+    sanity check.
+  • Post-rescue checklist: "🚢 Your lifeboats have reached safety."
+    Then: Delete your keys from this tool NOW. Never use compromised
+    wallet again. Consider hardware wallet.
+
+Gas Tier Selector:
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ GAS FLOOR, NOT CEILING — "This is not a democracy."                     │
+│                                                                         │
+│ Users cannot set gas lower than Recommended. People who just lost       │
+│ money may "frugal too hard" and cause failed transactions. We help      │
+│ people, but we don't open a window for Harry Haggle to negotiate        │
+│ himself into failure.                                                   │
+│                                                                         │
+│ Recommended (1.1x) — Default. The floor. What proved itself.            │
+│ Safe (1.25x)       — For busy networks or non-standard contracts.       │
+│ Maximum (1.5x)     — When you absolutely cannot afford a failure.       │
+│                                                                         │
+│ No custom below recommended. No negotiating with physics.               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Token Sweep Tab:
+  Separate from NFT rescue. Scans ALL chains simultaneously for ERC-20
+  tokens (USDC, WETH, random airdrops, etc.) using Alchemy's
+  alchemy_getTokenBalances API. Shows token name, symbol, balance, and
+  chain for each found token. Per-token Sweep button transfers the
+  full balance to the destination address. Engine functions:
+  scanAllTokens (scanning) and sweepToken (execution).
+
+Native Balance Dashboard (formerly Native Sweep Tab):
+  Scans ALL chains at once for native token balances (ETH, POL, AVAX,
+  etc.) and displays a dashboard with one row per chain showing: chain
+  name, balance, symbol, MEV shield indicator (ETH only), and a
+  per-chain Sweep button. Replaces the old single-chain dropdown
+  approach. Hit scan once, see everything, sweep what's worth sweeping.
+  Engine function: getAllBalances (scanning), sweepETH (execution).
+
+Manifold Tab:
+  Handles Manifold creator contract admin transfer. Funds compromised
+  wallet via MEV Blocker, immediately fires transferOwnership(newOwner).
+  IMPORTANT: Only transferOwnership goes through MEV Blocker from the
+  compromised wallet. approveAdmin and setRoyalties must be called from
+  the clean wallet through Manifold's own UI after ownership transfers —
+  the old wallet loses admin rights the moment ownership moves.
+
+Quiet Fund Tab:
+  Sends a precise amount of native gas to the compromised wallet through
+  MEV Blocker's private relay on Ethereum mainnet, or standard RPC on
+  other chains. This is the prerequisite for any manual operation that
+  requires the compromised wallet to sign — ENS transfers, DeFi unstaking,
+  marketplace delisting. The tab includes a full "READ THIS FIRST" warning
+  explaining the fund-and-fire choreography: have the third-party site
+  loaded and ready to sign BEFORE sending gas. On Ethereum, the bot
+  typically has seconds to react. The tab explains this without softening it.
+
+Other Assets Tab:
+  A content-rich guide for rescue operations that don't fit the standard
+  NFT transfer flow. Three sections:
+
+  ENS Names (.eth): Explains why safeTransferFrom fails (registrar rejects
+  it), what the three components are (Owner, Manager, ETH Address), and
+  the exact fund-and-fire method used to rescue kanemayfield.eth. Includes
+  an inline button that jumps to the Quiet Fund tab mid-walkthrough.
+
+  Exchange-Locked & Staked Tokens: DeFi stakes (Lido, Aave, Compound)
+  require unstaking from the compromised wallet first — same Quiet Fund
+  choreography. Cooldown periods documented. Centralized exchanges
+  (Coinbase, Binance) covered separately — if email/2FA is intact,
+  withdraw directly, no LIFEBOAT needed.
+
+  Other Domain Names: Unstoppable Domains (.crypto, .nft, .x) on Polygon
+  and .base names on Base are standard NFTs — normal scan finds them.
+  .sol names are Solana — not supported.
+
+Emblem Vault Tab:
+  Three sub-sections for Emblem Vault NFTs on Ethereum mainnet:
+
+  Scan & Rescue: Scans both V2 contract (0x82C7a8f7...) and Legacy
+  contract (0x6Fc355D4...) for vaults owned by the compromised wallet.
+  Shows vault name, image, and contained assets (BTC, DOGE, rare pepes,
+  etc.) before execution. Transfers via MEV Blocker — same pattern as
+  NFT Rescue tab.
+
+  Vault Inspector: Read-only lookup by token ID. No keys needed. Shows
+  name, image, contained assets, full metadata.
+
+  Ownership Proof: Generates a cryptographic EIP-712 signature proving
+  vault ownership. Zero gas, completely invisible to sweeper bot. Used
+  for profile migration with Emblem support without revealing private key.
+
+Fractal Visions Tab — Rescue Suite:
+  A dedicated two-section tab for the Fractal Visions NFT ecosystem.
+  Exists separately because Fractal Visions operates on Superchain networks
+  that Alchemy does not index. Different data source, same rescue engine.
+
+  Collector Rescue (Section 1): Scans Soneium, Shape, Superseed, and
+  Unichain simultaneously via each chain's Blockscout REST API
+  (/api/v2/addresses/{wallet}/nft). No API key required. Returns NFTs
+  with images, collection names, token IDs, and balances. Executes rescue
+  using the standard /api/execute engine — same transfer logic, different
+  chains. WARNING: these chains have no MEV protection. Transfers are
+  visible in the mempool. Document this clearly in the UI.
+
+  Creator Rescue (Section 2): Queries the Fractal Visions Launchpad
+  registry (0x7A10b7d6Dc513Ae5F98f2C1546269Be9DE94ebD3 — same address
+  on all 7 FV chains, deterministic deployment) for ERC721 and ERC1155
+  collections owned by the compromised wallet. Calls transferOwnership()
+  directly on each collection contract. Separate ABIs required for each
+  token type — see Known Failures.
+
+
+── MARK V — Massive Tactical Extraction ───────────────────────────────────
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ MARK V IS A CLEAN WALLET TOOL — NOT A RESCUE TOOL                       │
+│                                                                         │
+│ Named after the Navy SEAL fast attack craft. Built for operators        │
+│ moving substantial assets across multiple wallets simultaneously.        │
+│ If any wallet is compromised, run standard Rescue Lifeboat FIRST.       │
+│ Sending gas to a compromised wallet in a bulk operation exposes it —    │
+│ funds sit waiting in the queue while the bot watches. Do not use        │
+│ Mark V with compromised wallets under any circumstances.                │
+│                                                                         │
+│ This warning lives at the top of the Mark V tab in the UI — not        │
+│ buried in an FAQ. Yellow callout, impossible to miss.                   │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Mark V is the third top-level module in the application. Top navigation:
+
+  RESCUE  —  LIFEBOAT  —  MARK V
+
+Mark V has its own internal tab structure (same pattern as LIFEBOAT).
+
+WHAT MARK V IS FOR:
+  • Wally the Whale consolidating 12 healthy wallets into one
+  • A creator moving their entire portfolio after getting a hardware wallet
+  • A fund or DAO reorganizing wallet structure
+  • Anyone who already ran Rescue Lifeboat and is doing the cleanup pass
+
+WHAT MARK V IS NOT FOR:
+  • Compromised wallets (see warning above)
+  • Single-wallet operations (use the existing RESCUE/LIFEBOAT tabs)
+  • Any situation where MEV protection is needed (use standard LIFEBOAT)
+
+
+── MARK V: ARCHITECTURE DECISIONS ────────────────────────────────────────
+
+  MEV Blocker: NOT used in Mark V.
+    Clean wallets have no sweeper bot. Standard RPC for all chains.
+    No MEV overhead, no latency penalty, no bundle complexity.
+
+  Alchemy Pro required:
+    Mark V fires simultaneous scans across up to 50 wallets x 7 chains.
+    That is potentially 350 concurrent Alchemy API calls. A free Alchemy
+    key rate-limits instantly. This is stated clearly in the UI BEFORE
+    the user enters anything. Link to Alchemy pricing included.
+    Minimum: Alchemy Growth plan.
+
+  Parallel execution across wallets:
+    Each wallet has an independent nonce counter. Wallet 1 and Wallet 7
+    can execute simultaneously — the blockchain has no constraint here.
+    Within each wallet, transfers are sequential (nonce-ordered).
+    Think of it as: N lanes of traffic, each lane moving in order.
+
+  Queue manager for API backpressure:
+    Global concurrent call limit (~20 simultaneous) prevents Alchemy
+    from returning 429 errors. Requests queue and drain — not dropped.
+
+  Nibble approach for large fleets:
+    Gas estimation and execution happen in batches per wallet, not all
+    at once. Prevents timeouts and partial failures on very large
+    operations (50 wallets x 500 NFTs each).
+
+
+── MARK V: TAB STRUCTURE ──────────────────────────────────────────────────
+
+  Fleet Scan Tab:
+    Input: paste up to 50 wallet addresses, OR upload a CSV file.
+    One Alchemy key field covers all wallets.
+    Hit scan — all wallets scanned simultaneously across all chains.
+    Output: one unified aggregated view of the entire fleet.
+    Grouped by: Wallet -> Chain -> Collection -> Token.
+    Fleet summary header: total wallets, total NFTs, total ERC-20s,
+    total native balances across the entire operation at a glance.
+    Wallet nicknames: operator can label each wallet for readability
+    ("Vault 1", "Creator Wallet", "Old ETH Wallet").
+    No private keys required for this step.
+
+  Fleet Execute Tab:
+    Input: private keys for each wallet (matched to addresses from scan).
+    Single funding wallet field: one wallet pays gas for the entire fleet.
+    Pre-execute summary: total estimated gas per chain across all wallets.
+    "To complete this operation you need approximately X ETH + Y POL."
+    Gas tier selector: Recommended / Safe / Maximum (same floor logic —
+    this is not a democracy).
+    Execution is parallel across wallets, sequential within each wallet.
+    Wallet status panel: real-time status per wallet —
+    SCANNING / READY / FUNDING / TRANSFERRING / COMPLETE / ERROR.
+    Color-coded. Operator sees the whole fleet without reading logs.
+
+  Fleet Status Tab:
+    Live scrolling operation log, color-coded by wallet.
+    Format: [Wallet Nickname / Chain] checkmark Collection #TokenID -> 0x5624...
+    Explorer link per confirmation.
+    Export full log as CSV when operation completes.
+    Mission complete screen: total assets moved, total wallets cleared,
+    total gas spent, timestamp. "NO ONE LEFT BEHIND."
+
+  Mark V Emblem Tab:
+    Dedicated tab for bulk Emblem Vault operations.
+    Two sections — see Mark V Emblem section below.
+
+
+── MARK V: EMBLEM VAULT OPERATIONS ────────────────────────────────────────
+
+  This section documents the full unvault flow as researched and confirmed
+  with Emblem's AI in May 2026. Every step below is verified.
+
+  SECTION 1 — BULK VAULT TRANSFER (EVM ONLY):
+    Scans multiple wallets for Emblem Vault NFTs (V2 + Legacy contracts).
+    Aggregates all vaults into one fleet view.
+    Transfers vault NFTs to a destination wallet in bulk.
+    Uses fetchVaultsOfType from emblem-vault-sdk for scanning —
+    cleaner than Alchemy NFT API for vault-specific data.
+    Execution uses standard engine.js transfer logic (same as NFT Rescue).
+    No MEV Blocker needed (clean wallets).
+    No new unvault dependencies required for this section.
+
+  SECTION 2 — UNVAULT AND XCP ASSET EXTRACTION:
+    Allows the operator to unvault Emblem Vaults and move the contained
+    XCP/Bitcoin assets to a native Counterparty wallet.
+
+    THE FULL CONFIRMED UNVAULT FLOW (verified from SDK source, May 2026):
+
+    Step 1 — Personal Sign (local, ethers.js):
+      wallet.signMessage("Claim: {serialNumber}")
+      Pure local. No gas. No transaction. No network call.
+      serialNumber comes from vault metadata.
+
+    Step 2 — Signer Proxy (HTTP POST, Node.js fetch):
+      POST https://tor-us-signer-coval.vercel.app/sign
+      Headers: { "Content-Type": "application/json", "chainid": "1" }
+      Body: { signature, tokenId }
+      Returns: { token: "jwt..." }
+      CONFIRMED OPEN: Live test May 18, 2026 returned HTTP 400 (bad
+      signature format as expected). No auth headers required. No API
+      key. No CORS restriction. Plain Node.js fetch confirmed working.
+
+    Step 3 — Torus Key Retrieval (npm packages):
+      getTorusKeys(tokenId, jwt.token)
+      Uses: @toruslabs/fetch-node-details + @toruslabs/torus.js
+      TORUS_VERIFIER  = 'tor-us-signer-vercel'
+      TORUS_CLIENT_ID = 'BOqGGv-Yx7Dp5RdvD9R3DgSC8jv66gQGwT3w22L7fj3Fg5WQ8AEUjJzyyEwD-qvq5eUQiVipyzOmRZTWBAxaoj0'
+      Both values hardcoded in public SDK source. No secrets. No request.
+      Returns: { privateKey: { privKey: "0x..." } }
+      Calls Torus node network directly. No browser. No OAuth. No popup.
+
+    Step 4 — AES Decrypt (local, CryptoJS):
+      fetchMetadata(tokenId) -> metadata.ciphertextV2
+      CryptoJS.AES.decrypt(ciphertextV2, privKey)
+      Returns: { phrase: "12 word mnemonic" }
+      Pure local. No network call.
+
+    Step 5 — BIP44 Derivation (local, bip39 + hdkey):
+      Derive Bitcoin/XCP private key from mnemonic.
+      Derivation path: m/44'/0'/0'/0/0 (Bitcoin standard, same for XCP)
+      SDK utilities: phrasePathToKey, generateTaprootAddressFromMnemonic
+
+    Step 6 — XCP Asset Movement (xchain.io API):
+      Construct Counterparty 'send' transaction with OP_RETURN data.
+      Broadcast as raw Bitcoin transaction via xchain.io free API.
+      BTC fees: fund the internal Bitcoin wallet first — same pattern
+      as gas funding in Rescue Lifeboat, just on Bitcoin.
+
+    REQUIRED npm PACKAGES for Section 2:
+      emblem-vault-sdk
+      @toruslabs/fetch-node-details
+      @toruslabs/torus.js
+      crypto-js
+      bip39
+      hdkey
+
+    IMPORTANT — Torus cannot be bypassed, but needs no browser:
+      The Torus step is required. It does NOT need OAuth or Google login.
+      The signer proxy (Step 2) handles ownership verification via EVM
+      signature. Everything runs in Node.js. Local-only architecture
+      is fully confirmed viable.
+
+    WHAT COMES OUT:
+      A BIP39 mnemonic phrase. Standard. Importable into any Bitcoin
+      wallet. From this, all XCP assets in the vault are accessible.
+
+
+── MEV Protection ─────────────────────────────────────────────────────────
+
+  • ETH Mainnet: MEV Blocker direct RPC (rpc.mevblocker.io):
+    Transactions are submitted privately. The sweeper bot cannot see
+    funding or transfers in the mempool. No bundle size limit. This is
+    the proven method — the one that actually worked.
+
+  • All other chains: Standard RPC: ApeChain, Base, Arbitrum, Polygon,
+    Optimism, Avalanche do not have the same sweeper bot risk. Standard
+    RPC submission is acceptable and proven.
+
+
+── Rate Limiting ──────────────────────────────────────────────────────────
+
+  Scan rate limiting (alchemyFetch layer):
+  • alchemyFetch(): armored HTTP wrapper for ALL Alchemy API calls. Retry
+    3x with exponential backoff (1s, 2s, 4s) on 429/5xx. 30-second timeout.
+    Structured errors. No direct fetch() to Alchemy anywhere else in
+    engine.js — every call routes through this one function.
+  • paginatedNFTFetch(): wraps alchemyFetch for getNFTsForOwner. Follows
+    pageKey until done. 200ms pause between pages. 50-page safety cap.
+    Per-page progress callback for SSE reporting.
+  • Sequential chain scanning prevents rate limit collisions — only one
+    chain hits Alchemy at a time.
+
+  Execution rate limiting (unchanged):
+  • Pause every 5 transactions: Prevents Alchemy 429 rate limit errors
+    on large wallets (261 Polygon NFTs requires this)
+  • Extended pause on 429 error: 3-second additional wait before retry
+  • 2-minute confirmation timeout per tx: Prevents hanging indefinitely.
+    Polygon and Base confirmations can be slow.
+
+
+── Chain Management ───────────────────────────────────────────────────────
+
+The server API accepts a chain parameter. The UI presents chain selector
+pills. Each chain runs independently.
+
+  • ETH Mainnet — MEV protected
+  • ApeChain — standard RPC
+  • Base — standard RPC
+  • Arbitrum — standard RPC
+  • Optimism — standard RPC
+  • Avalanche — standard RPC
+  • Polygon — standard RPC
+
+Fractal Visions Superchain (Blockscout-scanned, standard RPC execution):
+  • Soneium  — chainId 1868, rpc.soneium.org, explorer: soneium.blockscout.com
+  • Shape    — chainId 360,  mainnet.shape.network, explorer: shapescan.xyz
+  • Superseed— chainId 5330, mainnet.superseed.xyz, explorer: explorer.superseed.xyz
+  • Unichain — chainId 130,  mainnet.unichain.org, explorer: unichain.blockscout.com
+
+  These four chains are NOT scanned by Alchemy. They are scanned via
+  Blockscout REST API in the Fractal Visions tab only. They are configured
+  in engine.js CHAINS for execution (transfer) purposes. No MEV protection
+  on any of them.
+
+
+── Special Operations ─────────────────────────────────────────────────────
+
+  • Manifold: Now a dedicated tab. See Manifold Tab above.
+
+  • ENS (documented limitation): ENS names (contract 0x57f1887a) cannot
+    be moved via safeTransferFrom — the registrar rejects it. The script
+    detects these, skips them cleanly, and logs them as "would revert."
+    ENS transfer requires the user to go to app.ens.domains, connect the
+    compromised wallet, and use the ENS UI directly.
+
+  • Security warning at completion: "Delete your private keys NOW."
+    Shown after every successful run.
+
+  • Burn button: Fire emoji button that wipes session data. Keys nulled
+    from memory, form fields cleared, localStorage purged, confirmation
+    shown: "All session data cleared. Your keys were never written to
+    disk." Not just a reset — a ceremony.
+
+
+── Solana Decision ────────────────────────────────────────────────────────
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ V10 SHIPS EVM-ONLY                                                      │
+│                                                                         │
+│ Solana is a completely different architecture. Different wallet format,  │
+│ different RPC, different transaction model, no ethers.js. It would      │
+│ essentially be a second tool. V10 ships as EVM-only, clearly labeled.   │
+│ Solana support is a future consideration — potentially V11 or a         │
+│ separate "LIFEBOAT-SOL" tool. Trying to bolt it on now risks           │
+│ destabilizing what works.                                               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+── Attribution ────────────────────────────────────────────────────────────
+
+Kane's footer: Coffee link and attribution. kanemayfield.com.
+This is not negotiable.
+
+
+═══════════════════════════════════════════════════════════════════════════
+2. CODE-LEVEL REQUIREMENTS
+═══════════════════════════════════════════════════════════════════════════
+
+Everything that goes into building V10 — what works, what does not,
+and why. When you are lost in the weeds, check here before trying
+anything new.
+
+
+── V10 DELIVERY FORMAT ────────────────────────────────────────────────────
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Deployment decision — final answer                                      │
+│                                                                         │
+│ V10 is a downloadable folder with a local web server architecture.      │
+│ Not a hosted website, not an Arweave deployment, not a standalone       │
+│ HTML+JS pair. This decision is not revisable without a complete         │
+│ architectural rethink.                                                  │
+│                                                                         │
+│ The folder contains:                                                    │
+│   • server.js       — Express server with API endpoints                 │
+│   • engine.js       — Blockchain execution engine (from lifeboat.js)    │
+│   • public/index.html — V8 visual interface (single HTML file)          │
+│   • package.json    — Dependencies (express, ethers, open)              │
+│   • start.bat       — Windows launcher (double-click to run)            │
+│   • start.sh        — Mac/Linux launcher                                │
+│   • README.md       — User guide for non-technical users                │
+│                                                                         │
+│ Reason: LIFEBOAT requires private keys and direct RPC access.           │
+│ Browser-based execution fails due to CORS — MEV Blocker explicitly      │
+│ blocks browser-origin requests. Node.js has no CORS restriction.        │
+│ The local server architecture lets the beautiful V8 browser interface   │
+│ handle UX while Node.js handles blockchain operations. Best of both.    │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+── FILE STRUCTURE ─────────────────────────────────────────────────────────
+
+LIFEBOAT-V10/
+├── server.js              # Express server with API endpoints
+├── engine.js              # Blockchain execution engine (~1498 lines)
+├── markv-engine.js        # Mark V fleet execution engine
+├── markv-server.js        # Mark V API routes (SSE for long operations)
+├── package.json           # Dependencies — ethers@6.7.1 PINNED, see notes
+├── start.bat              # Windows launcher — pins critical packages on every run
+├── start.sh               # Mac/Linux launcher — same
+├── index.html             # V10 interface — all HTML, CSS, JS (~6687 lines)
+├── emblem-engine.js       # Emblem Vault rescue engine
+├── emblem-server.js       # Emblem Vault API routes
+├── test-emblem.js         # Automated test suite (Emblem)
+├── calculations.png       # Mark V gas calculator background image
+├── markvlogo.png          # Mark V logo
+├── markvalt.png           # Mark V atmospheric image
+├── MarkVbackground.png    # Mark V hero background
+├── extractmax.mp4         # Mark V extraction video (plays during execute)
+└── README.md              # User guide
+NOTE: markv-emblem.js does NOT exist as a separate file.
+      Emblem unvault logic lives in markv-engine.js (executeEmblemUnvault).
+
+
+── API ENDPOINTS ──────────────────────────────────────────────────────────
+
+The Express server (server.js) exposes these endpoints. The browser UI
+calls them via fetch(). All communication is localhost only.
+
+  Endpoint              Method   Purpose
+  ─────────────────────────────────────────────────────────────────────
+  /                     GET      Serve index.html
+  /api/scan             POST     Scan wallet for NFTs via Alchemy (legacy, no SSE)
+  /api/scan-start       POST     Store scan job (wallet + alchemyKey), return jobId
+  /api/scan-sse         GET      SSE stream — live per-chain scan progress
+                                 Events: chain-start, chain-progress, chain-complete,
+                                 chain-error, complete. Same two-step pattern as Mark V.
+  /api/estimate         POST     Per-token gas estimation
+  /api/balance          POST     Check wallet balances (single chain)
+  /api/balances-all     POST     Check native balances across ALL chains
+  /api/execute          POST     Execute NFT transfers (MEV protected on ETH)
+  /api/sweep            POST     Sweep leftover native tokens (single chain)
+  /api/tokens           POST     Scan all chains for ERC-20 token balances
+  /api/sweep-token      POST     Sweep a specific ERC-20 token
+  /api/manifold         POST     Transfer Manifold contract ownership
+  /api/quiet-fund       POST     Send gas privately to compromised wallet
+  /api/fractal-scan     POST     Scan Launchpad registry for FV collections (creator)
+  /api/fractal-transfer POST     Transfer FV collection ownership
+  /api/fractal-nft-scan POST     Scan Blockscout for FV NFTs (collector, no Alchemy)
+  /api/emblem-*                  Emblem Vault routes (scan, rescue, inspect, proof)
+  /api/markv-scan                POST   Fleet scan — all wallets, all chains simultaneously
+  /api/markv-estimate            POST   Fleet gas estimation across all wallets
+  /api/markv-execute-start       POST   Store fleet execute payload, return jobId
+  /api/markv-execute-sse         GET    SSE stream — live progress for fleet execute
+  /api/markv-status              GET    Mark V health check
+  /api/markv-emblem-scan         POST   Bulk Emblem Vault scan across fleet
+  /api/markv-emblem-transfer     POST   Bulk vault NFT transfer (EVM)
+  /api/markv-emblem-unvault-start POST  Store unvault payload, return jobId
+  /api/markv-emblem-unvault-sse  GET    SSE stream — live progress for unvault
+  NOTE: Long-running operations use two-step SSE pattern (POST jobId + GET stream)
+        Regular POST would time out on 50-wallet / 10+ vault operations.
+
+
+── TECHNOLOGY STACK — PROVEN ──────────────────────────────────────────────
+
+  Technology                    Status      Notes
+  ─────────────────────────────────────────────────────────────────────
+  Node.js v24+                  PROVEN      Chocolatey on Windows. v24.13.1
+  npm v11+                      PROVEN      11.8.0 confirmed
+  Express v4                    PROVEN      Local server + API endpoints
+  ethers.js v6                  PROVEN      v6.7.1. ESM import. Required.
+  open v9                       PROVEN      Auto-opens browser on start
+  MEV Blocker RPC               PROVEN      rpc.mevblocker.io — ETH only.
+                                            Direct JSON-RPC. No SDK.
+  Alchemy API                   PROVEN      NFT scanning + Polygon RPC.
+                                            Does NOT cover Superchain chains.
+  Blockscout REST API           PROVEN      /api/v2/addresses/{wallet}/nft
+                                            Free. No key. Covers Soneium,
+                                            Shape, Superseed, Unichain.
+  1rpc.io/matic                 TESTED      Backup Polygon RPC
+  mainnet.base.org              PROVEN      Base RPC. 35/35 confirmed.
+  mainnet.optimism.io           CONFIRMED   Optimism RPC. Not fully tested.
+  api.avax.network/ext/bc/C/rpc CONFIRMED   Avalanche RPC. Not fully tested.
+  apechain-mainnet.g.alchemy.   TESTED      ApeChain RPC via Alchemy. chainId
+  com/v2/{key}                              33139. APE native token.
+  arb-mainnet.g.alchemy.com/    TESTED      Arbitrum RPC via Alchemy. chainId
+  v2/{key}                                  42161. ETH native token.
+  rpc.soneium.org               CONFIRMED   Soneium RPC. Fractal tab only.
+  mainnet.shape.network         CONFIRMED   Shape RPC. Fractal tab only.
+  mainnet.superseed.xyz         CONFIRMED   Superseed RPC. Fractal tab only.
+  mainnet.unichain.org          CONFIRMED   Unichain RPC. Fractal tab only.
+  package.json type: module     PROVEN      ESM import syntax throughout
+  fileURLToPath / __dirname     PROVEN      ESM has no __dirname natively
+  emblem-vault-sdk              INSTALLED   Mark V Emblem — vault scanning
+  @toruslabs/fetch-node-details PINNED      Mark V Emblem — Torus node details
+                                            MUST BE 6.0.1. v6.1.0 does not exist.
+                                            v7+ changed API. Do not upgrade.
+  @toruslabs/torus.js           PINNED      Mark V Emblem — key retrieval
+                                            MUST BE 6.4.1. v7+ changed retrieveShares()
+                                            call signature. Do not upgrade.
+  crypto-js                     INSTALLED   Mark V Emblem — AES decrypt (Step 4)
+  bip39                         INSTALLED   Mark V Emblem — mnemonic to key (Step 5)
+  hdkey                         INSTALLED   Mark V Emblem — BIP44 derivation (Step 5)
+  xchain.io REST API            CONFIRMED   Mark V Emblem — XCP asset sends (Step 6)
+                                            Free. No key. Counterparty broadcast.
+  EventSource (browser native)  PROVEN      SSE client for Fleet Execute and Unvault.
+                                            Two-step: POST jobId, GET SSE stream.
+
+
+── KNOWN FAILURE REGISTRY ─────────────────────────────────────────────────
+
+These approaches were attempted and failed. Do not revisit them without
+a compelling new reason.
+
+  What Failed                           Why                      Use Instead
+  ─────────────────────────────────────────────────────────────────────────────
+  Flashbots SDK bundle                  Relay rejects 200+ tx    MEV Blocker direct RPC
+                                        bundles
+
+  @flashbots/ethers-provider-           Version doesn't exist    ethers@6 + MEV Blocker
+  bundle@^0.6.3                         on npm                   direct RPC
+
+  ethers@5 + flashbots@1.0.0            Version conflict         Use ethers@6 exclusively
+
+  Flat gas limit (100k/150k)            Non-standard contracts   Per-token eth_estimateGas
+                                        need more. ~20% fail.    with buffer
+
+  estimateGas from empty wallet         Node rejects sim with    Flat fallback during
+                                        zero balance             estimate. Real at execution.
+
+  polygon-rpc.com                       401 Unauthorized         Alchemy Polygon or
+                                                                 1rpc.io/matic
+
+  Browser-based MEV Blocker             CORS policy. Blocked     Node.js server. No CORS.
+  calls                                 by design.
+
+  rescue.flashbots.net                  Site was down at time    Build your own tooling
+                                        of use
+
+  safeTransferFrom on ENS               ENS registrar rejects    app.ens.domains UI only
+  (0x57f1887a)                          standard NFT transfer
+
+  address payable[] in ethers           ethers v6 rejects        Use address[] only.
+  v6 ABI                                payable/calldata         Strip payable/calldata.
+
+  calldata keyword in ABI strings       Same — ethers v6         Use bytes instead
+
+  CommonJS require() in                 ESM/CJS conflict with    ESM import throughout.
+  engine.js                             type: module             .cjs for CJS needs.
+
+  Arweave HTML with browser             CORS + key security +    Downloadable folder with
+  execution                             MEV Blocker conflict     local server. Settled.
+
+  Standalone HTML+JS split              Two separate files.      Unified local web server.
+  (pre-V10)                             Clunky UX.               One window, one experience.
+
+  Large index.html chunked              File corruption during   Build from V8 base or use
+  writes                                multi-part creation.     proven chunking. Verify
+                                        CSS renders as raw text. DOCTYPE exists.
+
+  Alchemy for Soneium, Shape,           Alchemy does not index   Blockscout REST API at
+  Superseed, Unichain                   these chains. Returns    /api/v2/addresses/{w}/nft
+                                        silent empty results.    Free. No key required.
+
+  Single shared ABI for ERC721          ERC721: totalSupply()    Two separate ABIs.
+  and ERC1155 totalSupply               (0x18160ddd, no args).   FRACTAL_ERC721_ABI and
+                                        ERC1155: totalSupply     FRACTAL_ERC1155_ABI.
+                                        (uint256 id) (0xbd85b039 Select by token type
+                                        requires tokenId). One   before instantiating.
+                                        ABI kills the entire
+                                        Promise.all silently.
+
+  Alchemy tokenType: "UNKNOWN"          AdminUpgradeabilityProxy Normalize any value that
+  on proxy contracts                    pattern (Foundation,     isn't ERC721 or ERC1155
+                                        ThirdWeb) causes Alchemy to ERC721 as default.
+                                        to return UNKNOWN instead
+                                        of ERC721/ERC1155.
+
+  Promise.all for multi-chain           All 5 chains paginating  Sequential scan (one chain
+  NFT scan                              simultaneously against   at a time) + alchemyFetch
+                                        shared Alchemy rate      retry layer. Whale wallets
+                                        limit. Whichever chain   (5000+ NFTs) triggered 429
+                                        loses the race gets 429. on whichever chain lost
+                                        ETH returned zero in     the race. SSE progress
+                                        whale wallet test.       stream shows each chain.
+
+
+── CHAIN CONFIGURATION — GROUND TRUTH ─────────────────────────────────────
+
+These are the exact values that worked during the rescue and are
+configured in engine.js. Do not change RPC endpoints without testing.
+
+  Chain (jsonKey)    RPC                                    Config
+  ─────────────────────────────────────────────────────────────────────
+  eth-mainnet        rpc.mevblocker.io                      mevProtected: true
+                                                            chainId: 1
+                                                            priorityFeeGwei: 0.5
+
+  polygon-mainnet    polygon-mainnet.g.alchemy.com/v2/{key} chainId: 137
+                                                            priorityFeeGwei: 30
+                                                            (REQUIRED — rejects < 25)
+
+  base-mainnet       mainnet.base.org                       chainId: 8453
+                                                            priorityFeeGwei: 0.5
+
+  opt-mainnet        mainnet.optimism.io                    chainId: 10
+                                                            priorityFeeGwei: 0.5
+
+  avax-mainnet       api.avax.network/ext/bc/C/rpc          chainId: 43114
+                                                            priorityFeeGwei: 25
+
+  apechain-mainnet   apechain-mainnet.g.alchemy.com/v2/{key} chainId: 33139
+                                                            nativeToken: APE
+                                                            priorityFeeGwei: 0.5
+                                                            explorer: apescan.io
+                                                            No MEV protection.
+
+  arb-mainnet        arb-mainnet.g.alchemy.com/v2/{key}     chainId: 42161
+                                                            nativeToken: ETH
+                                                            priorityFeeGwei: 0.5
+                                                            explorer: arbiscan.io
+                                                            No MEV protection.
+
+  ── Fractal Visions Superchain (execution only — Blockscout for scanning) ──
+
+  soneium            rpc.soneium.org                        chainId: 1868
+                                                            priorityFeeGwei: 0.5
+                                                            No MEV protection.
+
+  shape              mainnet.shape.network                  chainId: 360
+                                                            priorityFeeGwei: 0.5
+                                                            No MEV protection.
+
+  superseed          mainnet.superseed.xyz                  chainId: 5330
+                                                            priorityFeeGwei: 0.5
+                                                            No MEV protection.
+
+  unichain           mainnet.unichain.org                   chainId: 130
+                                                            priorityFeeGwei: 0.5
+                                                            No MEV protection.
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Chain key names are exact strings — do not change them                   │
+│                                                                         │
+│ eth-mainnet, apechain-mainnet, base-mainnet, arb-mainnet,              │
+│ opt-mainnet, avax-mainnet, polygon-mainnet.                           │
+│ These match the jsonKey values in engine.js CHAINS config and the       │
+│ keys in rescue_data.json. Mismatch = silent failure.                    │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+── RESCUE JSON FORMAT — CONTRACT ──────────────────────────────────────────
+
+The RESCUE tab exports this format. The LIFEBOAT execution tabs read
+this format. Any change to one must be reflected in the other.
+
+  {
+    "rescue_from": "0x9a28...9E53",
+    "rescue_to": "0x5624...94D6",
+    "generated": "2026-02-18T18:59:17Z",
+    "total_nfts": 123,
+    "chains": {
+      "eth-mainnet": [
+        {
+          "collection": "Kindred Hearts NFT",
+          "contract": "0x2Bd6...0FB",
+          "token_type": "ERC721",
+          "tokens": [
+            { "tokenId": "29", "name": "...", "image": "..." },
+            { "tokenId": "30", "balance": 3 }
+          ]
+        }
+      ],
+      "polygon-mainnet": [ ... ]
+    }
+  }
+
+
+── GAS LOGIC — EXACTLY HOW IT WORKS ──────────────────────────────────────
+
+During estimation (planning mode):
+
+  1. Attempt eth_estimateGas per token using actual FROM/TO addresses
+  2. If estimateGas succeeds: use result × gas tier buffer
+     (1.1x / 1.25x / 1.5x)
+  3. If estimateGas fails (wallet empty, token restricted): fall back
+     to flat values (150k ERC-721, 200k ERC-1155) so estimate still
+     produces a useful planning number
+  4. Sum all estimated gas, multiply by current gasPrice, report
+     native token needed
+
+During execution (real mode):
+
+  1. Fund the compromised wallet from the clean wallet (Step 1)
+  2. Per token: call estimateGas again — now the wallet has funds
+     so estimates are accurate
+  3. If estimateGas succeeds: build transaction with that gas limit
+     × tier buffer
+  4. If estimateGas fails: skip token, log warning — it would revert
+  5. Sign and submit via the chain's configured RPC
+  6. Wait for confirmation with 2-minute timeout per tx
+
+
+── BUILD SEQUENCE — DEPENDENCY ORDER ──────────────────────────────────────
+
+Build in this order. Each step depends on the previous.
+
+  1. package.json    — Define dependencies (express, ethers, open)
+  2. engine.js       — Port proven execution logic from lifeboat.js
+  3. server.js       — Express server with API endpoints wrapping engine.js
+  4. public/index.html — V8 visual interface connected to server API
+  5. start.bat / .sh — Launchers that run npm install then node server.js
+  6. README.md       — User documentation for non-technical users
+  7. Test            — Verify all functionality end to end
+
+
+── DECISION TREE — PRE-ANSWERED ───────────────────────────────────────────
+
+When you hit a choice mid-build, check here before spinning out.
+
+  Q: Should we use Flashbots SDK?
+  A: No. MEV Blocker direct RPC at rpc.mevblocker.io. See Known Failures.
+
+  Q: Should LIFEBOAT run in the browser?
+  A: No. CORS prevents MEV Blocker calls from browser contexts. The local
+     web server solves this — browser handles UI, Node.js handles blockchain.
+
+  Q: Should we use flat gas limits?
+  A: No. Per-token estimateGas is required. See Gas Logic section.
+
+  Q: Should we attempt to move ENS via safeTransferFrom?
+  A: No. ENS registrar rejects it. Detect, skip, log. Direct user to
+     app.ens.domains.
+
+  Q: ETH version: ethers v5 or v6?
+  A: v6. Always. import { ethers } from "ethers". Package: ethers@6.
+
+  Q: Polygon priority fee: how much?
+  A: Minimum 30 gwei. Polygon rejects < 25 gwei tip.
+
+  Q: What if estimateGas returns zero or fails during estimation?
+  A: Wallet is empty. Fall back to flat values (150k/200k) for the
+     estimate only. Don't skip — it may work once funded.
+
+  Q: Keys swapped (wrong wallet showing as funder)?
+  A: Common during setup. compromisedKey = 0x9a28...9E53 (empty/hacked).
+     fundingKey = 0x5624...94D6 (clean one with money). UI verifies both.
+
+  Q: Can users set gas below recommended?
+  A: No. Floor is 1.1x. This is not a democracy.
+
+  Q: Should we add Solana support?
+  A: Not in V10. Completely different architecture. Future consideration.
+
+  Q: Can Mark V be used with compromised wallets?
+  A: No. Never. Gas sent to a compromised wallet in a bulk queue sits
+     exposed while other wallets process. Bot will take it. Run standard
+     Rescue Lifeboat first, then Mark V for cleanup.
+
+  Q: Does Mark V need MEV Blocker?
+  A: No. Mark V is clean wallets only. No sweeper bot risk. Standard RPC.
+
+  Q: Can the Torus step in the Emblem unvault flow be bypassed?
+  A: No. But it requires no browser, no OAuth, no Google login. The
+     signer proxy (tor-us-signer-coval.vercel.app/sign) accepts plain
+     Node.js POST requests. Confirmed via live test May 18, 2026.
+
+  Q: What Alchemy plan does Mark V require?
+  A: Growth plan minimum. Free keys rate-limit instantly at fleet scale.
+     State this clearly in the UI before the user enters any data.
+
+  Q: What is the Mark V execution model — simultaneous or sequential?
+  A: Parallel across wallets (independent nonce counters — no blockchain
+     constraint). Sequential within each wallet (nonce-ordered). Queue
+     manager caps concurrent API calls at ~20 to prevent 429 errors.
+
+  Q: Should long-running Mark V operations use regular POST or SSE?
+  A: SSE. A 50-wallet fleet execute can take 10-20 minutes. A regular
+     POST holds the connection open silently — OS can close idle sockets
+     during confirmation waits. SSE streams progress live and uses a
+     15-second heartbeat to keep the connection alive. Two-step pattern:
+     POST payload → get jobId, GET /api/...-sse?jobId=xxx → stream.
+
+  Q: Where does the Emblem unvault logic live?
+  A: In markv-engine.js (executeEmblemUnvault). markv-emblem.js was
+     planned but never built as a separate file. Do not create it.
+
+  Q: Can npm audit fix --force ever be run safely?
+  A: No. It silently downgrades ethers from v6 to v5, breaking
+     ethers.getAddress() and every scan. It also overwrites pinned Torus
+     versions. Never run npm audit fix --force on this project.
+
+  Q: What happens if an import statement is not at the top of an ESM file?
+  A: The module fails to load entirely. Node.js ESM requires all import
+     statements at the top of the file before any other code. A mid-file
+     import causes a silent cascade failure — the importing module fails,
+     which fails its importer, which can corrupt the entire server startup
+     without a clear error message. Always put imports at the top.
+
+  Q: Dark/light mode?
+  A: No. Keep it dark. Emergency tool, not a settings playground.
+
+  Q: Should we use a single ABI for ERC721 and ERC1155 totalSupply?
+  A: No. Different selectors. Use FRACTAL_ERC721_ABI and FRACTAL_ERC1155_ABI
+     separately, selected by token type. See Known Failures.
+
+  Q: Should staticNetwork: true only apply to MEV Blocker?
+  A: No. Apply it to ALL providers. UUPS proxy contracts on OP-stack chains
+     misbehave without it. getProvider() uses staticNetwork globally.
+
+  Q: How do we scan Soneium, Shape, Superseed, Unichain for NFTs?
+  A: Blockscout REST API. Not Alchemy. GET /api/v2/addresses/{wallet}/nft
+     Free, no API key, same response structure on all four chains.
+
+  Q: Should engine.js have console.log statements?
+  A: No. Zero. Server.js does the logging. Engine internals are silent.
+     Add logs to debug, remove before committing.
+
+
+═══════════════════════════════════════════════════════════════════════════
+3. CULTURAL HEARTBEAT
+═══════════════════════════════════════════════════════════════════════════
+
+This section exists because the code alone doesn't tell you what it's
+supposed to feel like. Every friction point in the UX is a friction
+point someone going through a crisis hit in real time. This section is
+the why that shapes every if/else.
+
+
+── WHO IS USING THIS TOOL ─────────────────────────────────────────────────
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ The user profile                                                        │
+│                                                                         │
+│ Someone who just discovered their wallet was compromised. They may      │
+│ not have slept. They are watching their NFTs through a glass wall       │
+│ they can't break through. They are scared of making it worse. They     │
+│ do not know what a nonce is. They know their stuff is still there      │
+│ and they need to get it out before the bot wakes up. They are not a    │
+│ developer. They are not stupid. They are under pressure. Design for    │
+│ that person.                                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+── THE LANGUAGE OF THE TOOL ───────────────────────────────────────────────
+
+What it sounds like:
+
+  • Direct: Every line of output tells the user exactly where they are.
+    "Step 2: Submitting transfers privately." Not "processing."
+
+  • Calm: Errors don't panic. "Token already moved — skipping."
+    Not "FATAL ERROR: REVERT."
+
+  • Honest: If something might fail, say so. If the bot might react,
+    say so. No false promises.
+
+  • Specific: "You need 0.031 ETH to fund this rescue." Not "some ETH."
+    Not "enough ETH."
+
+  • No jargon without explanation: If you say MEV Blocker, say what it
+    does: "(your transactions are hidden from the bot)"
+
+What it never sounds like:
+
+  • Scary. The user is already scared.
+  • Vague. Vague is scary in a different way.
+  • Like another scam. The user has just been robbed. Trust is a
+    resource they are out of.
+  • Technical for no reason. The UI output is for execution, not
+    education.
+
+
+── KEY PHRASES FROM THE BUILD — PRESERVED AS CULTURE ──────────────────────
+
+  "Resonance over recursion"
+    Don't loop. When a decision is made, it's made. Move forward.
+    If you're going in circles, stop and read the Decision Tree.
+
+  "Measure twice, cut once"
+    Run estimation before executing. Verify addresses before confirming.
+    The blockchain is permanent.
+
+  "Beautiful car with no engine"
+    The v8 HTML looked incredible and did nothing. The working Node
+    script was ugly and saved everything. V10's local server gives us both.
+
+  "The blockchain doesn't lie"
+    When the script hung at 60 confirmations, Etherscan was the source
+    of truth. The script can misreport. The chain cannot.
+
+  "This is not a democracy"
+    Gas floors exist for a reason. Users can't negotiate themselves
+    into failure.
+
+  "Your lifeboats have reached safety"
+    The completion message. After the terror, after the waiting, after
+    the confirmations — this is the exhale.
+
+
+── UX PRINCIPLES — BORN FROM REAL FRICTION ────────────────────────────────
+
+Every one of these came from a real moment during the rescue operation:
+
+  The balance check button:
+    Before any chain execution, show live balances for BOTH wallets.
+    Label them clearly: FROM (compromised — red) and TO (clean — green).
+    Color-code: red if funding wallet is below required gas, green if
+    covered. This single feature eliminates the keys-swapped confusion
+    that happened multiple times during the rescue.
+
+  Step 3 — the honest wait:
+    When confirmation polling runs, don't just show a spinner. Show:
+    submitted count, confirmed count updating live, and a message:
+    "Transfers submitted privately. Confirmations arrive as blocks are
+    mined — typically 1-3 minutes. Do not close this tab." If timeout
+    hits: "Confirmation window closed. Your transfers may have already
+    landed. Verify here: [Explorer link]." Because that's what happened.
+
+  The burn button:
+    A fire emoji button that wipes session data. Keys nulled from
+    memory, form fields cleared, localStorage purged, confirmation
+    shown: "All session data cleared. Your keys were never written
+    to disk." Not just a reset — a ceremony.
+
+  Skip gracefully, explain clearly:
+    When a token is skipped (ENS, already moved, restricted), the output
+    says what it is and why. "Skipping kanemayfield.eth (ENS name) —
+    requires separate transfer via app.ens.domains." Not a silent skip.
+    Not an error. An explanation.
+
+  Session persistence:
+    Auto-save scan results to localStorage. If browser crashes mid-scan,
+    the user doesn't lose 10 minutes of work. Cleared on burn.
+
+
+── WHAT SUCCESS LOOKS LIKE ────────────────────────────────────────────────
+
+A person who just got hacked downloads this folder, double-clicks
+start.bat, and an hour later their NFTs are in a safe wallet. They
+did not need to understand what a Flashbots bundle is. They did not
+need to install Python. They did not need to trust a random website
+with their private key. They did not need to run two separate tools.
+
+They needed a lifeboat. That's the name. That's the job.
+
+
+═══════════════════════════════════════════════════════════════════════════
+4. HANDOFF PROTOCOL — FOR NEW DEVS AND FRESH SESSIONS
+═══════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ If you are Claude starting a new session, read this.                    │
+│                                                                         │
+│ You may not have context from previous conversations. This section      │
+│ tells you exactly what you need to know to start contributing           │
+│ immediately without asking Kane to re-explain the entire history.       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+── GROUND TRUTH — WHERE WE ARE ────────────────────────────────────────────
+
+  • The rescue is complete. 413 NFTs confirmed safe across ETH mainnet,
+    Polygon, and Base (including 2 rescued during V10 live testing).
+    Manifold and ENS transferred.
+
+  • V10 is feature-complete and actively expanded. The local web server
+    architecture is implemented and tested. Current engine.js is ~1498
+    lines. server.js is ~546 lines. index.html is ~6687 lines.
+
+  • Mark V is built and deployed (May 19, 2026). Fleet Scan, Execute
+    (SSE), Status, Tokens, Native, and Emblem Vaults all implemented.
+    Gas Calculator with live Alchemy gwei. Extraction video. The Emblem
+    unvault flow is wired end-to-end via SSE. Torus packages pinned to
+    confirmed-working versions. start.bat and start.sh pin critical
+    package versions on every launch to prevent npm audit damage.
+
+  • The proven engine is engine.js. All chain configs, MEV Blocker,
+    per-token estimateGas, rate limiting, confirmation logic, Fractal
+    Visions Launchpad integration, and Blockscout scanning live here.
+    staticNetwork: true is applied globally to all providers.
+
+  • Historical reference files (NFT_RESCUE.html, lifeboat.js, various
+    build log .txt files) are no longer needed for development. All
+    their features have been integrated into V10. They remain useful
+    only for understanding the original rescue operation.
+
+
+── KNOWN OUTSTANDING WORK ─────────────────────────────────────────────────
+
+  COMPLETED:
+  • ✓ public/index.html — fully rebuilt. All V10 features rendering.
+  • ✓ Token Sweep tab — ERC-20 scanning and transfer implemented.
+  • ✓ Native Balance Dashboard — all-chain balance scan with per-chain
+    sweep buttons.
+  • ✓ Scan-only mode — FROM wallet sufficient for scanning.
+  • ✓ Full end-to-end testing — 413 NFTs rescued. Flow proven.
+  • ✓ Alchemy chain enablement docs — FAQ and README both include
+    step-by-step instructions.
+  • ✓ Quiet Fund tab — private gas delivery via MEV Blocker for manual
+    operations (ENS, DeFi unstake, etc.)
+  • ✓ Other Assets tab — full walkthrough for ENS, DeFi stakes,
+    exchanges, domain names.
+  • ✓ Emblem Vault tab — scan, rescue, vault inspector, ownership proof.
+    V2 and Legacy contracts. MEV Blocker protected.
+  • ✓ Fractal Visions tab — full rescue suite. Collector rescue via
+    Blockscout (4 Superchains). Creator rescue via Launchpad registry
+    (7 chains). The Admiral.
+  • ✓ 4 Superchain chains added to engine.js CHAINS config — Shape,
+    Superseed, Soneium, Unichain. Configured for execution.
+  • ✓ staticNetwork: true applied globally to all providers.
+  • ✓ ApeChain (chainId 33139, APE gas) and Arbitrum (chainId 42161,
+    ETH gas) added to CHAINS config. Both use Alchemy NFT API.
+  • ✓ Scan rebuild: sequential chain scanning with SSE progress stream.
+    alchemyFetch() retry layer (3x exponential backoff on 429/5xx).
+    paginatedNFTFetch() with pageKey following and 50-page cap.
+    scanAllChains() rebuilt from Promise.all to sequential. Scan order:
+    ETH → ApeChain → Base → Arbitrum → Optimism → Avalanche → Polygon.
+    SSE endpoints: POST /api/scan-start + GET /api/scan-sse.
+    Frontend rebuilt with per-chain status panel (○ → ◉ → ✓ → ✗).
+    Tested with whale wallet: 5128 NFTs across 7 chains, no 429s.
+
+  REMAINING:
+  • Avalanche and Optimism: configured but not fully tested with live
+    NFT transfers.
+  • CSS cleanup: duplicate .footer, .export-row, .chain-pill definitions.
+    Cosmetic only.
+  • Two pre-existing console.log statements in index.html JS (not engine).
+    Minor. Non-critical.
+
+  MARK V — BUILT AND DEPLOYED (May 19, 2026):
+  • markv-engine.js — fleet execution engine. All imports at TOP of file.
+  • markv-server.js — API routes. SSE pattern for long-running operations.
+  • markv-emblem.js — NOT a separate file. Unvault logic lives in
+    markv-engine.js (executeEmblemUnvault). Constitution file structure
+    entry needs updating.
+  • index.html — Mark V tab added. Fleet Scan, Execute, Status, Tokens,
+    Native, Emblem Vaults all implemented.
+  • Gas Calculator — live gwei via Alchemy eth_gasPrice. calculations.png.
+  • Extraction video — extractmax.mp4 plays during Fleet Execute.
+  • Fleet Tokens tab — ERC-20 sweep across all fleet wallets.
+  • Fleet Native tab — native balance sweep, run last after all transfers.
+
+
+── HOW TO COMMUNICATE WITH KANE ───────────────────────────────────────────
+
+  • Resonance over recursion: State the answer, give the reason, move.
+    Don't loop back through already-decided questions.
+
+  • Accuracy over comfort: If something won't work, say so directly.
+    Kane can handle it. What he can't afford is a false start.
+
+  • Ask one question at a time: When clarification is needed, ask the
+    most important question only. Not five questions at once.
+
+  • Build from ground truth: Read project files before suggesting
+    changes. Don't assume what's in the code — verify it.
+
+  • Always read the constitution first: This document is the answer.
+    If Kane references a txt file, read that too, but start here.
+
+
+── WALLET ADDRESSES — FOR REFERENCE ───────────────────────────────────────
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ These are Kane's actual wallet addresses — handle with appropriate care │
+│                                                                         │
+│ Compromised (FROM): 0x9a2831d03a725e040a9b880De4b250e596069E53          │
+│   (kanemayfield.eth — seed compromised)                                 │
+│                                                                         │
+│ Clean (TO): 0x56241059e5c3FDA10762fc3ac128112c623A94D6                  │
+│                                                                         │
+│ Manifold contract: 0x75eeab04cbeefc40ade03d154a48aa80c7c1c57b           │
+│                                                                         │
+│ These are public addresses — no private keys appear in this document.   │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+── ARWEAVE ASSETS — V8 VISUAL DESIGN ─────────────────────────────────────
+
+These hosted assets are used by public/index.html for the V8 visual
+design. They are on Arweave (permanent storage) and should not change.
+
+  Background (RESCUE):
+    https://bwgytlvxlynxrtkj3rh3thgt3rv35alodtb3xgns2hs5kzegkpuq.arweave.net/DY2JrrdeG3jNSdxPuZzT3Gu-gW4cw7uZstHl1WSGU-k/boat.png
+
+  Background (LIFEBOAT):
+    https://puc2sz45hfobiadhbrmbswxqsofs3xusxmein5lmpvvegzhrteuq.arweave.net/fQWpZ505XBQAZwxYGVrwk4st3pK7CIb1bH1qQ2TxmSk/boat.png
+
+  Seal:
+    https://rufdvqdawrhrqqczy7npzsvyxejlxz3fnsyjodhhftfds2hjjasa.arweave.net/jQo6wGC0TxhAWcfa_Mq4uRK752VssJcM5yzKOWjpSCQ/boat.png
+
+  Wordmark:
+    https://ig2nt5bc2vhzda6zz5qqikv6wbw6cnjfmbvy3yigchahpki2irha.arweave.net/QbTZ9CLVT5GD2c9hBCq-sG3hNSVga43hBhHAd6kaRE4/boat.png
+
+
+══════════════════════════════════════════════════════════════════════════
+
+                    OPERATION LIFEBOAT V10 CONSTITUTION
+
+        Built from a real emergency. Refined for everyone else who follows.
+
+     Updated May 2026. 413 NFTs rescued. Emblem Vault, Quiet Fund,
+     Other Assets, Fractal Visions Rescue Suite, and 4 Superchain
+     chains added. The Admiral has entered the room.
+     Mark V built and deployed. Massive Tactical Extraction.
+     Fleet Tokens. Fleet Native. Gas Calculator. Extraction video.
+     Torus pinned. ESM imports at top. SSE for long operations.
+     Scan rebuilt: sequential chains, retry layer, +ApeChain +Arbitrum.
+                      No one left behind.
+
+                            kanemayfield.com
+
+══════════════════════════════════════════════════════════════════════════

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Rescue%20Lifeboat.png" alt="Rescue Lifeboat" width="860" />
+  <img src="assets/Rescue%20Lifeboat.png" alt="Rescue Lifeboat" width="860" />
 </p>
 
 <h3 align="center">NFT Rescue Tool for Compromised EVM Wallets</h3>
@@ -19,7 +19,7 @@
 ---
 
 <p align="center">
-  <img src="roughwater.png" width="620" />
+  <img src="assets/roughwater.png" width="620" />
 </p>
 
 ---
@@ -52,10 +52,10 @@
 ---
 
 <p align="center">
-  <img src="lighthouse.png" width="420" />
+  <img src="assets/lighthouse.png" width="420" />
 
 <p align="center">
-  <img src="closedoor.png" width="420" />
+  <img src="assets/closedoor.png" width="420" />
 </p>
 
 ## What This Is
@@ -260,13 +260,13 @@ If you skip this step, Rescue Lifeboat will only find your Ethereum NFTs.
 ---
 
 <p align="center">
-  <img src="background.png" width="660" />
+  <img src="assets/background.png" width="660" />
 </p>
 
 ---
 
 <p align="center">
-  <img src="footlocker.png" width="420" />
+  <img src="assets/footlocker.png" width="420" />
 </p>
 
 ## How to Use It
@@ -456,7 +456,7 @@ https://github.com/user-attachments/assets/aa12d7f5-e2cd-4769-8a71-a478da1b3b35
 ## Mark V — Massive Tactical Extraction
 
 <p align="center">
-  <img src="markvlogo.png" width="320" />
+  <img src="assets/markvlogo.png" width="320" />
 </p>
 
 **Mark V is for clean wallet consolidation — not emergency rescue.**
@@ -466,7 +466,7 @@ If any of your wallets is compromised, use RESCUE and LIFEBOAT first. Come to Ma
 The typical Mark V operator has 5 to 50 wallets accumulated over years of collecting. They're not in crisis — they're reorganizing. Moving everything into one secure wallet after getting a hardware wallet. Consolidating a portfolio that has grown across dozens of addresses on a dozen chains. The standard rescue tools work one wallet at a time. Mark V works on the entire fleet simultaneously.
 
 <p align="center">
-  <img src="MarkVbackground.png" width="620" />
+  <img src="assets/MarkVbackground.png" width="620" />
 </p>
 
 > *"The Mark V Special Operations Craft is the U.S. Navy SEALs' primary high-speed insertion and extraction vessel. 82 feet long. Twin MTU diesel engines. 35-knot top speed. Designed for one mission: moving a large team of operators into and out of hostile territory simultaneously, at maximum speed. The name is not aesthetic. It is a description."*
@@ -490,7 +490,7 @@ The typical Mark V operator has 5 to 50 wallets accumulated over years of collec
 **Emblem Vaults** — Two operations available. Bulk Transfer moves Emblem Vault NFTs (the EVM wrapper token) from multiple wallets to a destination in one fleet operation. Unvault opens each vault and extracts the contained XCP/Bitcoin assets directly to a native Counterparty wallet — the full Torus key derivation flow runs locally with no browser, no OAuth, and no third-party dependency beyond your Alchemy key.
 
 <p align="center">
-  <img src="markvalt.png" width="620" />
+  <img src="assets/markvalt.png" width="620" />
 </p>
 
 ---
@@ -553,7 +553,7 @@ Rescue-Lifeboat/
 ---
 
 <p align="center">
-  <img src="radar.jpg" width="660" />
+  <img src="assets/radar.jpg" width="660" />
 </p>
 
 ## Testing
@@ -598,7 +598,7 @@ This is what it was built for.
 ## Who Made This
 
 <p align="center">
-  <img src="logo.png" width="260" />
+  <img src="assets/logo.png" width="260" />
 </p>
 
 **Kane Mayfield** — artist, builder, the guy who got hacked. I'm your neighbor.
@@ -805,4 +805,3 @@ In Terminal/Command Prompt, type `node --version`. If you see a version number, 
 ---
 
 https://kanemayfield.com/llms.txt
-

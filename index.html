@@ -76,11 +76,11 @@ body::after {
   transition: opacity 0.8s ease;
 }
 .bg-scene-rescue {
-  background-image: url('Rescue Lifeboat.png');
+  background-image: url('assets/Rescue Lifeboat.png');
   opacity: 0.14;
 }
 .bg-scene-lifeboat {
-  background-image: url('background.png');
+  background-image: url('assets/background.png');
   opacity: 0;
 }
 body.tab-lifeboat .bg-scene-rescue { opacity: 0; }
@@ -91,7 +91,7 @@ body.tab-markv .bg-scene-rescue { opacity: 0; }
 body.tab-markv .bg-scene-lifeboat { opacity: 0; }
 body.tab-markv .bg-scene-markv { opacity: 0.22; }
 .bg-scene-markv {
-  background-image: url('MarkVbackground.png');
+  background-image: url('assets/MarkVbackground.png');
   opacity: 0;
 }
 
@@ -112,7 +112,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 
 .splash-bg {
   position: absolute; inset: 0;
-  background-image: url('Rescue Lifeboat.png');
+  background-image: url('assets/Rescue Lifeboat.png');
   background-size: cover; background-position: center;
   opacity: 0.35;
   transition: opacity 1s ease;
@@ -1409,7 +1409,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 }
 .mv-intro-bg {
   position: absolute; inset: 0;
-  background-image: url('markvalt.png');
+  background-image: url('assets/markvalt.png');
   background-size: cover; background-position: center;
   opacity: 0.07;
   pointer-events: none;
@@ -1841,7 +1841,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
   <div class="splash-bg" id="splashBg"></div>
   <div class="splash-vignette" id="splashVignette"></div>
   <div class="splash-landing" id="splashLanding">
-    <img class="splash-seal" src="logoclear.png" alt="LIFEBOAT" />
+    <img class="splash-seal" src="assets/logoclear.png" alt="LIFEBOAT" />
     <button class="splash-first-btn" onclick="showSplashMessage()">⚓ First Things First</button>
   </div>
   <div class="splash-msg-wrap" id="splashMsgWrap">
@@ -1868,7 +1868,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 <!-- APP -->
 <div class="app" id="appRoot" style="opacity:0;transition:opacity 0.7s;">
   <header class="header">
-    <div class="logo"><img class="logo-img" src="logo.png" alt="LIFEBOAT" /></div>
+    <div class="logo"><img class="logo-img" src="assets/logo.png" alt="LIFEBOAT" /></div>
     <div class="wallet-display" id="walletDisplay">
       <span class="wallet-from" id="hdrFrom">—</span>
       <span class="wallet-arrow">→</span>
@@ -1887,7 +1887,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
     </nav>
     <div class="header-right">
       <button class="btn-fire" onclick="confirmBurn()">🔥 Clear</button>
-      <img class="seal-mini" src="logoclear.png" alt="" />
+      <img class="seal-mini" src="assets/logoclear.png" alt="" />
     </div>
   </header>
 
@@ -2026,7 +2026,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
           <div class="exec-log" id="execLog" style="display:none;"></div>
           <div class="rescue-video-wrap" id="rescueVideoWrap">
             <div class="rescue-video-inner">
-              <video id="rescueVideo" src="lifeboatvid.mp4"
+              <video id="rescueVideo" src="assets/lifeboatvid.mp4"
                 loop muted playsinline preload="none"></video>
               <button class="rescue-video-mute" id="rescueVideoMuteBtn" onclick="toggleVideoMute()">🔇 SOUND OFF</button>
             </div>
@@ -2608,10 +2608,10 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 
     <!-- Hero -->
     <div class="mv-hero">
-      <div class="mv-hero-bg"><img src="MarkVbackground.png" alt="" /></div>
+      <div class="mv-hero-bg"><img src="assets/MarkVbackground.png" alt="" /></div>
       <div class="mv-hero-vignette"></div>
       <div class="mv-hero-content">
-        <img class="mv-logo" src="markvlogo.png" alt="Mark V" />
+        <img class="mv-logo" src="assets/markvlogo.png" alt="Mark V" />
         <div class="mv-title">MARK V</div>
         <div class="mv-subtitle">Massive Tactical Extraction</div>
         <div class="mv-tagline">One Operation. Total Recovery.</div>
@@ -2788,7 +2788,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 
         <!-- Mark V Hero -->
         <div style="text-align:center;margin-bottom:16px;">
-          <img src="markvalt.png" alt="Mark V — Massive Tactical Extraction" style="width:100%;max-width:660px;height:auto;border-radius:6px;opacity:0.9;" />
+          <img src="assets/markvalt.png" alt="Mark V — Massive Tactical Extraction" style="width:100%;max-width:660px;height:auto;border-radius:6px;opacity:0.9;" />
         </div>
 
       <!-- Alchemy Pro Requirement -->
@@ -2890,7 +2890,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
       <div class="mv-content">
 
         <div style="text-align:center;margin-bottom:16px;">
-          <img src="select.png" alt="S.E.L.E.C.T." style="width:100%;max-width:660px;height:auto;border-radius:6px;opacity:0.9;" />
+          <img src="assets/select.png" alt="S.E.L.E.C.T." style="width:100%;max-width:660px;height:auto;border-radius:6px;opacity:0.9;" />
         </div>
 
         <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;padding:4px 0 8px;">
@@ -2931,7 +2931,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 
         <!-- Gas Calculator -->
         <div class="mv-calc-wrap" id="mvGasCalc">
-          <img class="mv-calc-book" src="calculations.png" alt="Mark V Gas Calculator" />
+          <img class="mv-calc-book" src="assets/calculations.png" alt="Mark V Gas Calculator" />
           <div class="mv-calc-overlay">
             <div class="mv-calc-live-badge" onclick="mvCalcFetchGas()" title="Click to fetch live gas price">⬡ FETCH LIVE GWEI</div>
             <div class="mv-calc-field">
@@ -3060,7 +3060,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
         <!-- Extraction video -->
         <div class="mv-video-wrap" id="mvVideoWrap">
           <div class="mv-video-inner">
-            <video id="mvVideo" src="extractmax.mp4"
+            <video id="mvVideo" src="assets/extractmax.mp4"
               loop muted playsinline preload="none"></video>
             <button class="mv-video-mute" id="mvVideoMuteBtn" onclick="toggleMvVideoMute()">🔇 SOUND OFF</button>
             <div class="mv-video-label">⬡ EXTRACTION IN PROGRESS</div>
@@ -3104,7 +3104,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 
         <!-- Mission complete -->
         <div class="mv-complete-screen" id="mvCompleteScreen">
-          <img class="mv-complete-logo" src="markvlogo.png" alt="Mark V" />
+          <img class="mv-complete-logo" src="assets/markvlogo.png" alt="Mark V" />
           <div class="mv-complete-title">NO ONE LEFT BEHIND</div>
           <div class="mv-complete-sub">Fleet Operation Complete</div>
           <div class="mv-complete-stats">
@@ -3366,7 +3366,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
   <div id="page-faq" class="page">
     <div style="max-width:740px;margin:0 auto;padding:40px 24px 60px;">
       <div style="text-align:center;margin-bottom:44px;">
-        <img src="logoclear.png" alt="Seal" style="width:100px;height:auto;margin:0 auto 16px;display:block;filter:drop-shadow(0 0 20px rgba(255,149,0,0.25));" />
+        <img src="assets/logoclear.png" alt="Seal" style="width:100px;height:auto;margin:0 auto 16px;display:block;filter:drop-shadow(0 0 20px rgba(255,149,0,0.25));" />
         <div style="font-family:var(--display);font-size:2.4rem;letter-spacing:0.1em;color:var(--text);">Your Questions, <span style="color:var(--accent);">Answered Honestly</span></div>
         <div style="font-size:0.82rem;color:var(--text2);line-height:1.9;max-width:520px;margin:16px auto 0;">You just got robbed. You're scared, you're embarrassed, and you don't know who to trust anymore. Every answer here is written to be straight with you... nothing softened, nothing hidden.</div>
       </div>
@@ -3467,7 +3467,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 
     <div class="kane-hero">
       <img class="kane-photo"
-        src="kane.png"
+        src="assets/kane.png"
         alt="Kane Mayfield" />
       <div class="kane-identity">
         <div class="kane-name">Kane Mayfield</div>
