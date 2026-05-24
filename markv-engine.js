@@ -73,8 +73,8 @@ function getProvider(chainKey, alchemyKey) {
 
   return new ethers.JsonRpcProvider(
     rpc,
-    null,
-    { staticNetwork: ethers.Network.from(chain.chainId) }
+    { chainId: chain.chainId, name: chain.name },
+    { staticNetwork: true }
   );
 }
 
@@ -137,6 +137,8 @@ export async function scanFleet(wallets, destination, alchemyKey) {
     { key: 'base-mainnet',    label: 'base' },
     { key: 'opt-mainnet',     label: 'optimism' },
     { key: 'avax-mainnet',    label: 'avalanche' },
+    { key: 'apechain-mainnet', label: 'apechain' },
+    { key: 'arb-mainnet',     label: 'arbitrum' },
   ];
 
   const results = {}; // { [walletAddr_lower]: { chains: {}, errors: [] } }
@@ -275,6 +277,8 @@ export async function estimateFleetGas(scanResults, destination, alchemyKey, gas
     { jsonKey: 'base-mainnet',    engineKey: 'base' },
     { jsonKey: 'opt-mainnet',     engineKey: 'optimism' },
     { jsonKey: 'avax-mainnet',    engineKey: 'avalanche' },
+    { jsonKey: 'apechain-mainnet', engineKey: 'apechain' },
+    { jsonKey: 'arb-mainnet',     engineKey: 'arbitrum' },
   ];
 
   for (const { jsonKey, engineKey } of CHAIN_KEYS) {
@@ -394,9 +398,9 @@ export async function executeFleet(wallets, destination, fundingKey, scanResults
     { jsonKey: 'base-mainnet',    engineKey: 'base' },
     { jsonKey: 'opt-mainnet',     engineKey: 'optimism' },
     { jsonKey: 'avax-mainnet',    engineKey: 'avalanche' },
+    { jsonKey: 'apechain-mainnet', engineKey: 'apechain' },
+    { jsonKey: 'arb-mainnet',     engineKey: 'arbitrum' },
   ];
-
-  // Validate all provided wallet keys upfront
   const validatedWallets = wallets.filter(w => {
     if (!w.privateKey) return false;
     if (!validatePrivateKey(w.privateKey)) return false;
@@ -409,13 +413,13 @@ export async function executeFleet(wallets, destination, fundingKey, scanResults
   // Build one funding wallet per chain (same key, different providers)
   // This is computed per-chain per execution call.
 
-  const walletResults = new Array(validatedWallets.length); // Pre-allocate to preserve input order
+  const walletResults = []; // Collected after all parallel ops complete
   let totalConfirmed = 0;
   let walletsCleared = 0;
 
   // ── PARALLEL WALLET EXECUTION ──────────────────────────────────────────────
   // All wallets run simultaneously. Each wallet handles its own chain loop.
-  await Promise.all(validatedWallets.map(async (w, walletIndex) => {
+  await Promise.all(validatedWallets.map(async (w) => {
     const walletResult = {
       address: w.address,
       nick: w.nick,
@@ -431,7 +435,7 @@ export async function executeFleet(wallets, destination, fundingKey, scanResults
       const walletData = scanResults[w.address.toLowerCase()];
       if (!walletData) {
         walletResult.error = 'No scan data for wallet';
-        walletResults[walletIndex] = walletResult;
+        walletResults.push(walletResult);
         return;
       }
 
@@ -653,7 +657,7 @@ export async function executeFleet(wallets, destination, fundingKey, scanResults
       progress(w.address, 'error', `${w.nick}: Fatal error — ${e.message}`);
     }
 
-    walletResults[walletIndex] = walletResult;
+    walletResults.push(walletResult);
     progress(w.address, 'done', walletResult.success
       ? `${w.nick}: Complete — ${walletResult.confirmed} assets confirmed`
       : `${w.nick}: Finished with errors`
@@ -902,8 +906,8 @@ export async function executeEmblemUnvault(vaults, xcpDestination, btcFeeAmount 
       // Fetch vault metadata to get ciphertextV2
       const provider = new ethers.JsonRpcProvider(
         alchemyKey ? `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}` : 'https://cloudflare-eth.com',
-        null,
-        { staticNetwork: ethers.Network.from(1) }
+        { chainId: 1, name: 'Ethereum Mainnet' },
+        { staticNetwork: true }
       );
 
       const vaultABI = ['function tokenURI(uint256 tokenId) view returns (string)'];

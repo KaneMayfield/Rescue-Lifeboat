@@ -10,14 +10,14 @@
     "test:fast": "node test-suite.js --no-network"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "ethers": "^6.7.1",
-    "open": "^9.1.0",
-    "@toruslabs/fetch-node-details": "6.0.1",
-    "@toruslabs/torus.js": "6.4.1",
-    "crypto-js": "^4.2.0",
+    "@toruslabs/fetch-node-details": "^6.0.1",
+    "@toruslabs/torus.js": "^6.4.1",
     "bip39": "^3.1.0",
-    "hdkey": "^2.1.0"
+    "crypto-js": "^4.2.0",
+    "ethers": "^6.7.1",
+    "express": "^4.18.2",
+    "hdkey": "^2.1.0",
+    "open": "^9.1.0"
   },
   "engines": {
     "node": ">=18.0.0"

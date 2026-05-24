@@ -2098,6 +2098,8 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
                 <option value="base">Base (no stealth mode)</option>
                 <option value="optimism">Optimism (no stealth mode)</option>
                 <option value="avalanche">Avalanche (no stealth mode)</option>
+                <option value="apechain">ApeChain (no stealth mode)</option>
+                <option value="arbitrum">Arbitrum (no stealth mode)</option>
               </select>
               <div id="qfChainWarn" style="font-size:0.6rem;color:var(--text3);margin-top:6px;"></div>
             </div>
@@ -3554,7 +3556,9 @@ const EXPLORERS = {
   polygon: 'https://polygonscan.com/tx/',
   base: 'https://basescan.org/tx/',
   optimism: 'https://optimistic.etherscan.io/tx/',
-  avalanche: 'https://snowtrace.io/tx/'
+  avalanche: 'https://snowtrace.io/tx/',
+  apechain: 'https://apescan.io/tx/',
+  arbitrum: 'https://arbiscan.io/tx/'
 };
 const CHAIN_INFO = {
   'eth-mainnet': { key: 'eth', name: 'Ethereum', color: '#627eea', symbol: 'ETH' },
@@ -4369,6 +4373,8 @@ async function scanAllBalances() {
     { key: 'base', name: 'Base', color: '#0052ff', symbol: 'ETH', mev: false },
     { key: 'optimism', name: 'Optimism', color: '#ff0420', symbol: 'ETH', mev: false },
     { key: 'avalanche', name: 'Avalanche', color: '#e84142', symbol: 'AVAX', mev: false },
+    { key: 'apechain', name: 'ApeChain', color: '#0054fa', symbol: 'APE', mev: false },
+    { key: 'arbitrum', name: 'Arbitrum', color: '#28a0f0', symbol: 'ETH', mev: false },
   ];
 
   const body = isAddress
@@ -7047,6 +7053,8 @@ const MV_CALC_CHAINS = {
   base:      { name: 'Base',      symbol: 'ETH',  gasPerTransfer: 65000,  gasForFund: 21000 },
   optimism:  { name: 'Optimism',  symbol: 'ETH',  gasPerTransfer: 65000,  gasForFund: 21000 },
   avalanche: { name: 'Avalanche', symbol: 'AVAX', gasPerTransfer: 65000,  gasForFund: 21000 },
+  apechain:  { name: 'ApeChain',  symbol: 'APE',  gasPerTransfer: 65000,  gasForFund: 21000 },
+  arbitrum:  { name: 'Arbitrum',  symbol: 'ETH',  gasPerTransfer: 65000,  gasForFund: 21000 },
 };
 
 // Rough ETH/USD price for display — not used for critical logic
