@@ -1410,6 +1410,57 @@ const FV_BLOCKSCOUT_CHAINS = [
   { key: 'unichain',  name: 'Unichain',  baseUrl: 'https://unichain.blockscout.com',  explorer: 'https://unichain.blockscout.com'  },
 ];
 
+// ── BLOCKSCOUT RETRY WRAPPER ─────────────────────────────────────────────────
+// Same pattern as alchemyFetch: retry 3x with exponential backoff on 429/5xx.
+// Blockscout public instances are unauthenticated and rate-limit aggressively.
+async function blockscoutFetch(url) {
+  const MAX_RETRIES = 3;
+  const TIMEOUT_MS = 30000;
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
+
+      if (response.ok) return await response.json();
+
+      if (response.status === 429 || response.status >= 500) {
+        const waitMs = Math.pow(2, attempt) * 1000;
+        console.warn(`  ⚠ blockscoutFetch: HTTP ${response.status} — retry ${attempt + 1}/${MAX_RETRIES} in ${waitMs}ms`);
+        lastError = { httpStatus: response.status, attempt, url: url.split('?')[0] };
+        if (attempt < MAX_RETRIES) {
+          await new Promise(r => setTimeout(r, waitMs));
+          continue;
+        }
+      }
+
+      throw { blockscoutError: true, httpStatus: response.status, message: `HTTP ${response.status}`, url: url.split('?')[0] };
+    } catch (e) {
+      if (e.name === 'AbortError') {
+        console.warn(`  ⚠ blockscoutFetch: timeout (${TIMEOUT_MS}ms) — retry ${attempt + 1}/${MAX_RETRIES}`);
+        lastError = { httpStatus: 0, message: 'Timeout', attempt, url: url.split('?')[0] };
+        if (attempt < MAX_RETRIES) {
+          const waitMs = Math.pow(2, attempt) * 1000;
+          await new Promise(r => setTimeout(r, waitMs));
+          continue;
+        }
+      }
+      if (e.blockscoutError) throw e;
+      lastError = { httpStatus: 0, message: e.message, attempt, url: url.split('?')[0] };
+      if (attempt < MAX_RETRIES) {
+        const waitMs = Math.pow(2, attempt) * 1000;
+        await new Promise(r => setTimeout(r, waitMs));
+        continue;
+      }
+    }
+  }
+
+  throw { blockscoutError: true, httpStatus: lastError?.httpStatus || 0, message: `Failed after ${MAX_RETRIES} retries: ${lastError?.message}`, url: url.split('?')[0] };
+}
+
 export async function scanFractalNFTs(walletAddress) {
   const validAddress = validateAddress(walletAddress);
   if (!validAddress) throw new Error('Invalid wallet address');
@@ -1420,14 +1471,7 @@ export async function scanFractalNFTs(walletAddress) {
   await Promise.all(FV_BLOCKSCOUT_CHAINS.map(async (chain) => {
     try {
       const url = `${chain.baseUrl}/api/v2/addresses/${validAddress}/nft?type=ERC-721,ERC-1155`;
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        chainErrors.push({ chain: chain.key, error: `HTTP ${response.status}` });
-        return;
-      }
-
-      const data = await response.json();
+      const data = await blockscoutFetch(url);
       const items = data.items || [];
 
       // Group by collection contract — same pattern as scanAllChains

@@ -76,11 +76,11 @@ body::after {
   transition: opacity 0.8s ease;
 }
 .bg-scene-rescue {
-  background-image: url('https://bwgytlvxlynxrtkj3rh3thgt3rv35alodtb3xgns2hs5kzegkpuq.ar.io/DY2JrrdeG3jNSdxPuZzT3Gu-gW4cw7uZstHl1WSGU-k/boat.png');
+  background-image: url('Rescue Lifeboat.png');
   opacity: 0.14;
 }
 .bg-scene-lifeboat {
-  background-image: url('https://puc2sz45hfobiadhbrmbswxqsofs3xusxmein5lmpvvegzhrteuq.ar.io/fQWpZ505XBQAZwxYGVrwk4st3pK7CIb1bH1qQ2TxmSk/boat.png');
+  background-image: url('background.png');
   opacity: 0;
 }
 body.tab-lifeboat .bg-scene-rescue { opacity: 0; }
@@ -112,7 +112,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 
 .splash-bg {
   position: absolute; inset: 0;
-  background-image: url('https://bwgytlvxlynxrtkj3rh3thgt3rv35alodtb3xgns2hs5kzegkpuq.ar.io/DY2JrrdeG3jNSdxPuZzT3Gu-gW4cw7uZstHl1WSGU-k/boat.png');
+  background-image: url('Rescue Lifeboat.png');
   background-size: cover; background-position: center;
   opacity: 0.35;
   transition: opacity 1s ease;
@@ -1608,6 +1608,136 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 .mv-wallet-body { padding: 12px 16px; display: none; }
 .mv-wallet-block.open .mv-wallet-body { display: block; }
 
+/* ── S.E.L.E.C.T. TAB — Asset Selection ── */
+.sel-bar {
+  position: sticky; bottom: 0; z-index: 80;
+  background: var(--s2); border-top: 1px solid var(--border2);
+  padding: 12px 18px; display: flex; align-items: center; gap: 16px;
+  justify-content: space-between;
+}
+.sel-bar-count {
+  font-family: var(--mono); font-size: 0.75rem; color: var(--text2);
+  letter-spacing: 0.06em;
+}
+.sel-bar-count strong { color: var(--accent-mv2); }
+.sel-wallet {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; margin-bottom: 4px;
+}
+.sel-wallet-hdr {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.sel-wallet-hdr:hover { background: var(--s2); }
+.sel-wallet-nick {
+  font-family: var(--display); font-size: 0.95rem;
+  color: var(--accent-mv2); letter-spacing: 0.06em;
+}
+.sel-wallet-addr { font-size: 0.6rem; color: var(--text3); font-family: var(--mono); }
+.sel-wallet-count { font-size: 0.6rem; color: var(--text2); margin-left: auto; }
+.sel-wallet-done {
+  font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 1px; flex-shrink: 0;
+  color: var(--text3); border: 1px solid var(--border); background: transparent;
+  cursor: pointer; transition: all 0.15s;
+}
+.sel-wallet-done.reviewed {
+  color: var(--safe); border-color: rgba(0,232,122,0.4); background: rgba(0,232,122,0.1);
+}
+.sel-wallet-body { padding: 0 16px 12px; display: none; }
+.sel-wallet.open .sel-wallet-body { display: block; }
+.sel-chain { border-bottom: 1px solid var(--border); padding: 8px 0; }
+.sel-chain:last-child { border-bottom: none; }
+.sel-chain-hdr {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 4px; cursor: pointer; transition: background 0.15s;
+  border-radius: var(--radius);
+}
+.sel-chain-hdr:hover { background: var(--s2); }
+.sel-chain-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sel-chain-name {
+  font-size: 0.6rem; color: var(--text3); text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.sel-chain-count { font-size: 0.6rem; color: var(--text2); margin-left: auto; }
+.sel-chain-cb {
+  width: 16px; height: 16px; border: 1px solid var(--border2);
+  border-radius: 2px; display: flex; align-items: center; justify-content: center;
+  font-size: 0.55rem; color: var(--bg); cursor: pointer; flex-shrink: 0;
+  transition: all 0.15s;
+}
+.sel-chain-cb.all { background: var(--accent2); border-color: var(--accent2); }
+.sel-chain-cb.partial { background: var(--accent3); border-color: var(--accent3); }
+.sel-chain-body { display: none; padding: 4px 0 4px 18px; }
+.sel-chain.open .sel-chain-body { display: block; }
+.sel-caret {
+  font-size: 0.5rem; color: var(--text3); transition: transform 0.15s;
+  flex-shrink: 0;
+}
+.sel-chain.open > .sel-chain-hdr .sel-caret,
+.sel-wallet.open > .sel-wallet-hdr .sel-caret,
+.sel-coll.open > .sel-coll-hdr .sel-caret { transform: rotate(90deg); }
+.sel-coll { margin-bottom: 2px; }
+.sel-coll-hdr {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; cursor: pointer; transition: background 0.15s;
+  border-radius: var(--radius); border-left: 2px solid var(--border2);
+}
+.sel-coll-hdr:hover { background: var(--s2); }
+.sel-coll-name { font-size: 0.65rem; color: var(--text2); }
+.sel-coll-count { font-size: 0.6rem; color: var(--text3); }
+.sel-coll-sel { font-size: 0.55rem; color: var(--accent2); margin-left: auto; }
+.sel-coll-cb {
+  width: 14px; height: 14px; border: 1px solid var(--border2);
+  border-radius: 2px; display: flex; align-items: center; justify-content: center;
+  font-size: 0.5rem; color: var(--bg); cursor: pointer; flex-shrink: 0;
+  transition: all 0.15s;
+}
+.sel-coll-cb.all { background: var(--accent2); border-color: var(--accent2); }
+.sel-coll-cb.partial { background: var(--accent3); border-color: var(--accent3); }
+.sel-coll-body { display: none; padding: 8px 0 4px 10px; }
+.sel-coll.open .sel-coll-body { display: block; }
+.sel-grid { display: flex; flex-direction: column; gap: 4px; }
+.sel-grid.gallery {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;
+}
+.sel-token {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 8px; border: 1px solid var(--border);
+  border-radius: var(--radius); cursor: pointer; transition: all 0.15s;
+  background: transparent;
+}
+.sel-token:hover { border-color: var(--border2); }
+.sel-token.selected { border-color: var(--accent2); background: rgba(0,200,160,0.04); }
+.sel-token-cb {
+  width: 14px; height: 14px; border: 1px solid var(--border2);
+  border-radius: 2px; display: flex; align-items: center; justify-content: center;
+  font-size: 0.5rem; color: var(--bg); flex-shrink: 0;
+}
+.sel-token.selected .sel-token-cb { background: var(--accent2); border-color: var(--accent2); }
+.sel-token-img {
+  width: 40px; height: 40px; border-radius: 3px; object-fit: cover;
+  background: var(--s2); flex-shrink: 0;
+}
+.sel-grid.gallery .sel-token { flex-direction: column; padding: 6px; align-items: stretch; }
+.sel-grid.gallery .sel-token-img { width: 100%; height: 120px; border-radius: 3px; }
+.sel-token-info { flex: 1; min-width: 0; }
+.sel-token-name {
+  font-size: 0.62rem; color: var(--text); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.sel-token-id { font-size: 0.55rem; color: var(--text3); font-family: var(--mono); }
+.sel-token-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.sel-token-act {
+  font-size: 0.5rem; color: var(--text3); text-decoration: none;
+  padding: 2px 6px; border: 1px solid var(--border);
+  border-radius: var(--radius); transition: all 0.15s;
+  background: transparent; cursor: pointer;
+}
+.sel-token-act:hover { color: var(--text2); border-color: var(--border2); }
+
 /* Fleet key entry */
 .mv-key-row {
   display: flex; gap: 8px; align-items: center;
@@ -1711,7 +1841,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
   <div class="splash-bg" id="splashBg"></div>
   <div class="splash-vignette" id="splashVignette"></div>
   <div class="splash-landing" id="splashLanding">
-    <img class="splash-seal" src="https://rufdvqdawrhrqqczy7npzsvyxejlxz3fnsyjodhhftfds2hjjasa.ar.io/jQo6wGC0TxhAWcfa_Mq4uRK752VssJcM5yzKOWjpSCQ/boat.png" alt="LIFEBOAT" />
+    <img class="splash-seal" src="logoclear.png" alt="LIFEBOAT" />
     <button class="splash-first-btn" onclick="showSplashMessage()">⚓ First Things First</button>
   </div>
   <div class="splash-msg-wrap" id="splashMsgWrap">
@@ -1738,7 +1868,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 <!-- APP -->
 <div class="app" id="appRoot" style="opacity:0;transition:opacity 0.7s;">
   <header class="header">
-    <div class="logo"><img class="logo-img" src="https://ig2nt5bc2vhzda6zz5qqikv6wbw6cnjfmbvy3yigchahpki2irha.ar.io/QbTZ9CLVT5GD2c9hBCq-sG3hNSVga43hBhHAd6kaRE4/boat.png" alt="LIFEBOAT" /></div>
+    <div class="logo"><img class="logo-img" src="logo.png" alt="LIFEBOAT" /></div>
     <div class="wallet-display" id="walletDisplay">
       <span class="wallet-from" id="hdrFrom">—</span>
       <span class="wallet-arrow">→</span>
@@ -1757,7 +1887,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
     </nav>
     <div class="header-right">
       <button class="btn-fire" onclick="confirmBurn()">🔥 Clear</button>
-      <img class="seal-mini" src="https://rufdvqdawrhrqqczy7npzsvyxejlxz3fnsyjodhhftfds2hjjasa.ar.io/jQo6wGC0TxhAWcfa_Mq4uRK752VssJcM5yzKOWjpSCQ/boat.png" alt="" />
+      <img class="seal-mini" src="logoclear.png" alt="" />
     </div>
   </header>
 
@@ -1896,7 +2026,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
           <div class="exec-log" id="execLog" style="display:none;"></div>
           <div class="rescue-video-wrap" id="rescueVideoWrap">
             <div class="rescue-video-inner">
-              <video id="rescueVideo" src="https://2ibbkowxedrofpyarvjkopsiaxklbiiqpncbyn7eg5vlj3imhsdq.ar.io/0gIVOtcg4uK_AI1Spz5IBdSwoRB7RBw35DdqtO0MPIc/lifeboatvid.mp4"
+              <video id="rescueVideo" src="lifeboatvid.mp4"
                 loop muted playsinline preload="none"></video>
               <button class="rescue-video-mute" id="rescueVideoMuteBtn" onclick="toggleVideoMute()">🔇 SOUND OFF</button>
             </div>
@@ -2644,6 +2774,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
     <!-- Mark V Sub-Tabs -->
     <div class="mv-tab-bar">
       <button class="mv-tab active" id="mv-tab-scan" onclick="showMvTab('scan',this)">⬡ Fleet Scan</button>
+      <button class="mv-tab" id="mv-tab-select" onclick="showMvTab('select',this)">◆ S.E.L.E.C.T.</button>
       <button class="mv-tab" id="mv-tab-execute" onclick="showMvTab('execute',this)">▶ Fleet Execute</button>
       <button class="mv-tab" id="mv-tab-status" onclick="showMvTab('status',this)">◎ Fleet Status</button>
       <button class="mv-tab" id="mv-tab-tokens" onclick="showMvTab('tokens',this)">🪙 Fleet Tokens</button>
@@ -2655,50 +2786,9 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
     <div id="mv-tab-content-scan" class="mv-tab-content active">
       <div class="mv-content">
 
-        <!-- Gas Calculator -->
-        <div class="mv-calc-wrap" id="mvGasCalc">
-          <img class="mv-calc-book" src="calculations.png" alt="Mark V Gas Calculator" />
-          <div class="mv-calc-overlay">
-            <div class="mv-calc-live-badge" onclick="mvCalcFetchGas()" title="Click to fetch live gas price">⬡ FETCH LIVE GWEI</div>
-            <div class="mv-calc-field">
-              <div class="mv-calc-label">Chain</div>
-              <select class="mv-calc-select" id="mvCalcChain" onchange="mvCalcRun()">
-                <option value="eth">Ethereum</option>
-                <option value="polygon">Polygon</option>
-                <option value="base">Base</option>
-                <option value="optimism">Optimism</option>
-                <option value="avalanche">Avalanche</option>
-              </select>
-            </div>
-            <div class="mv-calc-field">
-              <div class="mv-calc-label">NFT Count</div>
-              <input class="mv-calc-input" type="number" id="mvCalcNFTs" value="100" min="1" max="5000" oninput="mvCalcRun()" />
-            </div>
-            <div class="mv-calc-field">
-              <div class="mv-calc-label">Current Gwei</div>
-              <input class="mv-calc-input" type="number" id="mvCalcGwei" value="3" min="0.1" step="0.1" oninput="mvCalcRun()" />
-            </div>
-            <div class="mv-calc-field">
-              <div class="mv-calc-label">Target Max Gwei</div>
-              <input class="mv-calc-input" type="number" id="mvCalcTarget" value="5" min="0.1" step="0.1" oninput="mvCalcRun()" />
-            </div>
-            <button class="mv-calc-btn" onclick="mvCalcRun()">⬡ CALCULATE</button>
-            <div class="mv-calc-result" id="mvCalcResult">
-              <div class="mv-calc-result-line">
-                <span>Est. gas cost</span>
-                <span class="mv-calc-result-val" id="mvCalcCostNative">—</span>
-              </div>
-              <div class="mv-calc-result-line">
-                <span>At target gwei</span>
-                <span class="mv-calc-result-val" id="mvCalcCostTarget">—</span>
-              </div>
-              <div class="mv-calc-result-line">
-                <span>Savings if you wait</span>
-                <span class="mv-calc-result-val" id="mvCalcSavings">—</span>
-              </div>
-              <div class="mv-calc-verdict" id="mvCalcVerdict"></div>
-            </div>
-          </div>
+        <!-- Mark V Hero -->
+        <div style="text-align:center;margin-bottom:16px;">
+          <img src="markvalt.png" alt="Mark V — Massive Tactical Extraction" style="width:100%;max-width:660px;height:auto;border-radius:6px;opacity:0.9;" />
         </div>
 
       <!-- Alchemy Pro Requirement -->
@@ -2795,12 +2885,96 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
       </div>
     </div>
 
+    <!-- ══ S.E.L.E.C.T. TAB ═══════════════════════════════════════════════════ -->
+    <div id="mv-tab-content-select" class="mv-tab-content">
+      <div class="mv-content">
+
+        <div style="text-align:center;margin-bottom:16px;">
+          <img src="select.png" alt="S.E.L.E.C.T." style="width:100%;max-width:660px;height:auto;border-radius:6px;opacity:0.9;" />
+        </div>
+
+        <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;padding:4px 0 8px;">
+          <strong style="color:var(--accent-mv2);">S.E.L.E.C.T.</strong> — Strategic Extraction & Ledger Evaluation Command Terminal<br>
+          <span style="font-size:0.62rem;color:var(--text3);">Review every asset before extraction. Poisoned tokens, malicious contracts, and airdrop spam should be left behind — interacting with them is the attack vector. Nothing moves without your approval.</span>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+          <button class="btn btn-ghost" onclick="mvSelViewMode('list')" id="mvSelViewList" style="font-size:0.6rem;padding:4px 10px;">☰ List</button>
+          <button class="btn btn-ghost" onclick="mvSelViewMode('gallery')" id="mvSelViewGallery" style="font-size:0.6rem;padding:4px 10px;">⊞ Gallery</button>
+          <div style="flex:1;"></div>
+          <button class="btn btn-ghost" onclick="mvSelAll(true)" style="font-size:0.6rem;padding:4px 10px;">✓ Select All</button>
+          <button class="btn btn-ghost" onclick="mvSelAll(false)" style="font-size:0.6rem;padding:4px 10px;">✕ Deselect All</button>
+        </div>
+
+        <div id="mvSelectContent">
+          <div style="font-size:0.65rem;color:var(--text3);text-align:center;padding:40px 16px;">
+            Complete Fleet Scan first. Selection loads automatically after scan.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sticky bottom bar -->
+      <div class="sel-bar" id="mvSelBar" style="display:none;">
+        <div class="sel-bar-count"><strong id="mvSelCount">0</strong> / <span id="mvSelTotal">0</span> assets selected</div>
+        <button class="btn btn-primary" onclick="mvSelProceed()" style="font-size:0.62rem;padding:8px 20px;letter-spacing:0.1em;">PROCEED TO EXTRACTION →</button>
+      </div>
+    </div>
+
     <!-- ══ FLEET EXECUTE TAB ═══════════════════════════════════════════════════ -->
     <div id="mv-tab-content-execute" class="mv-tab-content">
       <div class="mv-content">
 
         <div style="font-size:0.72rem;color:var(--text2);line-height:1.9;padding:4px 0 16px;">
           Enter private keys for each wallet in the fleet. One funding wallet covers gas for all operations simultaneously. Check balances first, then run the gas estimate before committing.
+        </div>
+
+        <!-- Gas Calculator -->
+        <div class="mv-calc-wrap" id="mvGasCalc">
+          <img class="mv-calc-book" src="calculations.png" alt="Mark V Gas Calculator" />
+          <div class="mv-calc-overlay">
+            <div class="mv-calc-live-badge" onclick="mvCalcFetchGas()" title="Click to fetch live gas price">⬡ FETCH LIVE GWEI</div>
+            <div class="mv-calc-field">
+              <div class="mv-calc-label">Chain</div>
+              <select class="mv-calc-select" id="mvCalcChain" onchange="mvCalcRun()">
+                <option value="eth">Ethereum</option>
+                <option value="polygon">Polygon</option>
+                <option value="base">Base</option>
+                <option value="optimism">Optimism</option>
+                <option value="avalanche">Avalanche</option>
+                <option value="apechain">ApeChain</option>
+                <option value="arbitrum">Arbitrum</option>
+              </select>
+            </div>
+            <div class="mv-calc-field">
+              <div class="mv-calc-label">NFT Count</div>
+              <input class="mv-calc-input" type="number" id="mvCalcNFTs" value="100" min="1" max="5000" oninput="mvCalcRun()" />
+            </div>
+            <div class="mv-calc-field">
+              <div class="mv-calc-label">Current Gwei</div>
+              <input class="mv-calc-input" type="number" id="mvCalcGwei" value="3" min="0.1" step="0.1" oninput="mvCalcRun()" />
+            </div>
+            <div class="mv-calc-field">
+              <div class="mv-calc-label">Target Max Gwei</div>
+              <input class="mv-calc-input" type="number" id="mvCalcTarget" value="5" min="0.1" step="0.1" oninput="mvCalcRun()" />
+            </div>
+            <button class="mv-calc-btn" onclick="mvCalcRun()">⬡ CALCULATE</button>
+            <div class="mv-calc-result" id="mvCalcResult">
+              <div class="mv-calc-result-line">
+                <span>Est. gas cost</span>
+                <span class="mv-calc-result-val" id="mvCalcCostNative">—</span>
+              </div>
+              <div class="mv-calc-result-line">
+                <span>At target gwei</span>
+                <span class="mv-calc-result-val" id="mvCalcCostTarget">—</span>
+              </div>
+              <div class="mv-calc-result-line">
+                <span>Savings if you wait</span>
+                <span class="mv-calc-result-val" id="mvCalcSavings">—</span>
+              </div>
+              <div class="mv-calc-verdict" id="mvCalcVerdict"></div>
+            </div>
+          </div>
         </div>
 
         <!-- Balance Check -->
@@ -3192,7 +3366,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
   <div id="page-faq" class="page">
     <div style="max-width:740px;margin:0 auto;padding:40px 24px 60px;">
       <div style="text-align:center;margin-bottom:44px;">
-        <img src="https://rufdvqdawrhrqqczy7npzsvyxejlxz3fnsyjodhhftfds2hjjasa.ar.io/jQo6wGC0TxhAWcfa_Mq4uRK752VssJcM5yzKOWjpSCQ/boat.png" alt="Seal" style="width:80px;height:80px;margin:0 auto 16px;display:block;filter:drop-shadow(0 0 20px rgba(255,149,0,0.25));" />
+        <img src="logoclear.png" alt="Seal" style="width:100px;height:auto;margin:0 auto 16px;display:block;filter:drop-shadow(0 0 20px rgba(255,149,0,0.25));" />
         <div style="font-family:var(--display);font-size:2.4rem;letter-spacing:0.1em;color:var(--text);">Your Questions, <span style="color:var(--accent);">Answered Honestly</span></div>
         <div style="font-size:0.82rem;color:var(--text2);line-height:1.9;max-width:520px;margin:16px auto 0;">You just got robbed. You're scared, you're embarrassed, and you don't know who to trust anymore. Every answer here is written to be straight with you... nothing softened, nothing hidden.</div>
       </div>
@@ -3293,7 +3467,7 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 
     <div class="kane-hero">
       <img class="kane-photo"
-        src="https://hzr35wlyuoapntulkcgrcin5asjbnbzupogo64hjlmrbaw2txeoq.ar.io/PmO-2XijgPbOi1CNESG9BJIWhzR7jO9w6VsiEFtTuR0/kane.png"
+        src="kane.png"
         alt="Kane Mayfield" />
       <div class="kane-identity">
         <div class="kane-name">Kane Mayfield</div>
@@ -5218,6 +5392,13 @@ const MV_STATE = {
   emblemVaults: [],     // discovered emblem vaults across fleet
   emblemSection: 'transfer',
   activeEventSource: null, // SSE stream reference — closed on error or complete
+  // S.E.L.E.C.T. state
+  selSelected: new Set(),     // Set of 'address:chainKey:contract:tokenId' keys
+  selReviewed: new Set(),     // Set of wallet addresses marked as reviewed
+  selViewMode: 'list',        // 'list' or 'gallery'
+  selOpenWallets: new Set(),  // expanded wallet addresses
+  selOpenChains: new Set(),   // expanded 'address:chainKey' keys
+  selOpenColls: new Set(),    // expanded 'address:chainKey:contract' keys
 };
 
 const MV_TIERS = { recommended: 1.1, safe: 1.25, maximum: 1.5 };
@@ -5459,6 +5640,11 @@ async function mvStartFleetScan() {
   // Set all wallets to scanning status
   validWallets.forEach(w => { MV_STATE.walletStatuses[w.address] = 'scanning'; });
   MV_STATE.scanResults = {};
+  MV_STATE.selSelected = new Set();
+  MV_STATE.selReviewed = new Set();
+  MV_STATE.selOpenWallets = new Set();
+  MV_STATE.selOpenChains = new Set();
+  MV_STATE.selOpenColls = new Set();
 
   try {
     const res = await fetch(API + '/api/markv-scan', {
@@ -5482,6 +5668,7 @@ async function mvStartFleetScan() {
     mvRenderScanResults();
     mvRenderFleetSummary();
     mvBuildKeyRows();
+    mvSelInit(); // Initialize S.E.L.E.C.T. tab with scan results
 
   } catch(e) {
     status.textContent = '✗ Scan failed: ' + e.message;
@@ -5693,6 +5880,295 @@ function mvConfirmExecute() {
       { label: '▶ Execute', cls: 'btn-primary', fn: () => { closeModal(); mvExecuteFleet(); } }
     ]
   );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// S.E.L.E.C.T. — Strategic Extraction & Ledger Evaluation Command Terminal
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const SEL_CHAIN_COLORS = {
+  'eth-mainnet': '#627eea', 'apechain-mainnet': '#0054fa', 'base-mainnet': '#0052ff',
+  'arb-mainnet': '#28a0f0', 'opt-mainnet': '#ff0420', 'avax-mainnet': '#e84142',
+  'polygon-mainnet': '#8247e5'
+};
+const SEL_CHAIN_NAMES = {
+  'eth-mainnet': 'Ethereum', 'apechain-mainnet': 'ApeChain', 'base-mainnet': 'Base',
+  'arb-mainnet': 'Arbitrum', 'opt-mainnet': 'Optimism', 'avax-mainnet': 'Avalanche',
+  'polygon-mainnet': 'Polygon'
+};
+const SEL_OS_SLUGS = {
+  'eth-mainnet': 'ethereum', 'polygon-mainnet': 'matic', 'base-mainnet': 'base',
+  'arb-mainnet': 'arbitrum', 'opt-mainnet': 'optimism', 'avax-mainnet': 'avalanche',
+  'apechain-mainnet': 'apechain'
+};
+const SEL_EXPLORERS = {
+  'eth-mainnet': 'https://etherscan.io/nft', 'polygon-mainnet': 'https://polygonscan.com/nft',
+  'base-mainnet': 'https://basescan.org/nft', 'arb-mainnet': 'https://arbiscan.io/nft',
+  'opt-mainnet': 'https://optimistic.etherscan.io/nft', 'avax-mainnet': 'https://snowtrace.io/nft',
+  'apechain-mainnet': 'https://apescan.io/nft'
+};
+
+function mvSelInit() {
+  MV_STATE.selSelected = new Set();
+  MV_STATE.selReviewed = new Set();
+  MV_STATE.selOpenWallets = new Set();
+  MV_STATE.selOpenChains = new Set();
+  MV_STATE.selOpenColls = new Set();
+  for (const [addr, result] of Object.entries(MV_STATE.scanResults)) {
+    for (const [chainKey, colls] of Object.entries(result.chains || {})) {
+      for (const coll of (colls || [])) {
+        for (const token of coll.tokens) {
+          MV_STATE.selSelected.add(`${addr}:${chainKey}:${coll.contract}:${token.tokenId}`);
+        }
+      }
+    }
+  }
+  mvSelRender();
+}
+
+function mvSelTotalCount() {
+  let total = 0;
+  for (const result of Object.values(MV_STATE.scanResults)) {
+    for (const colls of Object.values(result.chains || {})) {
+      for (const coll of (colls || [])) { total += coll.tokens.length; }
+    }
+  }
+  return total;
+}
+
+function mvSelAll(selectAll) {
+  if (selectAll) {
+    for (const [addr, result] of Object.entries(MV_STATE.scanResults)) {
+      for (const [chainKey, colls] of Object.entries(result.chains || {})) {
+        for (const coll of (colls || [])) {
+          for (const token of coll.tokens) {
+            MV_STATE.selSelected.add(`${addr}:${chainKey}:${coll.contract}:${token.tokenId}`);
+          }
+        }
+      }
+    }
+  } else { MV_STATE.selSelected.clear(); }
+  mvSelRender();
+}
+
+function mvSelToggleChain(addr, chainKey) {
+  const result = MV_STATE.scanResults[addr];
+  if (!result) return;
+  const colls = result.chains?.[chainKey] || [];
+  const keys = [];
+  for (const coll of colls) {
+    for (const token of coll.tokens) { keys.push(`${addr}:${chainKey}:${coll.contract}:${token.tokenId}`); }
+  }
+  const allSelected = keys.every(k => MV_STATE.selSelected.has(k));
+  keys.forEach(k => allSelected ? MV_STATE.selSelected.delete(k) : MV_STATE.selSelected.add(k));
+  mvSelRender();
+}
+
+function mvSelToggleColl(addr, chainKey, contract) {
+  const result = MV_STATE.scanResults[addr];
+  if (!result) return;
+  const coll = (result.chains?.[chainKey] || []).find(c => c.contract === contract);
+  if (!coll) return;
+  const keys = coll.tokens.map(t => `${addr}:${chainKey}:${contract}:${t.tokenId}`);
+  const allSelected = keys.every(k => MV_STATE.selSelected.has(k));
+  keys.forEach(k => allSelected ? MV_STATE.selSelected.delete(k) : MV_STATE.selSelected.add(k));
+  mvSelRender();
+}
+
+function mvSelToggleToken(key) {
+  MV_STATE.selSelected.has(key) ? MV_STATE.selSelected.delete(key) : MV_STATE.selSelected.add(key);
+  mvSelRender();
+}
+
+function mvSelToggleWallet(addr) {
+  MV_STATE.selOpenWallets.has(addr) ? MV_STATE.selOpenWallets.delete(addr) : MV_STATE.selOpenWallets.add(addr);
+  mvSelRender();
+}
+function mvSelToggleChainExpand(key) {
+  MV_STATE.selOpenChains.has(key) ? MV_STATE.selOpenChains.delete(key) : MV_STATE.selOpenChains.add(key);
+  mvSelRender();
+}
+function mvSelToggleCollExpand(key) {
+  MV_STATE.selOpenColls.has(key) ? MV_STATE.selOpenColls.delete(key) : MV_STATE.selOpenColls.add(key);
+  mvSelRender();
+}
+
+function mvSelMarkReviewed(addr, evt) {
+  evt.stopPropagation();
+  MV_STATE.selReviewed.has(addr) ? MV_STATE.selReviewed.delete(addr) : MV_STATE.selReviewed.add(addr);
+  mvSelRender();
+}
+
+function mvSelViewMode(mode) {
+  MV_STATE.selViewMode = mode;
+  document.getElementById('mvSelViewList').classList.toggle('active', mode === 'list');
+  document.getElementById('mvSelViewGallery').classList.toggle('active', mode === 'gallery');
+  mvSelRender();
+}
+
+function mvSelTokenLink(chainKey, contract, tokenId) {
+  const osSlug = SEL_OS_SLUGS[chainKey];
+  if (osSlug) return `https://opensea.io/assets/${osSlug}/${contract}/${tokenId}`;
+  const explorer = SEL_EXPLORERS[chainKey];
+  if (explorer) return `${explorer}/${contract}/${tokenId}`;
+  return '#';
+}
+
+function mvSelRender() {
+  const container = document.getElementById('mvSelectContent');
+  const bar = document.getElementById('mvSelBar');
+  if (Object.keys(MV_STATE.scanResults).length === 0) {
+    container.innerHTML = '<div style="font-size:0.65rem;color:var(--text3);text-align:center;padding:40px 16px;">Complete Fleet Scan first. Selection loads automatically after scan.</div>';
+    bar.style.display = 'none';
+    return;
+  }
+  const total = mvSelTotalCount();
+  const selCount = MV_STATE.selSelected.size;
+  const isGallery = MV_STATE.selViewMode === 'gallery';
+  let html = '';
+
+  for (const w of MV_STATE.wallets) {
+    if (!w.address.match(/^0x[0-9a-fA-F]{40}$/)) continue;
+    const addr = w.address.toLowerCase();
+    const result = MV_STATE.scanResults[addr];
+    if (!result) continue;
+    const chains = result.chains || {};
+    const walletTotal = Object.values(chains).reduce((s, colls) => s + colls.reduce((cs, c) => cs + c.tokens.length, 0), 0);
+    if (walletTotal === 0) continue;
+    let walletSelCount = 0;
+    for (const [ck, colls] of Object.entries(chains)) {
+      for (const coll of (colls || [])) {
+        for (const token of coll.tokens) {
+          if (MV_STATE.selSelected.has(`${addr}:${ck}:${coll.contract}:${token.tokenId}`)) walletSelCount++;
+        }
+      }
+    }
+    const wOpen = MV_STATE.selOpenWallets.has(addr);
+    const reviewed = MV_STATE.selReviewed.has(addr);
+
+    html += `<div class="sel-wallet ${wOpen ? 'open' : ''}">
+      <div class="sel-wallet-hdr" onclick="mvSelToggleWallet('${addr}')">
+        <span class="sel-caret">▶</span>
+        <div class="sel-wallet-nick">${esc(w.nick)}</div>
+        <div class="sel-wallet-addr">${w.address.slice(0,6)}...${w.address.slice(-4)}</div>
+        <div class="sel-wallet-count">${walletSelCount} / ${walletTotal} selected</div>
+        <button class="sel-wallet-done ${reviewed ? 'reviewed' : ''}" onclick="mvSelMarkReviewed('${addr}',event)">${reviewed ? '✓ REVIEWED' : 'MARK REVIEWED'}</button>
+      </div>
+      <div class="sel-wallet-body">`;
+
+    for (const [chainKey, colls] of Object.entries(chains)) {
+      if (!colls || colls.length === 0) continue;
+      const chainTotal = colls.reduce((s, c) => s + c.tokens.length, 0);
+      if (chainTotal === 0) continue;
+      let chainSelCount = 0;
+      for (const coll of colls) {
+        for (const token of coll.tokens) {
+          if (MV_STATE.selSelected.has(`${addr}:${chainKey}:${coll.contract}:${token.tokenId}`)) chainSelCount++;
+        }
+      }
+      const chainCbState = chainSelCount === chainTotal ? 'all' : chainSelCount > 0 ? 'partial' : '';
+      const chainCbMark = chainSelCount === chainTotal ? '✓' : chainSelCount > 0 ? '—' : '';
+      const ckKey = `${addr}:${chainKey}`;
+      const cOpen = MV_STATE.selOpenChains.has(ckKey);
+      const chainColor = SEL_CHAIN_COLORS[chainKey] || '#666';
+      const chainName = SEL_CHAIN_NAMES[chainKey] || chainKey.replace('-mainnet', '');
+
+      html += `<div class="sel-chain ${cOpen ? 'open' : ''}">
+        <div class="sel-chain-hdr" onclick="mvSelToggleChainExpand('${esc(ckKey)}')">
+          <span class="sel-caret">▶</span>
+          <div class="sel-chain-cb ${chainCbState}" onclick="event.stopPropagation();mvSelToggleChain('${addr}','${chainKey}')">${chainCbMark}</div>
+          <div class="sel-chain-dot" style="background:${chainColor};"></div>
+          <div class="sel-chain-name">${chainName}</div>
+          <div class="sel-chain-count">${chainSelCount} / ${chainTotal}</div>
+        </div>
+        <div class="sel-chain-body">`;
+
+      for (const coll of colls) {
+        if (coll.tokens.length === 0) continue;
+        let collSelCount = 0;
+        for (const token of coll.tokens) {
+          if (MV_STATE.selSelected.has(`${addr}:${chainKey}:${coll.contract}:${token.tokenId}`)) collSelCount++;
+        }
+        const collCbState = collSelCount === coll.tokens.length ? 'all' : collSelCount > 0 ? 'partial' : '';
+        const collCbMark = collSelCount === coll.tokens.length ? '✓' : collSelCount > 0 ? '—' : '';
+        const collKey = `${addr}:${chainKey}:${coll.contract}`;
+        const collOpen = MV_STATE.selOpenColls.has(collKey);
+
+        html += `<div class="sel-coll ${collOpen ? 'open' : ''}">
+          <div class="sel-coll-hdr" onclick="mvSelToggleCollExpand('${esc(collKey)}')">
+            <span class="sel-caret">▶</span>
+            <div class="sel-coll-cb ${collCbState}" onclick="event.stopPropagation();mvSelToggleColl('${addr}','${chainKey}','${esc(coll.contract)}')">${collCbMark}</div>
+            <div class="sel-coll-name">${esc(coll.collection)}</div>
+            <div class="sel-coll-count">(${coll.tokens.length})</div>
+            <div class="sel-coll-sel">${collSelCount > 0 ? collSelCount + ' ✓' : ''}</div>
+          </div>
+          <div class="sel-coll-body">
+            <div class="sel-grid ${isGallery ? 'gallery' : ''}">`;
+
+        for (const token of coll.tokens) {
+          const tKey = `${addr}:${chainKey}:${coll.contract}:${token.tokenId}`;
+          const tSel = MV_STATE.selSelected.has(tKey);
+          const tokenLink = mvSelTokenLink(chainKey, coll.contract, token.tokenId);
+          const noImg = "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23101a28%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%235a7a9a%22 font-size=%2210%22>No Image</text></svg>";
+
+          html += `<div class="sel-token ${tSel ? 'selected' : ''}" onclick="mvSelToggleToken('${esc(tKey)}')">
+            <div class="sel-token-cb">${tSel ? '✓' : ''}</div>
+            <img class="sel-token-img" src="${token.image || ''}" alt="" loading="lazy" onerror="this.src='${noImg}'" />
+            <div class="sel-token-info">
+              <div class="sel-token-name">${esc(token.name || 'Token #' + token.tokenId)}</div>
+              <div class="sel-token-id">#${token.tokenId}${token.balance > 1 ? ' ×' + token.balance : ''}</div>
+            </div>
+            <div class="sel-token-actions">
+              <a class="sel-token-act" href="${tokenLink}" target="_blank" onclick="event.stopPropagation()">↗ verify</a>
+            </div>
+          </div>`;
+        }
+        html += '</div></div></div>';
+      }
+      html += '</div></div>';
+    }
+    html += '</div></div>';
+  }
+
+  if (!html) html = '<div style="font-size:0.65rem;color:var(--text3);text-align:center;padding:40px 16px;">No NFTs found in scan results.</div>';
+  container.innerHTML = html;
+  bar.style.display = 'flex';
+  document.getElementById('mvSelCount').textContent = selCount;
+  document.getElementById('mvSelTotal').textContent = total;
+}
+
+function mvSelProceed() {
+  if (MV_STATE.selSelected.size === 0) {
+    showModal('⚠', 'Nothing Selected', 'Select at least one asset before proceeding to extraction.', [{label:'OK',cls:'btn-ghost',fn:closeModal}]);
+    return;
+  }
+  const filtered = {};
+  for (const [addr, result] of Object.entries(MV_STATE.scanResults)) {
+    const filteredChains = {};
+    for (const [chainKey, colls] of Object.entries(result.chains || {})) {
+      const filteredColls = [];
+      for (const coll of (colls || [])) {
+        const filteredTokens = coll.tokens.filter(t =>
+          MV_STATE.selSelected.has(`${addr}:${chainKey}:${coll.contract}:${t.tokenId}`)
+        );
+        if (filteredTokens.length > 0) filteredColls.push({ ...coll, tokens: filteredTokens });
+      }
+      if (filteredColls.length > 0) filteredChains[chainKey] = filteredColls;
+    }
+    if (Object.keys(filteredChains).length > 0) filtered[addr] = { ...result, chains: filteredChains };
+  }
+  MV_STATE.scanResults = filtered;
+  let nfts = 0, chainsSet = new Set();
+  for (const r of Object.values(filtered)) {
+    for (const [ck, colls] of Object.entries(r.chains || {})) {
+      chainsSet.add(ck);
+      for (const c of colls) nfts += c.tokens.length;
+    }
+  }
+  MV_STATE.fleetStats.nfts = nfts;
+  MV_STATE.fleetStats.wallets = Object.keys(filtered).length;
+  MV_STATE.fleetStats.chains = chainsSet.size;
+  showMvTab('execute', document.getElementById('mv-tab-execute'));
 }
 
 async function mvExecuteFleet() {

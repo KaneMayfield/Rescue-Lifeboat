@@ -73,8 +73,8 @@ function getProvider(chainKey, alchemyKey) {
 
   return new ethers.JsonRpcProvider(
     rpc,
-    { chainId: chain.chainId, name: chain.name },
-    { staticNetwork: true }
+    null,
+    { staticNetwork: ethers.Network.from(chain.chainId) }
   );
 }
 
@@ -409,13 +409,13 @@ export async function executeFleet(wallets, destination, fundingKey, scanResults
   // Build one funding wallet per chain (same key, different providers)
   // This is computed per-chain per execution call.
 
-  const walletResults = []; // Collected after all parallel ops complete
+  const walletResults = new Array(validatedWallets.length); // Pre-allocate to preserve input order
   let totalConfirmed = 0;
   let walletsCleared = 0;
 
   // ── PARALLEL WALLET EXECUTION ──────────────────────────────────────────────
   // All wallets run simultaneously. Each wallet handles its own chain loop.
-  await Promise.all(validatedWallets.map(async (w) => {
+  await Promise.all(validatedWallets.map(async (w, walletIndex) => {
     const walletResult = {
       address: w.address,
       nick: w.nick,
@@ -431,7 +431,7 @@ export async function executeFleet(wallets, destination, fundingKey, scanResults
       const walletData = scanResults[w.address.toLowerCase()];
       if (!walletData) {
         walletResult.error = 'No scan data for wallet';
-        walletResults.push(walletResult);
+        walletResults[walletIndex] = walletResult;
         return;
       }
 
@@ -653,7 +653,7 @@ export async function executeFleet(wallets, destination, fundingKey, scanResults
       progress(w.address, 'error', `${w.nick}: Fatal error — ${e.message}`);
     }
 
-    walletResults.push(walletResult);
+    walletResults[walletIndex] = walletResult;
     progress(w.address, 'done', walletResult.success
       ? `${w.nick}: Complete — ${walletResult.confirmed} assets confirmed`
       : `${w.nick}: Finished with errors`
@@ -902,8 +902,8 @@ export async function executeEmblemUnvault(vaults, xcpDestination, btcFeeAmount 
       // Fetch vault metadata to get ciphertextV2
       const provider = new ethers.JsonRpcProvider(
         alchemyKey ? `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}` : 'https://cloudflare-eth.com',
-        { chainId: 1, name: 'Ethereum Mainnet' },
-        { staticNetwork: true }
+        null,
+        { staticNetwork: ethers.Network.from(1) }
       );
 
       const vaultABI = ['function tokenURI(uint256 tokenId) view returns (string)'];
