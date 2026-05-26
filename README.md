@@ -502,7 +502,7 @@ The typical Mark V operator has 5 to 50 wallets accumulated over years of collec
 | Ethereum    | ✅ Yes        | ETH          | Tested       | Alchemy      |
 | ApeChain    | No            | APE          | Tested       | Alchemy      |
 | Base        | No            | ETH          | Tested       | Alchemy      |
-| Arbitrum    | No            | ETH          | Tested       | Alchemy      |
+| Arbitrum    | No            | ETH          | Configured   | Alchemy      |
 | Optimism    | No            | ETH          | Configured   | Alchemy      |
 | Avalanche   | No            | AVAX         | Configured   | Alchemy      |
 | Polygon     | No            | POL          | Tested       | Alchemy      |
@@ -526,23 +526,26 @@ key required for those chains.
 
 ```
 Rescue-Lifeboat/
-├── start.bat             # Windows launcher (double-click this)
-├── start.sh              # Mac/Linux launcher
-├── check.bat             # Windows system checker (run this first)
-├── check.sh              # Mac/Linux system checker (run this first)
+├── assets/               # Images, video, and media
+├── docs/                 # Constitution, guides, lessons learned
+├── .github/workflows/    # CI/CD (GitHub Actions)
+├── index.html            # The interface
 ├── server.js             # Local Express server
 ├── engine.js             # Blockchain operations (the real engine)
 ├── markv-engine.js       # Mark V fleet execution engine
 ├── markv-server.js       # Mark V API routes
 ├── emblem-engine.js      # Emblem Vault rescue engine
 ├── emblem-server.js      # Emblem Vault API routes
-├── index.html            # The interface
-├── package.json          # Dependencies
 ├── test-suite.js         # Full automated test suite
 ├── test-engine.js        # Engine tests
 ├── test-markv.js         # Mark V tests
 ├── test-server.js        # Server route tests
 ├── test-emblem.js        # Emblem Vault tests
+├── package.json          # Dependencies
+├── start.bat             # Windows launcher (double-click this)
+├── start.sh              # Mac/Linux launcher
+├── check.bat             # Windows system checker (run this first)
+├── check.sh              # Mac/Linux system checker (run this first)
 ├── README.md             # You're reading it
 ├── LICENSE               # MIT License
 ├── DISCLAIMER.md         # Legal stuff, human-readable

@@ -1331,6 +1331,148 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 }
 .mv-calc-live-badge:hover { color: rgba(0,220,160,0.95); }
 
+/* ── Quiet Fund image overlay ── */
+.qf-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  user-select: none;
+}
+.qf-bg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+}
+.qf-overlay {
+  position: absolute;
+  top: 19.0%; left: 1.5%;
+  width: 27.5%; height: 46%;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5% 1.8% 1.2%;
+  gap: 0;
+}
+.qf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 5%;
+}
+.qf-label {
+  font-family: var(--mono);
+  font-size: 0.45rem;
+  color: rgba(180,160,100,0.7);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.qf-label .qf-tag-from {
+  background: rgba(255,80,60,0.25);
+  color: rgba(255,120,100,0.9);
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 0.38rem;
+  margin-left: 4px;
+}
+.qf-label .qf-tag-to {
+  background: rgba(0,200,140,0.2);
+  color: rgba(0,220,160,0.9);
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 0.38rem;
+  margin-left: 4px;
+}
+.qf-input {
+  background: rgba(6,8,9,0.7);
+  border: 1px solid rgba(200,150,15,0.25);
+  border-radius: 2px;
+  color: rgba(220,190,100,0.95);
+  font-family: var(--mono);
+  font-size: clamp(0.45rem, 1.1vw, 0.68rem);
+  padding: 4px 6px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.qf-input:focus { border-color: rgba(200,150,15,0.6); }
+.qf-input::placeholder { color: rgba(180,160,100,0.3); font-size: inherit; }
+.qf-select {
+  background: rgba(6,8,9,0.8);
+  border: 1px solid rgba(200,150,15,0.25);
+  border-radius: 2px;
+  color: rgba(220,190,100,0.95);
+  font-family: var(--mono);
+  font-size: clamp(0.42rem, 1vw, 0.6rem);
+  padding: 4px 6px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  cursor: pointer;
+}
+.qf-chain-warn {
+  font-family: var(--mono);
+  font-size: 0.38rem;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.qf-btn {
+  background: rgba(200,150,15,0.15);
+  border: 1px solid rgba(200,150,15,0.4);
+  color: rgba(220,190,100,0.95);
+  font-family: var(--mono);
+  font-size: clamp(0.42rem, 1vw, 0.55rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 6px 0;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s, border-color 0.15s;
+  margin-top: 2%;
+}
+.qf-btn:hover:not(:disabled) {
+  background: rgba(200,150,15,0.28);
+  border-color: rgba(200,150,15,0.7);
+}
+.qf-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.qf-status {
+  font-family: var(--mono);
+  font-size: 0.4rem;
+  margin-top: 3%;
+  line-height: 1.6;
+}
+.qf-amount-hint {
+  font-family: var(--mono);
+  font-size: 0.35rem;
+  color: rgba(180,160,100,0.45);
+  margin-top: 1px;
+}
+/* Responsive: stack below the image on narrow screens */
+@media (max-width: 680px) {
+  .qf-overlay {
+    position: relative;
+    top: auto; left: auto;
+    width: 100%; height: auto;
+    padding: 16px;
+    background: rgba(6,8,9,0.92);
+    border: 1px solid rgba(200,150,15,0.2);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+  }
+  .qf-bg { border-radius: 4px 4px 0 0; }
+  .qf-label { font-size: 0.55rem; }
+  .qf-input, .qf-select { font-size: 0.65rem; padding: 8px 10px; }
+  .qf-btn { font-size: 0.6rem; padding: 10px 0; }
+  .qf-chain-warn { font-size: 0.5rem; }
+  .qf-status { font-size: 0.55rem; }
+  .qf-amount-hint { font-size: 0.48rem; }
+  .qf-field { margin-bottom: 12px; }
+}
+
 /* Mark V extraction video */
 /* Mark V extraction video */
 .mv-video-wrap {
@@ -2081,49 +2223,56 @@ body.tab-markv .bg-scene-markv { opacity: 0.22; }
 
         <div class="tool-card">
           <div class="tool-card-header"><span class="tool-card-icon">⚓</span><span class="tool-card-title">Quiet Fund a Compromised Wallet</span></div>
-          <div class="tool-card-body">
+          <div class="tool-card-body" style="padding:0;">
 
-            <div style="background:rgba(255,149,0,0.08);border:1px solid rgba(255,149,0,0.3);border-radius:6px;padding:14px 18px;margin-bottom:16px;font-size:0.68rem;color:var(--text2);line-height:1.8;">
+            <div style="padding:14px 18px 16px;background:rgba(255,149,0,0.08);border-bottom:1px solid rgba(255,149,0,0.15);font-size:0.68rem;color:var(--text2);line-height:1.8;">
               <strong style="color:var(--warn);">⚠ READ THIS FIRST — this is a daytime burglary.</strong><br><br>
               This is <strong style="color:var(--text);">not</strong> "send funds, have a Dannon yogurt, watch Netflix, finish later." The moment the funds confirm, the sweeper bot may detect them and drain. You have a narrow window — often just seconds on Ethereum, less on other chains.<br><br>
               <strong style="color:var(--text);">Before you click Send, have the third-party site ready to sign.</strong> Go to the place (ENS app, unstake page, whatever). Fill in all the fields. Click the transaction button. Let it fail with "insufficient funds." <em>Now</em> you know the exact gas amount. Note it. Add 15–20% padding. Come back here, send that amount, switch tabs, and sign within ~10 seconds.<br><br>
               If you're not ready to act immediately, you might as well throw this ETH into the fountain at the mall.
             </div>
 
-            <div class="field-group">
-              <div class="field-label">Chain</div>
-              <select class="field-input" id="qfChain" onchange="checkQuietFundReady()" style="cursor:pointer;">
-                <option value="eth">Ethereum (MEV Protected ✓)</option>
-                <option value="polygon">Polygon (no stealth mode)</option>
-                <option value="base">Base (no stealth mode)</option>
-                <option value="optimism">Optimism (no stealth mode)</option>
-                <option value="avalanche">Avalanche (no stealth mode)</option>
-                <option value="apechain">ApeChain (no stealth mode)</option>
-                <option value="arbitrum">Arbitrum (no stealth mode)</option>
-              </select>
-              <div id="qfChainWarn" style="font-size:0.6rem;color:var(--text3);margin-top:6px;"></div>
+            <div class="qf-wrap">
+              <img class="qf-bg" src="assets/quietfund.png" alt="Quiet Fund — Covert Gas Provisioning" />
+              <div class="qf-overlay">
+
+                <div class="qf-field">
+                  <div class="qf-label">Network</div>
+                  <select class="qf-select" id="qfChain" onchange="checkQuietFundReady()">
+                    <option value="eth">Ethereum (MEV Protected ✓)</option>
+                    <option value="polygon">Polygon (no stealth mode)</option>
+                    <option value="base">Base (no stealth mode)</option>
+                    <option value="optimism">Optimism (no stealth mode)</option>
+                    <option value="avalanche">Avalanche (no stealth mode)</option>
+                    <option value="apechain">ApeChain (no stealth mode)</option>
+                    <option value="arbitrum">Arbitrum (no stealth mode)</option>
+                  </select>
+                  <div class="qf-chain-warn" id="qfChainWarn"></div>
+                </div>
+
+                <div class="qf-field">
+                  <div class="qf-label">Funding Wallet Key <span class="qf-tag-from">FROM</span></div>
+                  <input type="password" class="qf-input" id="qfFundingKey" placeholder="0x... clean wallet with gas" oninput="checkQuietFundReady()" />
+                </div>
+
+                <div class="qf-field">
+                  <div class="qf-label">Compromised Wallet <span class="qf-tag-to">TO</span></div>
+                  <input type="text" class="qf-input" id="qfToAddress" placeholder="0x... the hacked wallet" oninput="checkQuietFundReady()" />
+                </div>
+
+                <div class="qf-field">
+                  <div class="qf-label">Amount</div>
+                  <input type="text" class="qf-input" id="qfAmount" placeholder="0.005" oninput="checkQuietFundReady()" />
+                  <div class="qf-amount-hint">Gas quote + 15–20% padding</div>
+                </div>
+
+                <button class="qf-btn" id="qfBtn" onclick="confirmQuietFund()" disabled>⚓ INITIATE COVERT TRANSFER</button>
+                <div class="qf-status" id="qfStatus"></div>
+
+              </div>
             </div>
 
-            <div class="field-group">
-              <div class="field-label">Funding Wallet <span style="color:var(--danger);">KEY</span> <span class="badge-sm badge-from">FROM</span></div>
-              <input type="password" class="field-input" id="qfFundingKey" placeholder="0x... clean wallet with gas" oninput="checkQuietFundReady()" />
-            </div>
-
-            <div class="field-group">
-              <div class="field-label">Compromised Wallet <span style="color:var(--safe);">Address</span> <span class="badge-sm badge-to">TO</span></div>
-              <input type="text" class="field-input" id="qfToAddress" placeholder="0x... the hacked wallet" oninput="checkQuietFundReady()" />
-            </div>
-
-            <div class="field-group">
-              <div class="field-label">Amount to Send <span style="color:var(--text3);">(native token of selected chain)</span></div>
-              <input type="text" class="field-input" id="qfAmount" placeholder="0.005" oninput="checkQuietFundReady()" />
-              <div style="font-size:0.6rem;color:var(--text3);margin-top:6px;">Enter the gas amount the third-party site quoted, plus 15–20% padding.</div>
-            </div>
-
-            <button class="btn btn-primary" id="qfBtn" onclick="confirmQuietFund()" disabled style="width:100%;">⚓ Send Quiet Fund</button>
-            <div id="qfStatus" style="font-size:0.65rem;color:var(--text3);margin-top:12px;line-height:1.7;"></div>
-
-            <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:0.65rem;color:var(--text3);line-height:1.8;">
+            <div style="padding:14px 18px;border-top:1px solid var(--border);font-size:0.65rem;color:var(--text3);line-height:1.8;">
               <strong style="color:var(--text2);">After the third-party transaction confirms:</strong> come back here or to the Native Sweep tab and sweep any leftover gas back to your clean wallet. Don't leave change in the compromised wallet — it's the bot's bait.
             </div>
 
@@ -4036,7 +4185,8 @@ function renderAll() {
         const k = `${chainId}:${coll.contract}:${token.tokenId}`;
         const sel = STATE.selected.has(k);
         const flag = STATE.flagged.has(k);
-        const osLink = `https://opensea.io/assets/${info.key === 'eth' ? 'ethereum' : info.key}/${coll.contract}/${token.tokenId}`;
+        const osChainSlug = { eth: 'ethereum', polygon: 'matic', apechain: 'ape_chain' }[info.key] || info.key;
+        const osLink = `https://opensea.io/assets/${osChainSlug}/${coll.contract}/${token.tokenId}`;
         
         html += `<div class="nft-card ${sel?'selected':''} ${flag?'flagged':''}" id="card-${esc(k)}">
           <div class="nft-img-wrap" onclick="toggleNFT('${esc(k)}')">
@@ -5905,7 +6055,7 @@ const SEL_CHAIN_NAMES = {
 const SEL_OS_SLUGS = {
   'eth-mainnet': 'ethereum', 'polygon-mainnet': 'matic', 'base-mainnet': 'base',
   'arb-mainnet': 'arbitrum', 'opt-mainnet': 'optimism', 'avax-mainnet': 'avalanche',
-  'apechain-mainnet': 'apechain'
+  'apechain-mainnet': 'ape_chain'
 };
 const SEL_EXPLORERS = {
   'eth-mainnet': 'https://etherscan.io/nft', 'polygon-mainnet': 'https://polygonscan.com/nft',
